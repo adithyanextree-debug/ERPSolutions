@@ -1,0 +1,513 @@
+﻿@using System.Data
+@{
+    ViewData["Title"] = "Ecommerce Sales Invoice";
+}
+
+<style>
+    #Itemtable input.form-control {
+        border: 0.5px solid #ccc;
+        padding: 6px !important;
+        box-shadow: none !important;
+        background-color: #fff !important; /* Optional: make background transparent */
+    }
+
+    .col-form-label {
+        font-size: 13px;
+        padding-top: 6px;
+        font-weight: 500;
+    }
+   
+</style>
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Ecommerce Sales Invoice</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="Home">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Inventory</li>
+                    <li class="breadcrumb-item ">Transaction</li>
+                    <li class="breadcrumb-item ">Sales</li>
+                    <li class="breadcrumb-item active">Ecommerce Sales Invoice</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Zero Configuration  Starts-->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="list-product-header mt-4">
+                    <div>
+                        @(await Component.InvokeAsync("ToolBar", new
+                        {
+                            PageName = "Ecommerce Sales Invoice",
+                            AllowNew = false,
+                            AllowEdit = ViewBag.UserPermissions.IsEdit,
+                            AllowDelete = ViewBag.UserPermissions.IsDelete,
+                            AllowPDF = ViewBag.UserPermissions.IsPrint
+                        }))
+
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" id="EcommerceSalesList">
+                        @*  @(await Component.InvokeAsync("GridView", new
+                    {
+                        Heading = "Ecommerce Sales Invoice",
+                        IDColumnName = "ID",
+                        DatasTable = ViewBag.DataTable,
+                        TableID = "EcommerceSalesInvoice",
+                        Searching = true,
+                        PageLength = 5,
+                        HideColumns = "ID,Amount,EntryNo,EntryDate,Phone,SerialNo,Status"
+
+                    })) *@
+                        <table class="display table" id="project-status">
+                            <thead>
+                                <tr>
+                                    <th class="col">SNo.</th>
+                                    <th>TRANSACTION NO.</th>
+                                    <th>DATE</th>
+                                    <th>CUSTOMER NAME</th>
+                                    <th>MOBILE</th>
+                                    <th>EMAIL</th>
+                                    <th>ADDRESS</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="EcommerceSalesTbody">
+                                @Html.Raw(ViewBag.DataTable)
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="EcommerceSalesForm" style="display:none;">
+                        <!--Add Details -->
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <input type="text" class="text-center transparent_text" id="ID" style="display:none" />
+                                        <input type="text" class="text-center transparent_text" id="MenuID" value="@ViewBag.MenuID" style="display:none" />
+
+                                        <div class="col-md-4" id="vouchernodiv" style="display:none">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "VoucherNo", DisplayText = "Voucher No.", IsMandatory = true }))
+                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "VoucherDate", DisplayText = "Voucher Date", IsMandatory = true }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox",
+                                                    new
+                                                    {
+                                                        Type = "Lookup",
+                                                        ID = "Party",
+                                                        DisplayText = "Party",
+                                                        IDColumn = "AccountID",
+                                                        LookupCriteria = "Customers",
+                                                        IDValue = 1,
+                                                        AssignColumn = "Name",
+                                                    }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Reference", DisplayText = "Reference" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Account", DisplayText = "Account" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "Warehouse", DisplayText = "Warehouse" }))
+                                            </div>
+                                        </div>
+                                         <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "Mode", DisplayText = "Type" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Project", DisplayText = "Project " }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "DeliveryCharge", DisplayText = "Delivery Charge" }))
+                                            </div>
+                                        </div>
+                                        @* <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Project", DisplayText = "Project" }))
+                                            </div>
+                                        </div> *@
+                                       
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="col-md-2 pr-0">
+                                                    <span class="grpspn">Description</span>
+                                                </div>
+                                                <div class="col-md-10 pl-0">
+                                                    <input type="text" id="Description" class="form-control salesInvoiceDescription" data-ismandatory="false">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- DEtails Ends  -->
+                        <!--Add Additional details-->
+                        <div class="col-md-12 mb-4">
+                            <div class="accordion dark-accordion" id="simpleaccordion">
+                                <div class="accordion-item">
+                                    <h6 class="accordion-header" id="headingOne">
+                                        <button class="accordion-button collapsed accordion-light-primary text-primary " type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne" style="color:black">
+                                            ADDITIONAL DETAILS
+                                            <i class="iconly-Arrow-Down-2 icli ms-auto icon"></i>
+                                        </button>
+
+                                    </h6>
+                                    <div class="accordion-collapse collapse" id="collapseOne" aria-labelledby="headingOne" data-bs-parent="#simpleaccordion">
+                                        <div class="accordion-body">
+                                            <!-- GENERAL SECTION -->
+                                            <section id="General">
+                                                <h6 class="py-2 px-3 rounded-top mb-0 border-bottom" style="font-weight: 600;color:#308e87">
+                                                    GENERAL DETAILS
+                                                </h6>
+                                                <form class="card rounded-custom">
+                                                    <div class="card-body p-0">
+                                                        <div class="row mb-4 mt-4">
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Party Invoice No. & Date</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <input class="form-control" id="PartyInvoiceNo" type="text" name="PartyInvoiceNo" data-ismandatory="false">
+                                                                        <input class="form-control mt-2" id="PartyInvoiceDate" type="date" name="PartyInvoiceDate" data-ismandatory="false">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Order No. & Date</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <input class="form-control" id="OrderNo" type="text" name="OrderNo" data-ismandatory="false">
+                                                                        <input class="form-control mt-2" id="OrderDate" type="date" name="OrderDate" data-ismandatory="false">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Party Name and Address</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <textarea rows="2" id="PartyNameAddress" name="PartyNameAddress" class="form-control"></textarea>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="row mb-4">
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Expiry Date</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <input class="form-control mt-2" id="ExpiryDate" type="date" name="ExpiryDate" data-ismandatory="false">
+                                                                        @*                                                                 <input class="form-control" id="ExpiryDate" type="text" name="ExpiryDate" data-ismandatory="false">
+*@                                                            </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Attention</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <input class="form-control" id="Attention" type="text" name="Attention" data-ismandatory="false">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </section>
+                                            <!-- SALES SECTION -->
+                                            <section id="Sales">
+                                                <h6 class="py-2 px-3 rounded-top mb-0 border-bottom" style="font-weight: 600;color:#308e87">
+                                                    SALES DETAILS
+                                                </h6>
+                                                <form class="card rounded-custom">
+                                                    <div class="card-body p-0">
+                                                        <div class="row mb-4 mt-4">
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Sales Man</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <input class="form-control" id="SalesMan" type="text" name="SalesMan" data-ismandatory="false">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Sales Area</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <select class="form-control" id="SalesArea" name="SalesArea" data-ismandatory="false">
+                                                                            <option value="">--Select--</option>
+                                                                            @*
+                                                            @foreach (DataRow dr in dtTransactionEntries.Rows)
+                                                            {
+                                                            <option value="@dr["ID"]">@dr["Name"]</option>
+                                                            }
+                                                            *@
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Staff Incentive</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <input class="form-control mb-2" id="StaffIncentive" type="text" name="StaffIncentive" data-ismandatory="false">
+                                                                        <input class="form-control" id="StaffIncentivePerc" type="text" name="StaffIncentivePerc" data-ismandatory="false" placeholder="%">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </section>
+                                            <!-- DELIVERY DETAILS SECTION -->
+                                            <section id="DeliveryDetails">
+                                                <h6 class="py-2 px-3 rounded-top mb-0 border-bottom" style="font-weight: 600;color:#308e87">
+                                                    DELIVERY DETAILS
+                                                </h6>
+
+                                                <form class="card rounded-custom">
+                                                    <div class="card-body p-0">
+                                                        <div class="row mb-4 mt-4">
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Vehicle No</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <input class="form-control" id="VehicleNo" type="text" name="VehicleNo" data-ismandatory="false">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Delivery Note No. & Date</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <input class="form-control" id="DeliveryNoteNo" type="text" name="DeliveryNoteNo" data-ismandatory="false">
+                                                                        <input class="form-control mt-2" id="DeliveryNoteDate" type="date" name="DeliveryNoteDate" data-ismandatory="false">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="col-md-4">
+                                                                <div class="row">
+                                                                    <div class="col-md-5 pr-0">
+                                                                        <span class="grpspn">Dispatch No. & Date</span>
+                                                                    </div>
+                                                                    <div class="col-md-7 pl-0">
+                                                                        <input class="form-control" id="DispatchNo" type="text" name="DispatchNo" data-ismandatory="false">
+                                                                        <input class="form-control mt-2" id="DispatchDate" type="date" name="DispatchDate" data-ismandatory="false">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <!-- start new row for Terms of Delivery -->
+                                                        <div class="row mb-4">
+                                                            <div class="col-md-8">
+                                                                <div class="row">
+                                                                    <div class="col-md-2 pr-0">
+                                                                        <span class="grpspn">Terms of Delivery</span>
+                                                                    </div>
+                                                                    <div class="col-md-10 pl-0">
+                                                                        <input type="text" id="TermsofDelivery" class="form-control" name="TermsofDelivery" data-ismandatory="false">
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </section>
+                                            @*<p>Web design<em class="text-danger"> identifies the goals</em> of a website or webpage and promotes accessibility for all potential users. 
+                                                This process involves organizing content and images across a series of pages and integrating applications and other interactive elements.
+                                            </p>*@                                               
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Additiona details End-->
+                        <!--Table Starts  -->
+                        <div class="col-sm-12">
+                            @*  <div class="rounded" style="background-color:#C0CAC9;padding:15px;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3>Items</h3>
+                                    
+                                </div>
+                            </div>*@ 
+                            <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5" style="font-weight: 600;color:#308e87">
+                                ITEMS
+                            </h6>
+                            <div class="card rounded-custom overflow-hidden">
+
+                                <div class="table-responsive">
+                                    <table class="table table-light" id="Itemtable">
+                                        <thead>
+                                            <tr>
+                                                <th>Sl. No.</th>
+                                                <th></th>
+                                                <th>Item Name</th>
+                                                <th>Unit</th>
+                                                <th>Qty</th>
+                                                <th>Rate</th>
+                                                <th>GrossAmt</th>
+                                                <th>Disc %</th>
+                                                <th>Discount</th>
+                                                <th>Amount</th>
+                                                <th>Tax %</th>
+                                                <th>TaxValue</th>
+                                                <th>Total</th>
+                                                <th>Add</th>
+                                                <th>Delete</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="qtySum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="ItemGrossAmtSum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="dicsAmtSum"></p></td>
+                                                <td><p id="amtSum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="taxAmtSum"></p></td>
+                                                <td><p id="itemTotalSum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Item table End-->
+                        <!--Status Table Starts  -->
+                        <div class="col-sm-12">
+                            <div class="card overflow-hidden">
+                                @* <div class="card-header card-no-border" style="background-color:#C0CAC9">
+                                    <h3>Status</h3>
+                                </div> *@
+                                <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5" style="font-weight: 600;color:#308e87">
+                                    STATUS DETAILS
+                                </h6>
+                                <div class="p-3" id="UpdateOrderStatusDiv">
+                                    <div class="row d-flex justify-content-end">
+                                        <div class="col-md-2 col-sm-6">
+                                            <button class="btn btn-primary" type="button" id="UpdateOrderStatusBtn">Update Order Status</button>
+                                        </div>
+                                        <div class="col-md-2 col-sm-6" id="StatusDropdownDiv" style="display:none">
+                                           @*  <label for="StatusDropdown" class="form-label">Select Status</label> *@
+                                            <select id="StatusDropdown" class="form-control">
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2 col-sm-6" id="UpdateBtn" style="display:none">
+                                            <button class="btn btn-primary" type="button">Update</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Dropdown Row -->
+                              
+                                <div class="table-responsive">
+                                    <table class="table" id="StatusTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Order No</th>
+                                                <th>Order Date</th>
+                                                <th>Name</th>
+                                                <th>Mobile</th>
+                                                <th>Status Updated On</th>
+                                                <th>Remarks</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Status table End-->
+                       @*  <!--Item Table Starts  -->
+                        <div class="col-sm-12">
+                            <div class="card overflow-hidden">
+                                <div class="card-header card-no-border" style="background-color:#C0CAC9">
+                                    <h3>Item</h3>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table" id="ItemsTable">
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Item table End--> *@
+                    </div>
+                   @*  <div class="col-sm-12">
+                        <div id="reportContainer">
+                        </div>
+                    </div> *@
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Container-fluid Ends -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script src="~/assets/custom/Inventory/Transactions/EcommerceSales.js"></script>

@@ -1,0 +1,396 @@
+﻿@model ERPSample.Models.Accounting.Reports.BillwiseStatementModel
+@using System.Data
+@{
+    ViewData["Title"] = "Billwise Statement";
+}
+
+<style>
+    .totals-row {
+        background-color: #f9f9f9;
+        border-top: 2px solid #ccc;
+        font-weight: bold;
+    }
+
+</style>
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Statement of Account</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="index.html">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Accounting</li>
+                    <li class="breadcrumb-item">Statement</li>
+                    <li class="breadcrumb-item active">Account Statement</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Container-fluid starts-->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="list-product-header">
+                        <div>
+                            <ul class="quick-file d-flex flex-row">
+                                <li onclick="printOnlyTable()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-print text-warning">
+                                        </i>
+                                    </div>
+                                    <h6 class="mb-2">Print</h6>
+                                </li>
+                                <li onclick="exportToPDF()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-file text-info"></i>
+                                    </div>
+                                    <h6 class="mb-2">PDF</h6>
+                                </li>
+                                <li onclick="exportToExcel()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-book text-primary"></i>
+                                    </div>
+                                    <h6 class="mb-2">Excel</h6>
+                                </li>
+                                <li onclick="emailTableData()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-envelope text-title-gray"></i>
+                                    </div>
+                                    <h6 class="mb-2">Email</h6>
+                                </li>
+                                <li onclick="CloseEntry()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-close text-danger"></i>
+                                    </div>
+                                    <h6 class="mb-2">Close</h6>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+                    <!--Add Products -->
+                    <div>
+                        <div class="col-md-12">
+                            <div class="card">
+
+                                <div class="card-body basic-form">
+                                     <form id="BillwiseStatementForm" class="theme-form row g-3" asp-controller="BillwiseStatement" asp-action="ShowReport" enctype="multipart/form-data" method="post">
+                                        <div class="col-md-3"> 
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "StartDate", DisplayText = "Date From"}))
+                                            </div>
+                                        </div>                                        
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "EndDate", DisplayText = "Date Upto" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "DueDaysFrom", DisplayText = "From" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "DueDaysUpto", DisplayText = "Upto" }))
+                                            </div>
+                                        </div>
+                                        @*For Account look up *@
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox",
+                                                    new
+                                                    {
+                                                        Type = "Lookup",
+                                                        ID = "AccountName",
+                                                        DisplayText = "Account",
+                                                        IDColumn = "ID",
+                                                        LookupCriteria = "Accounts",
+                                                        IDValue = 0,
+                                                        AssignColumn = "AccountName",
+                                                    }))
+                                            </div>
+                                        </div>
+           
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "BillType", DisplayText = "Bill Type" }))
+                                            </div>
+                                        </div>
+                                        @*For Account-group look up *@
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox",
+                                                    new
+                                                    {
+                                                        Type = "Lookup",
+                                                        ID = "AccGroupID",
+                                                        DisplayText = "Account Group",
+                                                        IDColumn = "ID",
+                                                        LookupCriteria ="GroupAccounts",
+                                                        IDValue = 0,
+                                                        AssignColumn = "AccountName",
+                                                    }))
+                                            </div>
+                                        </div>
+            
+                                        @*For Account category look up *@
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox",
+                                                    new
+                                                    {
+                                                        Type = "Lookup",
+                                                        ID = "AccCategory",
+                                                        DisplayText = "Account Category",
+                                                        IDColumn = "ID",
+                                                        LookupCriteria = "AccountCategory",
+                                                        IDValue = 0,
+                                                        AssignColumn = "Description",
+                                                    }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "ToggleButton", ID = "Detailed", DisplayText = "Detailed" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "ToggleButton", ID = "Pending", DisplayText = "Pending bill" }))
+                                            </div>
+                                        </div>
+                                        <input type="hidden" id="AccountID" name="AccountID" />
+                                        <input type="hidden" id="AccCategoryID" name="AccCategoryID" />
+                                        <input type="hidden" id="AccGroup" name="AccGroup" />
+
+                                        <div class="col-md-1">
+                                            <div class="">
+                                                <button class="btn btn-primary me-2"
+                                                        type="submit">
+                                                    Submit
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Add Products Ends  -->
+                    <!-- Table Starts  -->
+                    <div id="reportContainer">
+                        @if (Model != null && Model.ReportTable != null && Model.ReportTable.Rows.Count > 0)
+                        {
+                            <div class="col-sm-12" id="billwisestatementtable">
+                                <style type="text/css" media="print">
+                                    @@page {
+                                        size: landscape;
+                                        margin: 20mm 10mm 20mm 10mm;
+                                        min-height: 200mm; /* Approx. height for A4 minus margins */
+                                    }
+
+                                    @@media print {
+                                        .header {
+                                            position: fixed;
+                                            top: 0;
+                                            left: 0;
+                                            width: 100%;
+                                            height: 80px; /* Adjust as needed */
+                                            background-color: #f0f0f0; /* Optional: Add a background color */
+                                            z-index: 1; /* Ensure it's above the content */
+                                            text-align: center; /* Center the image */
+                                            /* Add any other header styles */
+                                            display: flex;
+                                            justify-content: center;
+                                            align-items: center;
+                                        }
+
+                                        .footer {
+                                            position: fixed;
+                                            bottom: 0;
+                                            left: 0;
+                                            width: 100%;
+                                            height: 80px; /* Adjust as needed */
+                                            background-color: #f0f0f0; /* Optional: Add a background color */
+                                            z-index: 1; /* Ensure it's above the content */
+                                            text-align: center; /* Center the image */
+                                            /* Add any other footer styles */
+                                            display: flex;
+                                            justify-content: center;
+                                            align-items: center;
+                                        }
+
+                                        table, thead, tbody, tr {
+                                            page-break-inside: avoid !important;
+                                        }
+
+                                            table.table {
+                                                border-collapse: collapse;
+                                                width: 100%;
+                                                table-layout: fixed;
+                                            }
+                                                /* Apply inner borders to all cells */
+                                                table.table th,
+                                                table.table td {
+                                                    border: 1px solid #e5e5e5;
+                                                    font-size: 11px;
+                                                    word-wrap: break-word;
+                                                    overflow-wrap: break-word;
+                                                    white-space: normal; /* Add this to allow multi-line wrapping */
+                                                }
+                                                /* Remove outer borders from first and last columns */
+                                                table.table tr td:first-child,
+                                                table.table tr th:first-child {
+                                                    border-left: none;
+                                                }
+
+                                                table.table tr td:last-child,
+                                                table.table tr th:last-child {
+                                                    border-right: none;
+                                                }
+                                                /* Remove top border of the first visible row */
+                                                table.table thead tr:first-child th,
+                                                table.table thead tr:first-child td {
+                                                    border-top: none;
+                                                }
+                                                /* Remove bottom border of last row in table */
+                                                table.table tfoot td {
+                                                    border: none;
+                                                }
+                                    }
+                                </style>
+                                <style type="text/css" media="screen">
+                                    .header, .footer {
+                                        display: none;
+                                    }
+                                </style>
+                                <div class="card">
+                                    <div class="card-block row">
+                                        <div class="col-sm-12 col-lg-12 col-xl-12">
+                                            <div class="header">
+                                                <!-- Your header content, including the image -->
+                                                <img id="headerimage" style="height:80px;width:100%;" src="@ViewBag.HeaderImage" />
+                                            </div>
+                                            <div class="table-responsive">
+                                                @{
+                                                    var temp = "";
+                                                    double allocated1 = 0, rbblance1 = 0, balance2 = 0, debit1 = 0, credit1 = 0;
+                                                    double allocated = 0, balance = 0, debit = 0, credit = 0, num = 0;
+                                                    string rrbblance12 = "";
+                                                    var sortedReport = Model.ReportTable.AsEnumerable().OrderBy(r => r.Field<string>("AccountName"));
+                                                }
+                                                <table class="table">
+                                                    <thead>
+                                                        <tr id="">
+                                                            <td colspan="11" style="height:80px;width:100%;"></td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td style="background-color:white; font-weight:bold;text-align:center;" colspan="6">BillWise Report</td>
+                                                            <td colspan="5" class="no-border" style="background-color:white; font-weight:bold;text-align:end;">
+                                                                Period: @Model.StartDate.ToString("dd/MM/yyyy") to @Model.EndDate.ToString("dd/MM/yyyy")
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th>VNo</th>
+                                                            <th>VDate</th>
+                                                            <th>AccountName</th>
+                                                            <th>Description</th>
+                                                            <th>DueDate</th>
+                                                            <th>Duedays</th>
+                                                            <th>Debit</th>
+                                                            <th>Credit</th>
+                                                            <th>Allocated</th>
+                                                            <th>Balance</th>
+                                                            <th>RBalance</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody id="">
+                                                        @foreach (var group in sortedReport.GroupBy(r => r["AccountName"].ToString()))
+                                                        {
+                                                            allocated1 = 0; balance2 = 0; debit1 = 0; credit1 = 0;
+                                                            <tr><td colspan="11" style="font-weight: bold">@group.Key</td></tr>
+                                                            foreach (var dr in group)
+                                                            {
+                                                                <tr>
+                                                                    <td style="text-align:center">@dr["VNo"]</td>
+                                                                    <td style="text-align:center">@string.Format("{0:dd/MM/yyyy}", dr["VDate"])</td>
+                                                                    <td style="text-align:center">@dr["AccountName"]</td>
+                                                                    <td style="text-align:center">@dr["Description"]</td>
+                                                                    <td style="text-align:center">@string.Format("{0:dd/MM/yyyy}", dr["DueDate"])</td>
+                                                                    <td style="text-align:center">@dr["Duedays"]</td>
+                                                                    <td style="text-align:right">@string.Format("{0:N2}", dr["Debit"])</td>
+                                                                    <td style="text-align:right">@string.Format("{0:N2}", dr["Credit"])</td>
+                                                                    <td style="text-align:right">@string.Format("{0:N2}", dr["Allocated"])</td>
+                                                                    <td style="text-align:right">@string.Format("{0:N2}", dr["Balance"])</td>
+                                                                    <td style="text-align:right">@string.Format("{0:N2}", dr["RBalance"])</td>
+                                                                </tr>
+                                                                allocated1 += dr["Allocated"] == DBNull.Value ? 0 : Convert.ToDouble(dr["Allocated"]);
+                                                                balance2 += dr["Balance"] == DBNull.Value ? 0 : Convert.ToDouble(dr["Balance"]);
+                                                                debit1 += dr["Debit"] == DBNull.Value ? 0 : Convert.ToDouble(dr["Debit"]);
+                                                                credit1 += dr["Credit"] == DBNull.Value ? 0 : Convert.ToDouble(dr["Credit"]);
+
+                                                                allocated += allocated1;
+                                                                balance += balance2;
+                                                                debit += debit1;
+                                                                credit += credit1;
+                                                                rrbblance12 = string.Format("{0:N2}", dr["RBalance"]);
+                                                            }
+                                                            <tr id="RowTotal">
+                                                                <td colspan="5"></td>
+                                                                <td></td>
+                                                                <td style="text-align:right;font-weight:bold">@string.Format("{0:N2}", debit1)</td>
+                                                                <td style="text-align:right;font-weight:bold">@string.Format("{0:N2}", credit1)</td>
+                                                                <td style="text-align:right;font-weight:bold">@string.Format("{0:N2}", allocated1)</td>
+                                                                <td style="text-align:right;font-weight:bold">@string.Format("{0:N2}", balance2)</td>
+                                                                <td style="text-align:right;font-weight:bold">@rrbblance12</td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                    <tr id="GrantTotal">
+                                                        <td colspan="5"></td>
+                                                        <td style="text-align:right;font-weight:bold">Total</td>
+                                                        <td style="text-align:right;font-weight:bold">@string.Format("{0:N2}", debit)</td>
+                                                        <td style="text-align:right;font-weight:bold">@string.Format("{0:N2}", credit)</td>
+                                                        <td style="text-align:right;font-weight:bold">@string.Format("{0:N2}", allocated)</td>
+                                                        <td style="text-align:right;font-weight:bold">@string.Format("{0:N2}", balance)</td>
+                                                        <td style="text-align:right;font-weight:bold">@rrbblance12</td>
+                                                    </tr>
+                                                    <tfoot id="">
+                                                        <tr>
+                                                            <td colspan="11" style="height:80px;width:100%;"></td>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                            <div class="footer">
+                                                <!-- Your footer content, including the image -->
+                                                <img id="footerimage" style="height:80px;width:100%;" src="@ViewBag.FooterImage" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>                               
+                                <!-- Table End  -->
+                            </div>
+                        }
+  
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends -->
+</div>
+<!-- Container-fluid Ends -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script src="~/assets/Custom/Accounting/Reports/BillwiseStatement.js"></script>

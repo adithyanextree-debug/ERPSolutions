@@ -1,0 +1,175 @@
+﻿@using System.Data
+@using System.Text
+@using Microsoft.AspNetCore.Mvc.Routing
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+
+@{
+    DataTable dtMenu = SharedClass.GetMenu(this.Context);
+    StringBuilder sb = new StringBuilder();
+
+
+    sb.Append("<div class='main-sidebar' id='main-sidebar'>");
+    sb.Append("<ul class='sidebar-menu' id='simple-bar'>");
+
+    if (dtMenu != null)
+    {
+        foreach (DataRow dr1 in dtMenu.Select("ParentID is null"))
+        {
+            if (!Convert.ToBoolean(dr1["IsPage"]))
+            {
+                sb.Append("<li class='sidebar-list'>");
+                sb.Append("<a class='sidebar-link sidebar-title' href='javascript:void(0)'>");
+                sb.Append("<i class='fa fa-folder'></i>");
+                sb.Append("<span>" + dr1["MenuText"] + "</span>");
+                sb.Append("<i class='iconly-Arrow-Right-2 icli'></i>"); // Arrow added for submenu items
+                sb.Append("</a>");
+                sb.Append("<ul class='sidebar-submenu'>");
+            }
+            else
+            {
+                sb.Append("<li class='sidebar-list' onclick=\"loadiframe('" + dr1["Controller"] + "/" + dr1["Action"] + "'," + dr1["ID"] + ")\">");
+                sb.Append("<a href='javascript:void(0)' class='sidebar-link sidebar-title' >");
+                sb.Append("<i class='fa fa-file' style='padding-right: 5px;'></i>");
+                sb.Append("<span>" + dr1["MenuText"] + "</span>");
+                sb.Append("</a>");
+            }
+
+            RenderMenuItem(dtMenu, dr1, sb);
+
+            if (!Convert.ToBoolean(dr1["IsPage"]))
+            {
+                sb.Append("</ul></li>");
+            }
+            else
+            {
+                sb.Append("</li>");
+            }
+        }
+    }
+
+    void RenderMenuItem(DataTable dt, DataRow dr, StringBuilder sb)
+    {
+        foreach (DataRow _dr in dt.Select("ParentID=" + dr["ID"].ToString()))
+        {
+            if (!Convert.ToBoolean(_dr["IsPage"]))
+            {
+                sb.Append("<li>");
+                sb.Append("<a href='javascript:void(0)'>");
+                //sb.Append("<i class='fa fa-folder'></i>");
+                sb.Append(_dr["MenuText"]);
+                sb.Append("<i class='iconly-Arrow-Right-2 icli'></i>"); // Arrow added for submenu items
+                sb.Append("</a>");
+                sb.Append("<ul class='sidebar-submenu'>");
+            }
+            else
+            {
+                sb.Append("<li onclick=\"loadiframe('" + _dr["Controller"] + "/" + _dr["Action"] + "'," + _dr["ID"] + ")\">");
+                sb.Append("<a href='javascript:void(0)'>");
+                // sb.Append("<i class='fa fa-file' style='padding-right: 5px;'></i>");
+                sb.Append(_dr["MenuText"]);
+                sb.Append("</a>");
+            }
+
+            RenderMenuItem(dt, _dr, sb);
+
+            if (!Convert.ToBoolean(_dr["IsPage"]))
+            {
+                sb.Append("</ul></li>");
+            }
+            else
+            {
+                sb.Append("</li>");
+            }
+        }
+    }
+
+    sb.Append("</ul></div>");
+    ViewBag.Menu = sb.ToString();
+}
+
+@Html.Raw(ViewBag.Menu)
+
+<script src="@Url.Content("~/assets/js/vendors/jquery/jquery.min.js")"></script>
+
+<script>
+    $(function () {
+        var $menu = $('#main-sidebar .sidebar-menu');
+        var currentPath = window.location.pathname.split('/')[1]; // Gets first path segment
+
+        // Highlight active menu item based on URL
+        $menu.find('a').filter(function () {
+            var hrefPath = this.pathname.split('/')[1];
+            return hrefPath === currentPath && hrefPath !== '#';
+        }).parent('li').addClass('selected');
+
+        // Expandable menu click (fixed for unlimited nesting)
+        $menu.on('click', 'li > a', function (e) {
+            var $li = $(this).parent();
+            var $submenu = $li.children('ul.sidebar-submenu'); // only direct submenu
+
+            if ($submenu.length > 0) {
+                e.preventDefault();
+
+                if ($li.hasClass('selected')) {
+                    // Collapse current li and all its children
+                    $li.removeClass('selected').find('li').removeClass('selected');
+                    $submenu.slideUp(400);
+                } else {
+                    // Collapse only siblings at the same level
+                    $li.siblings('li').removeClass('selected').children('ul.sidebar-submenu').slideUp(400);
+
+                    // Expand current li
+                    $li.addClass('selected');
+                    $submenu.slideDown(400);
+                }
+            }
+        });
+
+        // Padding for nested submenus
+        $('#main-sidebar ul.sidebar-submenu').each(function () {
+            var paddingLeft = parseInt($(this).parent().children('a').css('padding-left'), 10);
+            var result = paddingLeft + ($(this).find('> li > ul').length > 0 ? 10 : 7);
+            $(this).find('> li > a').css('padding-left', result);
+        });
+
+        // Add subMenuColor classes dynamically for depth
+        for (var i = 1; i <= 10; i++) {
+            $('#main-sidebar .sidebar-menu > ' + 'li > ul '.repeat(i)).addClass('subMenuColor' + i);
+        }
+
+        // Keep active menu open
+        var activeLi = $('#main-sidebar li.selected');
+        if (activeLi.length) {
+            openParents(activeLi);
+        }
+
+        function openParents(li) {
+            var ul = li.closest('ul');
+            if (ul.length) {
+                li.addClass('selected');
+                ul.addClass('open');
+
+                if (ul.closest('li').length) {
+                    openParents(ul.closest('li'));
+                }
+            }
+        }
+    });
+
+    // Loader function for iframe
+    //  function loadiframe(url,menuid) {
+    //     $("#PageLoaderFrame").attr('src', "/" + url+'?MenuID='+menuid)
+    // }
+
+    function loadiframe(url, menuid) {
+        window.location.href = "/" + url + "?MenuID=" + menuid;
+    }
+
+    // Active class on submenu click
+    $(document).ready(function () {
+        $(document).on('click', '#main-sidebar li a.listmenusub', function () {
+            $('#main-sidebar li a.listmenusub').removeClass("active");
+            $(this).addClass("active");
+        });
+    });
+</script>

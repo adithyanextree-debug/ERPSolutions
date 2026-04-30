@@ -1,0 +1,538 @@
+﻿
+<style>
+    #UnitTable input.form-control,
+    #BarcodeTable input.form-control,
+    #ImageTable input.form-control {
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        background-color: transparent !important; /* Optional: make background transparent */
+    }
+
+</style>
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>ItemMaster</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="Home">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Inventory</li>
+                    <li class="breadcrumb-item active">Masters</li>
+                    <li class="breadcrumb-item active">ItemMaster</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Zero Configuration  Starts-->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="list-product-header mt-4">
+                    <div>
+                        <ul class="quick-file d-flex flex-row">
+                           @*  <li onclick="NewEntry()" id="NewLi" style="display:none">
+                                <div class="quick-box">
+                                    <i class="fa-solid fa-plus text-warning">
+                                    </i>
+                                </div>
+                                <h6 class="mb-2">New</h6>
+                            </li> *@
+                            <li onclick="SaveEntry()">
+                                <div class="quick-box">
+                                    <i class="fa-solid fa-save text-info"></i>
+                                </div>
+                                <h6 class="mb-2">Save</h6>
+                            </li>
+                            <li onclick="DeleteEntry()" id="DeleteLi">
+                                <div class="quick-box">
+                                    <i class="fa-solid fa-trash text-danger"></i>
+                                </div>
+                                <h6 class="mb-2">Delete</h6>
+                            </li>
+                            <li onclick="CloseEntry()">
+                                <div class="quick-box">
+                                    <i class="fa-solid fa-close text-danger"></i>
+                                </div>
+                                <h6 class="mb-2">Close</h6>
+                            </li>
+
+                        </ul>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="ItemMasterForm">
+                        <!--Add Details -->
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        @{
+                                            ViewBag.ItemCode = ViewBag.ItemCode ?? "";
+                                            ViewBag.ItemName = ViewBag.ItemName ?? "";
+                                            ViewBag.PartNo = ViewBag.PartNo ?? "";
+                                            ViewBag.OemNo = ViewBag.OemNo ?? "";
+                                            ViewBag.ArabicName = ViewBag.ArabicName ?? "";
+                                            ViewBag.ShortDescription = ViewBag.ShortDescription ?? "";
+                                            ViewBag.ShortDescriptionArabic = ViewBag.ShortDescriptionArabic ?? "";
+                                            ViewBag.Manufacturer = ViewBag.Manufacturer ?? "";
+                                            ViewBag.Weight = ViewBag.Weight ?? "";
+                                            ViewBag.ExpiryPeriod = ViewBag.ExpiryPeriod ?? "";
+                                            ViewBag.Remarks = ViewBag.Remarks ?? "";
+                                            ViewBag.ArabicLongDescription = ViewBag.ArabicLongDescription ?? "";
+                                            ViewBag.LongDescription = ViewBag.LongDescription ?? "";
+                                            ViewBag.Active = ViewBag.Active ?? false;
+                                            ViewBag.StockItem = ViewBag.StockItem ?? false;
+                                            ViewBag.IsExpiry = ViewBag.IsExpiry ?? false;
+                                            ViewBag.PurchaseUnit = ViewBag.PurchaseUnit ?? "";
+                                            ViewBag.SellingUnit = ViewBag.SellingUnit ?? "";
+                                            ViewBag.SellOnEcommerce = ViewBag.SellOnEcommerce ?? false;
+                                            ViewBag.UrlName = ViewBag.UrlName ?? "";
+                                            ViewBag.ModelNo = ViewBag.ModelNo ?? "";
+                                            ViewBag.ID = ViewBag.ID ?? "";
+                                            ViewBag.UnitTable = ViewBag.UnitTable ?? "";
+                                            ViewBag.BarcodeTable = ViewBag.BarcodeTable ?? "";
+                                            ViewBag.ImageTable = ViewBag.ImageTable ?? "";
+                                        }
+                                        
+                                        <input type="text" class="text-center transparent_text" id="PurchaseTransactionID" style="display:none"  value="@ViewBag.ID"/>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ItemCode", DisplayText = "Item Code", cssClass = "numbersNoFraction", IsMandatory = true,Value=ViewBag.ItemCode }))
+
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ItemName", DisplayText = "Item Name", IsMandatory = true, cssClass = "ItemName", Value = ViewBag.ItemName }))
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ArabicName", DisplayText = "Arabic Name", Value = ViewBag.ArabicName }))
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ShortDescription", DisplayText = "Short Description", Value = ViewBag.ShortDescription }))
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ShortDescriptionArabic", DisplayText = "Short Desc. Arabic", Value = ViewBag.ShortDescriptionArabic }))
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "PartNo", DisplayText = "Part No.", Value = ViewBag.PartNo }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "OemNo", DisplayText = "OEM No.", Value = ViewBag.OemNo }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ItemWeight", DisplayText = "Weight", Value = ViewBag.Weight }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ModelNo", DisplayText = "Model No.", Value = ViewBag.ModelNo }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row  link_url ">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "UrlName", DisplayText = "Url Name", Value = ViewBag.UrlName }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ItemManufacturer", DisplayText = "Manufacturer", Value = ViewBag.Manufacturer }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ExpiryDate", DisplayText = "Expiry Period", cssClass = "numbersOnly", Value = ViewBag.ExpiryPeriod }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="col-md-4 pr-0">
+                                                    <span class="grpspn">Category</span>
+                                                </div>
+                                                <div class="col-md-8 pl-0">
+                                                    <select class="form-control " id="itemCategory" name="itemCategory" data-ismandatory="false">
+                                                        @Html.Raw(ViewBag.Categories)
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="col-md-4 pr-0">
+                                                    <span class="grpspn">Brand</span>
+                                                </div>
+                                                <div class="col-md-8 pl-0">
+                                                    <select class="form-control " id="itemBrand" name="itemBrand" data-ismandatory="false">
+                                                        @Html.Raw(ViewBag.Brands)
+                                                    </select>
+                                                </div>
+                                                @*@(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "itemBrand", DisplayText = "Brand", Html = ViewBag.Brands }))
+ *@                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="col-md-4 pr-0">
+                                                    <span class="grpspn">Purchase Unit</span>
+                                                </div>
+                                                <div class="col-md-8 pl-0">
+                                                    <select class="form-control " id="PurchaseUnit" name="PurchaseUnit" data-ismandatory="false">
+                                                        @Html.Raw(ViewBag.PurchaseUnit)
+                                                    </select>
+                                                </div>
+                                                @*@(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "PurchaseUnit", DisplayText = "Purchase Unit", Html = ViewBag.Units }))
+ *@                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="col-md-4 pr-0">
+                                                    <span class="grpspn">Selling Unit</span>
+                                                </div>
+                                                <div class="col-md-8 pl-0">
+                                                    <select class="form-control " id="SellingUnit" name="SellingUnit" data-ismandatory="false">
+                                                        @Html.Raw(ViewBag.SellingUnit)
+                                                    </select>
+                                                </div>
+                                                @*@(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "SellingUnit", DisplayText = "Selling Unit", Html = ViewBag.Units }))
+ *@                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "remarks", cssClass = "remarks", DisplayText = "Remarks", Value = ViewBag.Remarks }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-1">
+                                            <div class="row">
+                                                <div class="col-md-4 pr-0">
+                                                    <span class="grpspn">Stock Item</span>
+                                                </div>
+                                                <div class="col-md-8 pl-0">
+                                                    <li class="list-group-item">
+                                                        <div class="form-check form-switch form-check-reverse">
+                                                            <input class="form-check-input" id="StockItem" type="checkbox" role="switch" checked="@ViewBag.StockItem ">
+                                                            @*@(await Component.InvokeAsync("TextBox", new { Type = "ToggleButton", ID = "StockItem", DisplayText = "Stock Item" }))
+ *@                                                        </div>
+                                                    </li>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-1">
+                                            <div class="row">
+                                                <div class="col-md-4 pr-0">
+                                                    <span class="grpspn">Active</span>
+                                                </div>
+                                                <div class="col-md-8 pl-0">
+                                                    <li class="list-group-item">
+                                                        <div class="form-check form-switch form-check-reverse">
+                                                            <input class="form-check-input" id="ProductActive" type="checkbox" role="switch" checked="@ViewBag.Active">
+                                                            @*@(await Component.InvokeAsync("TextBox", new { Type = "ToggleButton", ID = "ProductActive", DisplayText = "Active" }))
+ *@                                                        </div>
+                                                    </li>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-1">
+                                            <div class="row">
+                                                <div class="col-md-4 pr-0">
+                                                    <span class="grpspn">Is Expiry</span>
+                                                </div>
+                                                <div class="col-md-8 pl-0">
+                                                    <li class="list-group-item">
+                                                        <div class="form-check form-switch form-check-reverse">
+                                                            <input class="form-check-input" id="IsExpiry" type="checkbox" role="switch" checked="@ViewBag.IsExpiry">
+                                                            @*  @(await Component.InvokeAsync("TextBox", new { Type = "ToggleButton", ID = "IsExpiry", DisplayText = "Is Expiry" })) *@
+                                                        </div>
+                                                    </li>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-1">
+                                            <div class="row">
+                                                <div class="col-md-4 pr-0">
+                                                    <span class="grpspn">Sell On Ecommerce</span>
+                                                </div>
+                                                <div class="col-md-8 pl-0">
+                                                    <li class="list-group-item">
+                                                        <div class="form-check form-switch form-check-reverse">
+                                                            <input class="form-check-input" id="SellOnEcommerce" type="checkbox" role="switch" checked="@ViewBag.SellOnEcommerce">
+                                                            @*  @(await Component.InvokeAsync("TextBox", new { Type = "ToggleButton", ID = "SellOnEcommerce", DisplayText = "Sell On Ecommerce" })) *@
+                                                        </div>
+                                                    </li>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- DEtails Ends  -->
+                        <!--Add Additional details-->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header card-no-border" style="background-color:#C0CAC9">
+                                        <h3>Product Details (English)</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="toolbar-box">
+                                            <div id="toolbar7">
+                                                <!-- Same toolbar HTML as before -->
+                                                <span class="ql-formats">
+                                                    <select class="ql-size">
+                                                        <option value="small">Small</option>
+                                                        <option selected="">Normal</option>
+                                                        <option value="large">Large</option>
+                                                        <option value="huge">Huge</option>
+                                                    </select>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-bold">Bold</button>
+                                                    <button class="ql-italic">Italic</button>
+                                                    <button class="ql-underline">Underline</button>
+                                                    <button class="ql-strike">Strike</button>
+                                                    <button class="ql-script" value="sub"></button>
+                                                    <button class="ql-script" value="super"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-header" value="1"></button>
+                                                    <button class="ql-header" value="2"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-list" value="ordered">List</button>
+                                                    <button class="ql-list" value="bullet">Bullet</button>
+                                                    <button class="ql-indent" value="-1"></button>
+                                                    <button class="ql-indent" value="+1"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-link">Link</button>
+                                                    <button class="ql-image">Image</button>
+                                                    <button class="ql-video">Video</button>
+                                                    <select class="ql-color"></select>
+                                                    <select class="ql-background"></select>
+                                                </span>
+                                                <!-- Add more options here--><span class="ql-formats">
+                                                    <button class="ql-blockquote">Blockquote</button>
+                                                    <button class="ql-code-block"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-align" value=""></button>
+                                                    <button class="ql-align" value="center"></button>
+                                                    <button class="ql-align" value="right"></button>
+                                                    <button class="ql-align" value="justify"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-clean"></button>
+                                                </span>
+                                            </div>
+                                            <div class="quill-paragraph" id="editor7">
+                                                @Html.Raw(ViewBag.LongDescription)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-header card-no-border " style="background-color:#C0CAC9">
+                                        <h3>Product Details (Arabic)</h3>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="toolbar-box">
+                                            <div id="toolbar8">
+                                                <!-- Same toolbar HTML as before -->
+                                                <span class="ql-formats">
+                                                    <select class="ql-size">
+                                                        <option value="small">Small</option>
+                                                        <option selected="">Normal</option>
+                                                        <option value="large">Large</option>
+                                                        <option value="huge">Huge</option>
+                                                    </select>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-bold">Bold</button>
+                                                    <button class="ql-italic">Italic</button>
+                                                    <button class="ql-underline">Underline</button>
+                                                    <button class="ql-strike">Strike</button>
+                                                    <button class="ql-script" value="sub"></button>
+                                                    <button class="ql-script" value="super"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-header" value="1"></button>
+                                                    <button class="ql-header" value="2"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-list" value="ordered">List</button>
+                                                    <button class="ql-list" value="bullet">Bullet</button>
+                                                    <button class="ql-indent" value="-1"></button>
+                                                    <button class="ql-indent" value="+1"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-link">Link</button>
+                                                    <button class="ql-image">Image</button>
+                                                    <button class="ql-video">Video</button>
+                                                    <select class="ql-color"></select>
+                                                    <select class="ql-background"></select>
+                                                </span>
+                                                <!-- Add more options here--><span class="ql-formats">
+                                                    <button class="ql-blockquote">Blockquote</button>
+                                                    <button class="ql-code-block"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-align" value=""></button>
+                                                    <button class="ql-align" value="center"></button>
+                                                    <button class="ql-align" value="right"></button>
+                                                    <button class="ql-align" value="justify"></button>
+                                                </span><span class="ql-formats">
+                                                    <button class="ql-clean"></button>
+                                                </span>
+                                            </div>
+                                            <div class="quill-paragraph" id="editor8">
+                                                @Html.Raw(ViewBag.ArabicLongDescription)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Additiona details End-->
+                        <!-- Add Products Ends  -->
+                        <!-- Add units-->
+                        <div class="col-sm-12">
+                            <div class="card overflow-hidden">
+                                <div class="card-header card-no-border" style="background-color:#C0CAC9">
+                                    <h3>Unit</h3>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table" id="UnitTable">
+                                        <thead>
+                                            <tr class="border-bottom-dark border-top-0">
+                                                <th class="col">
+                                                    S.No
+                                                </th>
+                                                <th class="col">Unit <span class="text-danger">*</span></th>
+                                                <th class="col">Factor <span class="text-danger">*</span></th>
+                                                <th class="col">Barcode</th>
+                                                <th class="col">Purchase Price</th>
+                                                <th class="col">Selling Price <span class="text-danger">*</span></th>
+                                                <th class="col">Online Price</th>
+                                                <th class="col">Promotion Price</th>
+                                                <th class="col">Default</th>
+                                                <th class="col">Active</th>
+                                                <th class="col">Add</th>
+                                                <th class="col">Delete</th>
+                                                <th class="col"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @Html.Raw(ViewBag.UnitTable)
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Add units End-->
+                        <!-- Add barcodes -->
+                        <div class="col-sm-12">
+                            <div class="card overflow-hidden">
+                                <div class="card-header card-no-border" style="background-color:#C0CAC9">
+                                    <h3>Barcode</h3>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table" id="BarcodeTable">
+                                        <thead>
+                                            <tr class="border-bottom-dark border-top-0">
+                                                <th class="col">
+                                                    S.No
+                                                </th>
+                                                <th class="col">Barcode <span class="text-danger">*</span></th>
+                                                <th class="col">Active</th>
+                                                <th class="col">Add</th>
+                                                <th class="col">Delete</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @Html.Raw(ViewBag.BarcodeTable)
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Add barcodes End -->
+                        <!-- Add images -->
+                        <div class="col-sm-12">
+                            <div class="card overflow-hidden">
+                                <div class="card-header card-no-border" style="background-color:#C0CAC9">
+                                    <h3>Image</h3>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table" id="ImageTable">
+                                        <thead>
+                                            <tr class="border-bottom-dark border-top-0">
+                                                <th class="col">
+                                                    S.No
+                                                </th>
+                                                <th class="col">
+                                                    Image <span class="text-danger">*</span>
+                                                </th>
+                                                <th class="col">
+                                                    Title <span class="text-danger">*</span>
+                                                </th>
+                                                <th class="col">
+                                                    Arabic Title
+                                                </th>
+                                                <th class="col">
+                                                    Size
+                                                </th>
+                                                <th class="col">
+                                                    Set Primary
+                                                </th>
+                                                <th class="col">
+                                                    Active
+                                                </th>
+                                                <th class="col">
+                                                    Add
+                                                </th>
+                                                <th class="col">Delete</th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @Html.Raw(ViewBag.ImageTable)
+
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Add images End -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!--- list div-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="~/assets/js/custom-add-product3.js"></script>
+<script src="~/assets/custom/Inventory/Masters/ItemMaster.js?v=1.0.4"></script>

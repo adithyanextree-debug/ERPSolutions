@@ -1,0 +1,625 @@
+﻿@using System.Data
+@{
+    ViewData["Title"] = "Purchase";
+}
+
+<style>
+    #Itemtable input.form-control {
+        border: 0.5px solid #ccc;
+        padding: 6px !important;
+        box-shadow: none !important;
+        background-color: #fff !important; /* Optional: make background transparent */
+    }
+
+    .col-form-label {
+        font-size: 13px;
+        padding-top: 6px;
+        font-weight: 500;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Purchase</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="Home">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Inventory</li>
+                    <li class="breadcrumb-item ">Transaction</li>
+                    <li class="breadcrumb-item ">Purchase</li>
+                    <li class="breadcrumb-item active">Purchase</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Zero Configuration  Starts-->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="list-product-header mt-4">
+                    <div>
+                        @(await Component.InvokeAsync("ToolBar", new
+                        {
+                            PageName = "Purchase",
+                            AllowNew = ViewBag.UserPermissions.IsCreate,
+                            AllowDelete = ViewBag.UserPermissions.IsDelete,
+                            AllowPrint = ViewBag.UserPermissions.IsPrint,
+                        }))
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" id="PurchaseList">
+                       @*  @(await Component.InvokeAsync("GridView", new
+                        {
+                            Heading = "Purchase",
+                            IDColumnName = "ID",
+                            DatasTable = ViewBag.DataTable,
+                            TableID = "Purchase",
+                            Searching = true,
+                            PageLength = 5,
+                            HideColumns = "ID,Amount,EntryNo,EntryDate,Phone,SerialNo,Status"
+                        })) *@
+                        @* <table class="display table" id="project-status">
+                            <thead>
+                                <tr>
+                                    <th class="col">SNo.</th>
+                                    <th>TRANSACTION NO.</th>
+                                    <th>DATE</th>
+                                    <th>ACCOUNT NAME</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="PurchaseTbody">
+                                @Html.Raw(ViewBag.DataTable)
+                            </tbody>
+                        </table> *@
+                        <table class="display dataTable" id="keytable" role="grid" aria-describedby="keytable_info" style="position: relative;">
+                            <thead>
+                                <tr>
+                                    <th class="col">SNo.</th>
+                                    <th>TRANSACTION NO.</th>
+                                    <th>DATE</th>
+                                    <th>CUSTOMER</th>
+                                    <th>AMOUNT</th>
+                                    <th>ACTION</th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="PurchaseTbody">
+                                @Html.Raw(ViewBag.DataTable)
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="PurchaseForm" style="display:none;">
+                        <!--Add Details -->
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <input type="text" class="text-center transparent_text" id="ID" style="display:none" />
+                                        <input type="text" class="text-center transparent_text" id="MenuID" style="display:none" value="@ViewBag.MenuID" />
+                                        <input type="text" class="text-center transparent_text" id="RowType" style="display:none" value="@ViewBag.RowType" />
+                                        <input type="text" class="text-center transparent_text" id="VoucherID" style="display:none" value="@ViewBag.VoucherID" />
+
+                                        @* <div class="col-md-4" id="vouchernodiv" style="display:none">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "VoucherNo", DisplayText = "Voucher No.", IsMandatory = true }))
+                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
+                                            </div>
+                                        </div> *@
+                                        <div class="col-md-4" id="vouchernodiv" style="display:none">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Voucher No.<span class="text-danger">*</span></span>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <input type="text" id="VoucherCode" class="form-control" name="VoucherCode" disabled value="@ViewBag.VoucherCode">
+                                                    </div>
+                                                    <div class="col-md-6 pl-0">
+                                                        <input type="text" id="VoucherNo" class="form-control " name="VoucherNo" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "VoucherDate", DisplayText = "Voucher Date", IsMandatory = true }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox",
+                                                    new
+                                                    {
+                                                        Type = "Lookup",
+                                                        ID = "Party",
+                                                        DisplayText = "Party",
+                                                        IDColumn = "AccountID",
+                                                        LookupCriteria = "Suppliers",
+                                                        IDValue = 0,
+                                                        AssignColumn = "Name",IsMandatory = true
+                                                    }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Reference", DisplayText = "Reference" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Account", DisplayText = "Account" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "Warehouse", DisplayText = "Warehouse" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox",
+                                                    new
+                                                    {
+                                                        Type = "Lookup",
+                                                        ID = "Project",
+                                                        DisplayText = "Project",
+                                                        IDColumn = "ID",
+                                                        LookupCriteria = "Project",
+                                                        IDValue = 0,
+                                                        AssignColumn = "Value",
+                                                        IsMandatory = false
+                                                    }))
+                                            </div>
+                                        </div>
+                                        @* <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Project", DisplayText = "Project" }))
+                                            </div>
+                                        </div> *@
+@*                                         <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "Mode", DisplayText = "Type" }))
+                                            </div>
+                                        </div> *@
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-2 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Description</span>
+                                                    </div>
+                                                    <div class="col-md-10 pl-0">
+                                                        <input type="text" id="Description" class="form-control purchaseDescription" data-ismandatory="false">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- DEtails Ends  -->
+                        <!--Add Additional details-->
+                        <div class="col-md-12 mb-4">
+                            <div class="accordion dark-accordion" id="simpleaccordion">
+                                <div class="accordion-item">
+                                    <h6 class="accordion-header" id="headingOne">
+                                        <button class="accordion-button collapsed accordion-light-primary text-customtitle-primary " type="button" data-bs-toggle="collapse"
+                                                data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne" style="color:black">
+                                            ADDITIONAL DETAILS
+                                            <i class="iconly-Arrow-Down-2 icli ms-auto icon"></i>
+                                        </button>
+
+                                    </h6>
+                                    <div class="accordion-collapse collapse" id="collapseOne" aria-labelledby="headingOne" data-bs-parent="#simpleaccordion">
+                                        <div class="accordion-body">
+                                            <!-- GENERAL SECTION -->
+                                            <h6 class="py-3  rounded-top mb-0 text-custom-primary" style="font-weight:500;">
+                                                GENERAL DETAILS
+                                            </h6>
+                                            <form id="General" class="theme-form row g-3 rounded-custom py-5">
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="row">
+                                                            <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                                <span class="grpspn">Party Invoice No. & Date </span>
+                                                            </div>
+                                                            <div class="col-md-8 pl-0">
+                                                                <input class="form-control" id="PartyInvoiceNo" type="text" name="PartyInvoiceNo" data-ismandatory="false">
+                                                                <input class="form-control mt-2" id="PartyInvoiceDate" type="date" name="PartyInvoiceDate" data-ismandatory="true">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="row">
+                                                            <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                                <span class="grpspn">Order No. & Date </span>
+                                                            </div>
+                                                            <div class="col-md-8 pl-0">
+                                                                <input class="form-control" id="OrderNo" type="text" name="OrderNo" data-ismandatory="false">
+                                                                <input class="form-control mt-2" id="OrderDate" type="date" name="OrderDate" data-ismandatory="false">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="row">
+                                                            <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                                <span class="grpspn">Party Name & Address </span>
+                                                            </div>
+                                                            <div class="col-md-8 pl-0">
+                                                                <textarea rows="2" id="PartyNameAddress" name="PartyNameAddress" class="form-control"></textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="row">
+                                                            <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                                <span class="grpspn">Expiry Date</span>
+                                                            </div>
+                                                            <div class="col-md-8 pl-0">
+                                                                <input class="form-control " id="ExpiryDate" type="date" name="ExpiryDate" data-ismandatory="true">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="row">
+                                                            <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                                <span class="grpspn">Attention </span>
+                                                            </div>
+                                                            <div class="col-md-8 pl-0">
+                                                                <input class="form-control " id="Attention" type="text" name="Attention" data-ismandatory="true">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+
+                                            <h6 class="py-3  rounded-top mb-0 text-custom-primary" style="font-weight:500;">
+                                                DELIVERY DETAILS
+                                            </h6>
+                                            <form id="DeliveryDetails" class="theme-form row g-3 rounded-custom py-5">
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="row">
+                                                            <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                                <span class="grpspn">Vehicle No.</span>
+                                                            </div>
+                                                            <div class="col-md-8 pl-0">
+                                                                <input class="form-control" id="VehicleNo" type="text" name="VehicleNo" data-ismandatory="false">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="row">
+                                                            <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                                <span class="grpspn">Delivery Note No. & Date</span>
+                                                            </div>
+                                                            <div class="col-md-8 pl-0">
+                                                                <input class="form-control" id="DeliveryNoteNo" type="text" name="DeliveryNoteNo" data-ismandatory="false">
+                                                                <input class="form-control mt-2" id="DeliveryNoteDate" type="date" name="DeliveryNoteDate" data-ismandatory="false">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="col-md-4">
+                                                    <div class="row">
+                                                        <div class="row">
+                                                            <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                                <span class="grpspn">Dispatch No. & Date </span>
+                                                            </div>
+                                                            <div class="col-md-8 pl-0">
+                                                                <input class="form-control" id="DispatchNo" type="text" name="DispatchNo" data-ismandatory="false">
+                                                                <input class="form-control mt-2" id="DispatchDate" type="date" name="DispatchDate" data-ismandatory="false">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-8">
+                                                    <div class="row">
+                                                        <div class="row">
+                                                            <div class="col-md-2 pr-0 d-flex align-items-center">
+                                                                <span class="grpspn">Terms of Delivery</span>
+                                                            </div>
+                                                            <div class="col-md-10 pl-0">
+                                                                <input type="text" id="Terms" class="form-control Terms" data-ismandatory="false">
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </form>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Additiona details End-->
+                        <!--Table Starts  -->
+                        <div class="col-sm-12">
+                            @*  <div class="rounded" style="background-color:#C0CAC9;padding:15px;">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h3>Items</h3>
+                                    
+                                </div>
+                            </div>
+ *@ 
+                            <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5 text-customtitle-primary" style="font-weight: 600;">
+                                ITEMS
+                            </h6>
+                            <div class="card rounded-custom overflow-hidden">
+
+                                <div class="table-responsive">
+                                    <table class="table table-light" id="Itemtable">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th></th>
+                                                <th>Item Name</th>
+                                                <th>Unit</th>
+                                                <th>Qty</th>
+                                                <th>Rate</th>
+                                                <th>GrossAmt</th>
+                                                <th>Disc %</th>
+                                                <th>Discount</th>
+                                                <th>Amount</th>
+                                                <th>Tax %</th>
+                                                <th>TaxValue</th>
+                                                <th>Total</th>
+                                                <th>Add</th>
+                                                <th>Delete</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="qtySum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="ItemGrossAmtSum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="dicsAmtSum"></p></td>
+                                                <td><p id="amtSum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="taxAmtSum"></p></td>
+                                                <td><p id="itemTotalSum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Item table End-->
+                        <!--Entries form starts-->
+                        <div class="col-md-12">
+                            <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5 text-customtitle-primary" style="font-weight: 600;">
+                                PAYMENT DETAILS
+                            </h6>
+                            <div class="card rounded-custom">
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-2 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Terms</span>
+                                                    </div>
+                                                    <div class="col-md-10 pl-0">
+                                                        <input type="text" id="Terms" class="form-control Terms" data-ismandatory="false">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Tax </span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input class="form-control " id="Tax" type="text" name="Tax" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Total Discount </span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input class="form-control " id="TotalDiscount" type="text" name="TotalDiscount" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Net Amount </span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input class="form-control " id="NetAmount" type="text" name="NetAmount" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Add. Charges </span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input class="form-control " id="AdditionalCharges" type="text" name="AdditionalCharges" data-ismandatory="true">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn fw-bold">Grand Total </span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input class="form-control " id="GrandTotal" type="text" name="GrandTotal" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Payment</span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <select id="Mode" class="form-select " name="Payment"></select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Advance</span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input type="text" id="Advance" class="form-control " name="Advance" data-ismandatory="false" disabled>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Total Paid</span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input type="text" id="TotalPaid" class="form-control " name="TotalPaid" data-ismandatory="false" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Cash</span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input type="text" id="Cash" class="form-control " name="Cash" data-ismandatory="false">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Cheque</span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input type="text" id="Cheque" class="form-control " name="Cheque" data-ismandatory="false" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn fw-bold">Balance</span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input type="text" id="Balance" class="form-control " name="Balance" data-ismandatory="false" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Card</span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input type="text" id="Card" class="form-control " name="Card" data-ismandatory="false">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Due Date</span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input type="date" id="DueDate" class="form-control " name="DueDate" data-ismandatory="false">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Entries form end-->
+                    </div>
+                    <div class="col-sm-12">
+                        <div id="reportContainer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Container-fluid Ends -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script src="~/assets/custom/Inventory/Transactions/Purchase.js"></script>

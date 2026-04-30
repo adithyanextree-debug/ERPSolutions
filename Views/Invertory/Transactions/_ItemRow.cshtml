@@ -1,0 +1,139 @@
+﻿@model int
+
+<tr>
+    <td class="serial-no">@Model</td>
+
+    <td>
+        <img src="~/Resources/demo2.jpg" width="50px" height="50px" alt='product image'
+             id="productimagepreview@(Model)"
+             class="productimagepreview"
+             element-id="@Model"
+             style="cursor:pointer;" />
+    </td>
+
+@*     <td>
+        <input type="text"
+               id="productCode@(Model)"
+               class="form-control productCode"
+               element-id="@Model"
+               data-lookupcriteria="Items"
+               data-idcolumn="ID"
+               data-idvalue="@Model" />
+        <div id="lookupDIVproductCode@(Model)"></div>
+    </td> *@
+    <td id="TdproductCode@(Model)" >
+        <input type="text"
+               id="productCode@(Model)"
+               class="form-control productCode"
+               element-id="@Model"
+               onkeydown="ShowLookup(event,'productCode@(Model)','lookupDIVproductCode@(Model)')"
+               oninput="LookupTextChanged('productCode@(Model)','lookupDIVproductCode@(Model)')"
+               data-lookupcriteria="Items"
+               data-idcolumn="ID"
+               data-idvalue="@Model"
+               data-assigncolumnname="ItemName"
+               data-ismandatory="false"
+               data-intparam1=""
+               data-intparam2=""
+               data-intparam3="" />
+
+    </td>
+@*     <div id="lookupDIVproductCode@(Model)"></div>
+ *@
+    <td id="unitTd@(Model)">
+        <select name="ItemUnit@(Model)"
+                id="ItemUnit@(Model)"
+                class="form-select ItemUnit excelCells"
+                element-id="@Model">
+        </select>
+    </td>
+
+    <td id="qtyTd@(Model)">
+        <input type="text"
+               class="form-control ItemQty"
+               id="ItemQty@(Model)"
+               element-id="@Model" />
+    </td>
+
+    <td id="rateTd@(Model)"> 
+        <input type="text"
+               class="form-control ItemRate excelCells"
+               id="ItemRate@(Model)"
+               element-id="@Model"
+               disabled style="text-align:right" />
+    </td>
+
+    <td id="ItemGrossAmtTd@(Model)">
+        <input type="text"
+               class="form-control ItemGrossAmt excelCells"
+               id="ItemGrossAmt@(Model)"
+               element-id="@Model"
+               disabled style="text-align:right" />
+    </td>
+
+    <td id="discsTd@(Model)">
+        <input type="text"
+               class="form-control ItemDiscPer excelCells"
+               id="ItemDiscPer@(Model)"
+               element-id="@Model" />
+    </td>
+
+    <td id="dicsAmtTd@(Model)">
+        <input type="text"
+               class="form-control ItemDiscAmt excelCells"
+               id="ItemDiscAmt@(Model)"
+               element-id="@Model" style="text-align:right"/>
+    </td>
+
+    <td id="amtTd@(Model)">
+        <input type="text"
+               class="form-control ItemAmt excelCells"
+               id="ItemAmt@(Model)"
+               element-id="@Model"
+               disabled style="text-align:right" />
+    </td>
+
+    <td id="taxPerTd@(Model)">
+        <input type="text"
+               class="form-control ItemTaxPer excelCells"
+               id="ItemTaxPer@(Model)"
+               element-id="@Model" />
+    </td>
+
+    <td id="taxAmtTd@(Model)">
+        <input type="text"
+               class="form-control ItemTaxAmt excelCells"
+               id="ItemTaxAmt@(Model)"
+               element-id="@Model" style="text-align:right" />
+    </td>
+
+    <td id="itemTotalTd@(Model)">
+        <input type="text"
+               class="form-control ItemTotal excelCells"
+               id="ItemTotal@(Model)"
+               element-id="@Model"
+               disabled style="text-align:right" />
+    </td>
+
+    <td class='col' style='' >
+        <button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id="@Model"
+                serialno="@Model">
+            <i class='fa-solid fa-plus'></i>
+        </button>
+    </td>
+    <td class='col' id='' style='' itemid="deleteaction@(Model)">
+        <ul class='action mt-2'>
+            <li class='delete ms-3 action_delete' id="deleteunit@(Model)"
+                element-id="@Model"><a href='#'><i class='icon-trash'></i></a></li>
+        </ul>
+    </td>
+
+    <td>
+        <input type="hidden"
+               class="itemid"
+               id="itemid@(Model)"
+               element-id="@Model" value="" />
+    </td>
+
+   
+</tr>

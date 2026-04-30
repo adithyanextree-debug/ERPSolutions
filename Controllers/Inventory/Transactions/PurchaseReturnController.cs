@@ -1,0 +1,1216 @@
+﻿using ERPSample.Models;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.Data;
+using System.Text;
+
+namespace ERPSample.Controllers.Inventory.Transactions
+{
+    public class PurchaseReturnController : BaseController
+    {
+        private DAL.Inventory.Transactions.Purchase _DALPurchase;
+        private DAL.Inventory.Transactions.Purchase DALPurchase
+        {
+            get
+            {
+                if (_DALPurchase == null)
+                {
+                    _DALPurchase = new DAL.Inventory.Transactions.Purchase(ConnectionString);
+                }
+                return _DALPurchase;
+            }
+        }
+        private DAL.Inventory.Masters.FiMaVouchers _DALFiMaVouchers;
+        private DAL.Inventory.Masters.FiMaVouchers DALFiMaVouchers
+        {
+            get
+            {
+                if (_DALFiMaVouchers == null)
+                {
+                    _DALFiMaVouchers = new DAL.Inventory.Masters.FiMaVouchers(ConnectionString);
+                }
+                return _DALFiMaVouchers;
+            }
+        }
+        private DAL.General.Masters.Parties _DALParties;
+        private DAL.General.Masters.Parties DALParties
+        {
+            get
+            {
+                if (_DALParties == null)
+                {
+                    _DALParties = new DAL.General.Masters.Parties(ConnectionString);
+                }
+                return _DALParties;
+            }
+        }
+        private DAL.General.Transactions.FiTransactions _DALTransactions;
+        private DAL.General.Transactions.FiTransactions DALTransactions
+        {
+            get
+            {
+                if (_DALTransactions == null)
+                {
+                    _DALTransactions = new DAL.General.Transactions.FiTransactions(ConnectionString);
+                }
+                return _DALTransactions;
+            }
+        }
+        private DAL.General.Masters.Locations _DALLocations;
+        private DAL.General.Masters.Locations DALLocations
+        {
+            get
+            {
+                if (_DALLocations == null)
+                {
+                    _DALLocations = new DAL.General.Masters.Locations(ConnectionString);
+                }
+                return _DALLocations;
+            }
+        }
+        private DAL.General.Common.Menu _DALMenu;
+        private DAL.General.Common.Menu DALMenu
+        {
+            get
+            {
+                if (_DALMenu == null)
+                {
+                    _DALMenu = new DAL.General.Common.Menu(ConnectionString);
+                }
+                return _DALMenu;
+            }
+
+        }
+        private DAL.General.Common.Vouchers _DALVouchers;
+        private DAL.General.Common.Vouchers DALVouchers
+        {
+            get
+            {
+                if (_DALVouchers == null)
+                {
+                    _DALVouchers = new DAL.General.Common.Vouchers(ConnectionString);
+                }
+                return _DALVouchers;
+            }
+
+        }
+        private DataRow _MenuRow;
+        private DataRow MenuRow
+        {
+            get
+            {
+                if (_MenuRow == null)
+                {
+                    _MenuRow = DALMenu.LoadWindowsForm(178).Rows[0];
+
+                }
+                return _MenuRow;
+            }
+        }
+
+        private DataRow _VoucherTypeRow = null;
+        private DataRow VoucherTypeRow
+        {
+            get
+            {
+                if (_VoucherTypeRow == null)
+                {
+                    _VoucherTypeRow = DALVouchers.FillVoucherRow(178, MenuRow["ID"]);
+
+                }
+                return _VoucherTypeRow;
+            }
+        }
+        public async Task<IActionResult> Index(long MenuID)
+        {
+            SetUserPermissions(MenuID);
+            DataSet ds = DALVouchers.FillVoucher(BranchID, MenuRow["ID"]);
+            DataTable dt = ds.Tables[0];
+            DataTable dt2 = ds.Tables[1];
+            DataRow dr2 = dt2.Rows[0];
+            StringBuilder sb = new StringBuilder();
+            int count = 1;
+            foreach (DataRow dr in dt.Rows)
+            {
+                // Adding odd/even class based on the row count
+                string rowClass = count % 2 == 0 ? "even" : "odd";
+
+                sb.Append("<tr class='" + rowClass + "'>");
+                sb.Append("<td>" + count + "</td>");
+                sb.Append("<td>" + dr["TransactionNo"].ToString() + "</td>");
+                sb.Append("<td>" + Convert.ToDateTime(dr["Date"]).ToString("dd/MM/yyyy") + "</td>");
+                sb.Append("<td>" + dr["AccountName"].ToString() + "</td>");
+                sb.Append("<td>" + dr["Amount"].ToString() + "</td>");
+                sb.Append("<td><ul class='action'>");
+                sb.Append("<li class='edit' onclick='RowClick(" + dr["ID"].ToString() + ")'> <a href='#'><i class='icon-pencil-alt'></i></a></li>");
+                sb.Append("</ul>");
+                sb.Append("</td>");
+                sb.Append("</tr>");
+                count++;
+            }
+            string PurchaseReturn = sb.ToString();
+            ViewBag.voucher = VoucherTypeRow;
+            ViewBag.MenuID = MenuID;
+            ViewBag.DataTable = PurchaseReturn;
+            ViewBag.RowType = dr2["RowType"].ToString();
+            ViewBag.VoucherCode = dr2["Code"].ToString();
+            ViewBag.VoucherID = dr2["VoucherID"].ToString();
+            return View("~/Views/Invertory/Transactions/PurchaseReturn.cshtml");// Json(new { itemmaster = itemmaster, success = true});
+        }
+
+
+        [HttpPost]
+        public async Task<IActionResult> NewEntryDetails()
+        {
+            //=============To get the defaut account ================//
+            DataSet ds = DALVouchers.GetAccountIDPurchaseReturn();
+            DataRow dr1 = ds.Tables[0].Rows[0];
+            string Account = dr1["AccountName"].ToString();
+            if (Account != "")
+            {
+                string accountname = dr1["AccountName"].ToString();
+                ViewBag.Account = accountname.ToString();
+            }
+
+            StringBuilder sb = new StringBuilder();
+            int Sn = 1;
+            sb.Append("<tr>");
+            //Product Image
+            sb.Append("<td class='serial-no'>" + Sn + "</td>");
+            sb.Append(" <td>");
+            sb.Append(" <img src='../assets/images/profile.png' alt='product image' id='productimagepreview" + Sn + "' class='productimagepreview' element-id='" + Sn + "' style='cursor:pointer; width: 50px; height: 40px;' />");
+            sb.Append(" </td>");
+            // 1. Product Code
+            sb.Append("<td id='TdproductCode" + Sn + "' >");
+            sb.Append("<input type='text' id='productCode" + Sn + "' style='width: 7cm;' class='form-control productCode' element-id='" + Sn + "' ");
+            sb.Append("onkeydown=\"ShowLookup(event,'productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+            sb.Append("oninput=\"LookupTextChanged('productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+            sb.Append("data-lookupcriteria='Items' data-idcolumn='ID' data-idvalue='" + Sn + "' ");
+            sb.Append("data-assigncolumnname='ItemName' data-ismandatory='false' data-intparam1='' data-intparam2='' data-intparam3='' />");
+            sb.Append("<div id='lookupDIVproductCode" + Sn + "' ></div>");
+            sb.Append("</td>");
+
+            // 2. Unit (Wider)
+            sb.Append("<td id='unitTd" + Sn + "' >");
+            sb.Append("<select name='ItemUnit" + Sn + "' element-id='" + Sn + "' id='ItemUnit" + Sn + "' style='width: 3cm;' class='form-select ItemUnit excelCells'></select>");
+            sb.Append("</td>");
+
+            // 3. Qty
+            sb.Append("<td id='qtyTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemQty' style='width: 2cm;' element-id='" + Sn + "' id='ItemQty" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 4. Rate
+            sb.Append("<td id='rateTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemRate excelCells' style='width: 2cm;' element-id='" + Sn + "' id='ItemRate" + Sn + "' disabled />");
+            sb.Append("</td>");
+
+            // 5. Gross Amount
+            sb.Append("<td class='ItemGrossAmtTd" + Sn + "'>");
+            sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells' style='width: 2cm;' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' disabled/>");
+            sb.Append("</td>");
+
+            // 6. Discount %
+            sb.Append("<td class='discsTd' id='dicsTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' style='width: 2cm;' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 7. Discount Amount
+            sb.Append("<td class='dicsAmtTd' id='dicsAmtTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' style='width: 2cm;' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 8. Amount
+            sb.Append("<td class='amtTd' id='amtTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemAmt excelCells' style='width: 2cm;' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/>");
+            sb.Append("</td>");
+
+            // 9. Tax %
+            sb.Append("<td class='taxPerTd' id='taxPerTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='' style='width: 2cm;' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 10. Tax Amount
+            sb.Append("<td class='taxAmtTd' id='taxAmtTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' style='width: 2cm;' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 11. Total
+            sb.Append("<td class='itemTotalTd' id='itemTotalTd" + Sn + "' style='width: 2cm;'>");
+            sb.Append("<input type='text' class='form-control ItemTotal excelCells' style='width: 2cm;' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled />");
+            sb.Append("</td>");
+
+            // 12. Action
+            sb.Append("<td class='col' style=''><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "' style=''><i class='fa-solid fa-plus'></i></button></td>");
+
+            sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
+            sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
+            sb.Append("</td>");
+            sb.Append("<td style=''>");
+            sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
+            sb.Append("</td>");
+            sb.Append("</tr>");
+
+            string NewEntry = sb.ToString();
+            sb.Clear();
+            DataTable warehouses = DALVouchers.FillLocationusingBranch(BranchID);
+            sb.Append("<option value=''> -- Choose Warehouse-- </option>");
+            foreach (DataRow dr in warehouses.Rows)
+            {
+                sb.Append("<option value='");
+                sb.Append(dr["ID"]);
+                sb.Append("'");
+                sb.Append(">");
+                sb.Append(dr["Name"]);
+                sb.Append("</option>");
+            }
+            string ListWarehouse = sb.ToString();
+            sb.Clear();
+
+            DataTable mode = DALVouchers.GetMode();
+            sb.Append("<option value=''> -- Choose Payment Type -- </option>");
+            foreach (DataRow dr in mode.Rows)
+            {
+                sb.Append("<option value='");
+                sb.Append(dr["ID"]);
+                sb.Append("'");
+                if (dr["Value"].ToString() == "Cash")
+                {
+                    sb.Append(" selected");
+                }
+                sb.Append(">");
+                sb.Append(dr["Value"]);
+                sb.Append("</option>");
+            }
+            string paymentmode = sb.ToString();
+            sb.Clear();
+            
+            return Json(new { success = true, NewEntry = NewEntry, warehouses = ListWarehouse, account = ViewBag.Account, mode = paymentmode});
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> InsertTransaction([FromBody] SaveTransactionEntryRequest request)
+        {
+            try
+            {
+
+                if (request.FiTransactions.ID == null || request.FiTransactions.ID == 0)
+                {
+                    var NextVNo = DALVouchers.GetTransactionNo(VoucherTypeRow["ID"], BranchID);
+                    request.FiTransactions.TransactionNo = NextVNo.ToString();
+                    request.FiTransactions.SerialNo = Convert.ToInt64(NextVNo);
+                }
+                request.FiTransactions.AddedBy = (int)UserID;
+                request.FiTransactions.EditedBy = (int)UserID;
+                request.FiTransactions.CurrencyID = 17;
+                request.FiTransactions.IsPostDated = false;
+                request.FiTransactions.CompanyID = (int)BranchID;
+                request.FiTransactions.StatusID = 806;
+                request.FiTransactions.IsAutoEntry = false;
+                request.FiTransactions.Active = true;
+                request.FiTransactions.Cancelled = false;
+                request.FiTransactions.Posted = true;
+                request.FiTransactions.PageID = (int)PageIDs.PurchaseReturn;
+                request.FiTransactions.ApprovalStatus = 'A';
+                foreach (var item in request.InvTransItems)
+                {
+                    item.TranType = "Normal";
+                }
+
+                List<Models.InvTransItems> InvTransItems = request.InvTransItems;
+                List<Models.FiTransactionEntries> FiTransactionEntries = request.FiTransactionEntries;
+                Models.FiTransactions FiTransactions = request.FiTransactions;
+                Models.FiTransactionAdditionals FiTransactionAdditionals = request.FiTransactionAdditionals;
+                DALVouchers.InsertTransaction(request);
+                //additional 
+                return Json(new { success = true });
+            }
+            catch (Exception ex) { throw; }
+
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetInventoryTransaction(int ID)
+        {
+            try
+            {
+                DataTable Transaction = DALVouchers.DataTableFillTransactions(ID);
+                DataTable Entries = DALVouchers.DataTableFillTransactionEntries(ID);
+                DataTable Additional = DALVouchers.DataTableFillTransactionAdditionals(ID);
+                string paymentmode = "";
+                StringBuilder sb = new StringBuilder();
+                string ListWarehouse = "";
+
+                if (Additional.Rows.Count > 0)
+                {
+                    DataRow locs = Additional.Rows[0];
+                    DataTable warehouses = DALVouchers.FillLocationusingBranch(BranchID);
+                    sb.Append("<option value=''> -- Choose Warehouse -- </option>");
+
+                    foreach (DataRow dr in warehouses.Rows)
+                    {
+                        sb.Append("<option value='");
+                        sb.Append(dr["ID"]);
+                        sb.Append("'");
+                        if (dr["ID"].ToString() == locs["OutLocID"].ToString())
+                        {
+                            sb.Append(" selected");
+                        }
+                        sb.Append(">");
+                        sb.Append(dr["Name"]);
+                        sb.Append("</option>");
+                    }
+                    ListWarehouse = sb.ToString();
+                    sb.Clear();
+
+                    DataTable mode = DALVouchers.GetMode();
+                    sb.Append("<option value=''> -- Choose Payment Type -- </option>");
+                    foreach (DataRow datarow in mode.Rows)
+                    {
+                        sb.Append("<option value='");
+                        sb.Append(datarow["ID"]);
+                        sb.Append("'");
+                        if (datarow["ID"].ToString() == locs["ModeID"].ToString())
+                        {
+                            sb.Append(" selected");
+                        }
+                        sb.Append(">");
+                        sb.Append(datarow["Value"]);
+                        sb.Append("</option>");
+                    }
+                    paymentmode = sb.ToString();
+                    sb.Clear();
+                   
+                }
+                //=============To get the default account ================//
+                DataSet ds = DALVouchers.GetAccountIDPurchaseReturn();
+                DataRow dr2 = ds.Tables[0].Rows[0];
+                string Account = dr2["AccountName"].ToString();
+                ViewBag.Account = Account.ToString();
+
+                //if (Account != "")
+                //{
+                //    string accountname = dr2["AccountName"].ToString();
+                //    ViewBag.Account = accountname.ToString();
+                //}
+                int Sn = 0;
+                int No = 1;
+                sb.Clear();
+                foreach (DataRow dr in Entries.Rows)
+                {
+                    DataSet Details = DALVouchers.ProductAvailableUnits(Convert.ToInt64(dr["ItemID"].ToString()));
+                    DataTable dataTable = Details.Tables[0];
+                    DataTable DtDetails = Details.Tables[1];
+                    Sn = Convert.ToInt32(dr["ID"]);
+                    sb.Append("<tr>");
+                    sb.Append("<td class='serial-no'>" + No + "</td>");
+                    //Product Image
+                    sb.Append(" <td>");
+                    sb.Append(" <img src='" + dr["Image"].ToString() + "' alt='product image' id='productimagepreview" + Sn + "' class='productimagepreview' element-id='" + Sn + "' style='cursor:pointer; width: 50px; height: 40px;' />");
+                    sb.Append(" </td>");
+                    // 1. Product Code
+                    sb.Append("<td id='TdproductCode" + Sn + "'>");
+                    sb.Append("<input type='text' id='productCode" + Sn + "' style='width: 5cm;' class='form-control productCode' element-id='" + Sn + "' ");
+                    sb.Append("onkeydown=\"ShowLookup(event,'productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+                    sb.Append("oninput=\"LookupTextChanged('productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+                    sb.Append("data-lookupcriteria='Items' data-idcolumn='ID' data-idvalue='" + dr["ItemID"] + "' ");
+                    sb.Append("data-assigncolumnname='ItemName' data-ismandatory='false' data-intparam1='' data-intparam2='' data-intparam3='' ");
+                    sb.Append("value='" + dr["ItemName"] + "' />");
+                    sb.Append("<div id='lookupDIVproductCode" + Sn + "'></div>");
+                    sb.Append("</td>");
+
+                    // 2. Unit
+                    sb.Append("<td id='unitTd" + Sn + "'>");
+                    sb.Append("<select name='ItemUnit" + Sn + "' element-id='" + Sn + "' id='ItemUnit" + Sn + "' style='width: 3cm;' class='form-select ItemUnit excelCells'>");
+                    foreach (DataRow dr1 in dataTable.Rows)
+                    {
+                        sb.Append("<option value='" + dr1["Unit"] + "'" + (dr["Unit"].ToString() == dr1["Unit"].ToString() ? " selected" : "") + ">" + dr1["Unit"] + "</option>");
+                    }
+                    sb.Append("</select></td>");
+
+                    // 3. Qty
+                    sb.Append("<td id='qtyTd" + Sn + "'>");
+                    sb.Append("<input type='text' class='form-control ItemQty' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Qty"]), 2) + "' element-id='" + Sn + "' style='width: 2cm;' id='ItemQty" + Sn + "' /></td>");
+
+                    // 4. Rate
+                    sb.Append("<td id='rateTd" + Sn + "' >");
+                    sb.Append("<input type='text' class='form-control ItemRate excelCells' element-factor='" + ToFixedNoRound(Convert.ToDecimal(dr["Factor"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Rate"]), 2) + "' id='ItemRate" + Sn + "' disabled/></td>");
+
+                    // 5. Gross Amount
+                    sb.Append("<td class='ItemGrossAmtTd' >");
+                    sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' style='width: 2cm;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["GrossAmount"]), 2) + "' disabled/></td>");
+
+                    // 6. Discount %
+                    sb.Append("<td class='discsTd' id='dicsTd" + Sn + "' >");
+                    sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["DiscountPerc"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' /></td>");
+
+                    // 7. Discount Amt
+                    sb.Append("<td class='dicsAmtTd' id='dicsAmtTd" + Sn + "' >");
+                    sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Discount"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' /></td>");
+
+                    // 8. Amount
+                    sb.Append("<td class='amtTd' id='amtTd" + Sn + "' >");
+                    sb.Append("<input type='text' class='form-control ItemAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Amount"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/></td>");
+
+                    // 9. Tax %
+                    sb.Append("<td class='taxPerTd' id='taxPerTd" + Sn + "' >");
+                    if (dr["TaxTypeID"].ToString() != "")
+                    {
+                        object taxTypeValue = DtDetails.Rows[0]["TaxTypeID"];
+
+                        if (taxTypeValue != DBNull.Value &&
+                            taxTypeValue != null &&
+                            !string.IsNullOrWhiteSpace(taxTypeValue.ToString()) &&
+                            taxTypeValue.ToString() != "0")
+                        {
+                            DataTable TaxDetails = DALVouchers.ProductTaxDetails(Convert.ToInt64(taxTypeValue));
+                            // Always display two decimal places (50.00 instead of 50.0)
+                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;'  value='" + String.Format("{0:F2}", TaxDetails.Rows[0]["SalesPerc"]) + "' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+
+                        }
+                        else
+                        {
+                            // Always display two decimal places (50.00 instead of 50.0)
+                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;'  value='' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+
+                        }
+                    }
+                    else
+                    {
+                        sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' style='width: 2cm;' />");
+                    }
+                    sb.Append("</td>");
+
+
+                    // 10. Tax Amt
+                    sb.Append("<td class='taxAmtTd' id='taxAmtTd" + Sn + "' >");
+                    sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TaxValue"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' /></td>");
+
+                    // 11. Total
+                    sb.Append("<td class='itemTotalTd' id='itemTotalTd" + Sn + "' >");
+                    sb.Append("<input type='text' class='form-control ItemTotal excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TotalAmount"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled/></td>");
+
+                    // 12. Add button
+                    sb.Append("<td class='col' ><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "'><i class='fa-solid fa-plus'></i></button></td>");
+
+                    // 13. Delete action
+                    sb.Append("<td class='col' id='deleteaction" + Sn + "' >");
+                    sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul></td>");
+
+                    // 14. Hidden ItemID
+                    sb.Append("<td >");
+                    sb.Append("<input type='hidden' class='itemid excelCells numbersOnly form-control' id='itemid" + Sn + "' value='" + Sn + "' element-id='" + Sn + "' autocomplete='off'></td>");
+
+                    sb.Append("</tr>");
+                    No++;
+                }
+                string Entities = sb.ToString();
+                sb.Clear();
+
+                Dictionary<string, object> row;
+                List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+                foreach (DataRow dr1 in Transaction.Rows)
+                {
+                    row = new Dictionary<string, object>();
+                    foreach (DataColumn col1 in Transaction.Columns)
+                    {
+                        row.Add(col1.ColumnName, dr1[col1]);
+                    }
+                    rows.Add(row);
+                }
+                string Trans = JsonConvert.SerializeObject(rows);
+                rows.Clear();
+                Dictionary<string, object> row1;
+                foreach (DataRow dr1 in Transaction.Rows)
+                {
+                    row1 = new Dictionary<string, object>();
+                    foreach (DataColumn col1 in Transaction.Columns)
+                    {
+                        row1.Add(col1.ColumnName, dr1[col1]);
+                    }
+                    rows.Add(row1);
+                }
+                string Add = JsonConvert.SerializeObject(rows);
+                rows.Clear();
+                Dictionary<string, object> row2;
+                foreach (DataRow dr1 in Additional.Rows)
+                {
+                    row2 = new Dictionary<string, object>();
+                    foreach (DataColumn col1 in Additional.Columns)
+                    {
+                        row2.Add(col1.ColumnName, dr1[col1]);
+                    }
+                    rows.Add(row2);
+                }
+                string Additionalentries = JsonConvert.SerializeObject(rows);
+                //warehouses = ListWarehouses,
+                return Json(new
+                {
+                    success = true,
+                    innerHTML = Entities,
+                    trans = Trans,
+                    fiadditional = Additionalentries,
+                    additional = Add,
+                    account = ViewBag.Account,
+                    warehouses = ListWarehouse,
+                    message = "Success",
+                    mode = paymentmode
+                });
+            }
+            catch (Exception Ex)
+            {
+                return Json(new { success = false, message = Ex.Message });
+
+            }
+        }
+
+        public static string ToFixedNoRound(decimal value, int decimals)
+        {
+            decimal factor = (decimal)Math.Pow(10, decimals);
+            decimal truncated = Math.Truncate(value * factor) / factor;
+            return truncated.ToString($"F{decimals}");
+        }
+
+        private List<Dictionary<string, object>> DataTableToList(DataTable dt)
+        {
+            List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+            foreach (DataRow dr in dt.Rows)
+            {
+                Dictionary<string, object> row = new Dictionary<string, object>();
+                foreach (DataColumn col in dt.Columns)
+                {
+                    row[col.ColumnName] = dr[col];
+                }
+                rows.Add(row);
+            }
+            return rows;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveTransactionEntry(List<InvTransItems> InvTransItems, FiTransactions FiTransactions, FiTransactionAdditionals FiTransactionAdditionals)
+        {
+            if (FiTransactions.ID == null || FiTransactions.ID == 0)
+            {
+                var NextVNo = DALVouchers.GetTransactionNo(VoucherTypeRow["ID"], BranchID);
+                FiTransactions.TransactionNo = NextVNo.ToString();
+                FiTransactions.SerialNo = Convert.ToInt64(NextVNo);
+            }
+            try
+            {
+                FiTransactions.AddedBy = (int)UserID;
+                FiTransactions.EditedBy = (int)UserID;
+                FiTransactions.IsPostDated = false;
+                FiTransactions.CurrencyID = 17;
+                FiTransactions.RefPageTypeID = null;
+                FiTransactions.RefPageTableID = null;
+              //  FiTransactions.ReferenceNo = null;
+                FiTransactions.CompanyID = 1;
+                FiTransactions.FinYearID = null;
+                FiTransactions.InstrumentType = null;
+                FiTransactions.InstrumentNo = null;
+                FiTransactions.InstrumentDate = null;
+                FiTransactions.InstrumentBank = null;
+                FiTransactions.CommonNarration = null;
+                FiTransactions.ApprovedBy = null;
+                FiTransactions.ApprovedDate = null;
+                FiTransactions.ApprovalStatus = 'A';
+                FiTransactions.ApproveNote = null;
+                FiTransactions.Action = null;
+                FiTransactions.StatusID = 806;
+                FiTransactions.IsAutoEntry = false;
+                FiTransactions.Posted = true;
+                FiTransactions.Active = true;
+                FiTransactions.Cancelled = false;
+                FiTransactions.RefTransID = null;
+                FiTransactions.EditedBy = null;
+                FiTransactions.EditedDate = null;
+                FiTransactions.CostCentreID = null;
+                FiTransactions.PageID = (int)PageIDs.PurchaseReturn;
+
+                FiTransactions.MachineName = null;
+                if (FiTransactions.ID == 0)
+                {
+                    String Result = DALVouchers.InsertTransactions(FiTransactions);
+                    int ID = Convert.ToInt32(Result);
+                    bool isNumeric = int.TryParse(Result, out int n);
+                    if (isNumeric)
+                    {
+                        foreach (InvTransItems item in InvTransItems)
+                        {
+                            item.TransactionID = ID;
+                            item.RowType = -1;
+                            item.Pcs = null;
+                            item.AdvanceRate = null;
+                            item.OtherRate = null;
+                            item.MasterMiscID1 = null;
+                            item.Description = null;
+                            item.Remarks = null;
+                            item.IsBit = null;
+                            item.InvAvgCostID = null;
+                            item.IsReturn = true;
+                            item.Additional = null;
+                            item.CommodityID = null;
+                            item.AccountID = null;
+                            item.TransactionEntryID = null;
+                            item.LengthFt = null;
+                            item.LengthIn = null;
+                            item.LengthCm = null;
+                            item.GirthFt = null;
+                            item.GirthIn = null;
+                            item.GirthCm = null;
+                            item.ThicknessFt = null;
+                            item.ThicknessIn = null;
+                            item.ThicknessCm = null;
+                            item.ShortageQty = null;
+                            item.AvgCostID = null;
+                            item.RefTransItemID = null;
+                            item.Status = null;
+                            item.Cancel = null;
+                            item.MeasuredByID = null;
+                            item.FinishDate = null;
+                            item.UpdateDate = null;
+                            item.IsSameForPcs = null;
+                            item.RefID = null;
+                            item.BatchNo = null;
+                            item.Margin = null;
+                            item.SizeMasterID = null;
+                            item.TranType = "Normal";
+                            item.CostPerc = null;
+                            item.ManufactureDate = null;
+                            item.ExpiryDate = null;
+                            item.FOCQty = null;
+                            item.GroupItemID = null;
+                            item.PriceCategoryID = null;
+                            item.SerialNo = null;
+                            item.ReplaceQty = null;
+                            item.PrintedMRP = null;
+                            item.PrintedRate = null;
+                            item.PTSRate = null;
+                            item.PTRRate = null;
+                            item.TempRate = null;
+                            item.StockItemID = null;
+                            item.InLocID = null;
+                            item.Visible = true;
+                            DALVouchers.InvTransItemsMaster(item);
+
+                        }
+                        FiTransactionAdditionals.TransactionID = ID;
+                        FiTransactionAdditionals.RefTransID1 = null;
+                        FiTransactionAdditionals.RefTransID2 = null;
+                        FiTransactionAdditionals.MeasureTypeID = null;
+                        FiTransactionAdditionals.LoadMeasureTypeID = null;
+                        FiTransactionAdditionals.ConsignTermID = null;
+                        FiTransactionAdditionals.ToLocationID = null;
+                        FiTransactionAdditionals.ExchangeRate1 = null;
+                        FiTransactionAdditionals.ExchangeRate2 = null;
+                        FiTransactionAdditionals.AdvanceExRate = null;
+                        FiTransactionAdditionals.CustomsExRate = null;
+                        FiTransactionAdditionals.ApprovalDays = null;
+                        FiTransactionAdditionals.WorkflowDays = null;
+                        FiTransactionAdditionals.PostedBranchID = null;
+                        FiTransactionAdditionals.ShipBerthDate = null;
+                        FiTransactionAdditionals.IsBit = null;
+                        //    FiTransactionAdditionals.Name = null;
+                        FiTransactionAdditionals.Code = null;
+                        FiTransactionAdditionals.Address = null;
+                        FiTransactionAdditionals.Rate = null;
+                        FiTransactionAdditionals.SystemRate = null;
+                        FiTransactionAdditionals.Period = null;
+                        FiTransactionAdditionals.Days = null;
+                        FiTransactionAdditionals.LCOptionID = null;
+                        FiTransactionAdditionals.LCNo = null;
+                        FiTransactionAdditionals.LCAmt = null;
+                        FiTransactionAdditionals.AvailableLCAmt = null;
+                        FiTransactionAdditionals.CreditAmt = null;
+                        FiTransactionAdditionals.MarginAmt = null;
+                        //   FiTransactionAdditionals.InterestAmt = null;
+                        FiTransactionAdditionals.AvailableAmt = null;
+                        FiTransactionAdditionals.AllocationPerc = null;
+                        //   FiTransactionAdditionals.InterestPerc = null;
+                        FiTransactionAdditionals.TolerencePerc = null;
+                        FiTransactionAdditionals.CountryID = null;
+                        FiTransactionAdditionals.CountryOfOriginID = null;
+                        FiTransactionAdditionals.MaxDays = null;
+                        //   FiTransactionAdditionals.DocumentNo = null;
+                        //   FiTransactionAdditionals.DocumentDate = null;
+                        FiTransactionAdditionals.BEMaxDays = null;
+                        //   FiTransactionAdditionals.EntryDate = null;
+                        //   FiTransactionAdditionals.EntryNo = null;
+                        FiTransactionAdditionals.ApplicationCode = null;
+                        //   FiTransactionAdditionals.BankAddress = null;
+                        FiTransactionAdditionals.Unit = null;
+                        FiTransactionAdditionals.Amount = null;
+                        FiTransactionAdditionals.AcceptDate = null;
+                        //  FiTransactionAdditionals.ExpiryDate = null;
+                        FiTransactionAdditionals.DueDate = null;
+                        FiTransactionAdditionals.OpenDate = null;
+                        FiTransactionAdditionals.CloseDate = null;
+                        FiTransactionAdditionals.StartDate = null;
+                        FiTransactionAdditionals.EndDate = null;
+                        FiTransactionAdditionals.ClearDate = null;
+                        FiTransactionAdditionals.ReceiveDate = null;
+                        //    FiTransactionAdditionals.SubmitDate = null;
+                        FiTransactionAdditionals.EndTime = null;
+                        FiTransactionAdditionals.HandOverTime = null;
+                        FiTransactionAdditionals.LorryHireRate = null;
+                        FiTransactionAdditionals.QtyPerLoad = null;
+                        ///  FiTransactionAdditionals.PassNo = null;
+                        //   FiTransactionAdditionals.ReferenceDate = null;
+                        //  FiTransactionAdditionals.ReferenceNo = null;
+                        FiTransactionAdditionals.AuditNote = null;
+                        FiTransactionAdditionals.Terms = null;
+                        FiTransactionAdditionals.FirmID = null;
+                        FiTransactionAdditionals.VehicleID = null;
+                        FiTransactionAdditionals.WeekDays = null;
+                        FiTransactionAdditionals.BankWeekDays = null;
+                        FiTransactionAdditionals.RecommendByID = null;
+                        FiTransactionAdditionals.RecommendDate = null;
+                        FiTransactionAdditionals.RecommendNote = null;
+                        FiTransactionAdditionals.RecommendStatus = null;
+                        FiTransactionAdditionals.IsHigherApproval = null;
+                        FiTransactionAdditionals.LCApplnTransID = null;
+                        FiTransactionAdditionals.InLocID = null;
+                        FiTransactionAdditionals.ExchangeRate2 = null;
+                        FiTransactionAdditionals.AccountID = null;
+                        FiTransactionAdditionals.RouteID = null;
+                        FiTransactionAdditionals.AccountID2 = null;
+                        FiTransactionAdditionals.Hours = null;
+                        FiTransactionAdditionals.Year = null;
+                        //  FiTransactionAdditionals.AreaID = null;
+                        FiTransactionAdditionals.OtherBranchID = null;
+                        FiTransactionAdditionals.TaxFormID = null;
+                        FiTransactionAdditionals.PriceCategoryID = null;
+                        FiTransactionAdditionals.IsClosed = null;
+                        FiTransactionAdditionals.DepartmentID = null;
+                        DALVouchers.InsertAdditionals(FiTransactionAdditionals);
+                        return Json(new { success = true, message = "Transaction added", transactionNo = ID });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = "Unable to add Transaction....", transactionNo = "" });
+                    }
+                }
+                else
+                {
+                    String Result = DALVouchers.UpdateTransactions(FiTransactions);
+                    if (Result == "true")
+                    {
+                        foreach (InvTransItems item in InvTransItems)
+                        {
+                            item.TransactionID = FiTransactions.ID;
+                            item.RowType = -1;
+                            item.Pcs = null;
+                            item.AdvanceRate = null;
+                            item.OtherRate = null;
+                            item.MasterMiscID1 = null;
+                            item.Description = null;
+                            item.Remarks = null;
+                            item.IsBit = null;
+                            item.InvAvgCostID = null;
+                            item.IsReturn = true;
+                            item.Additional = null;
+                            item.CommodityID = null;
+                            item.AccountID = null;
+                            item.TransactionEntryID = null;
+                            item.LengthFt = null;
+                            item.LengthIn = null;
+                            item.LengthCm = null;
+                            item.GirthFt = null;
+                            item.GirthIn = null;
+                            item.GirthCm = null;
+                            item.ThicknessFt = null;
+                            item.ThicknessIn = null;
+                            item.ThicknessCm = null;
+                            item.ShortageQty = null;
+                            item.AvgCostID = null;
+                            item.RefTransItemID = null;
+                            item.Status = null;
+                            item.Cancel = null;
+                            item.MeasuredByID = null;
+                            item.FinishDate = null;
+                            item.UpdateDate = null;
+                            item.IsSameForPcs = null;
+                            item.RefID = null;
+                            item.BatchNo = null;
+                            item.Margin = null;
+                            item.SizeMasterID = null;
+                            item.TranType = "Normal";
+                            item.CostPerc = null;
+                            item.ManufactureDate = null;
+                            item.ExpiryDate = null;
+                            item.FOCQty = null;
+                            item.GroupItemID = null;
+                            item.PriceCategoryID = null;
+                            item.SerialNo = null;
+                            item.ReplaceQty = null;
+                            item.PrintedMRP = null;
+                            item.PrintedRate = null;
+                            item.PTSRate = null;
+                            item.PTRRate = null;
+                            item.TempRate = null;
+                            item.StockItemID = null;
+                            item.Visible = true;
+                            item.InLocID = null;
+                            DALVouchers.InvTransItemsMaster(item);
+                        }
+                        FiTransactionAdditionals.TransactionID = FiTransactions.ID;
+                        FiTransactionAdditionals.RefTransID1 = null;
+                        FiTransactionAdditionals.RefTransID2 = null;
+                        FiTransactionAdditionals.MeasureTypeID = null;
+                        FiTransactionAdditionals.LoadMeasureTypeID = null;
+                        FiTransactionAdditionals.ConsignTermID = null;
+                        FiTransactionAdditionals.ToLocationID = null;
+                        FiTransactionAdditionals.ExchangeRate1 = null;
+                        FiTransactionAdditionals.ExchangeRate2 = null;
+                        FiTransactionAdditionals.AdvanceExRate = null;
+                        FiTransactionAdditionals.CustomsExRate = null;
+                        FiTransactionAdditionals.ApprovalDays = null;
+                        FiTransactionAdditionals.WorkflowDays = null;
+                        FiTransactionAdditionals.PostedBranchID = null;
+                        FiTransactionAdditionals.ShipBerthDate = null;
+                        FiTransactionAdditionals.IsBit = null;
+                        //   FiTransactionAdditionals.Name = null;
+                        FiTransactionAdditionals.Code = null;
+                        FiTransactionAdditionals.Address = null;
+                        FiTransactionAdditionals.Rate = null;
+                        FiTransactionAdditionals.SystemRate = null;
+                        FiTransactionAdditionals.Period = null;
+                        FiTransactionAdditionals.Days = null;
+                        FiTransactionAdditionals.LCOptionID = null;
+                        FiTransactionAdditionals.LCNo = null;
+                        FiTransactionAdditionals.LCAmt = null;
+                        FiTransactionAdditionals.AvailableLCAmt = null;
+                        FiTransactionAdditionals.CreditAmt = null;
+                        FiTransactionAdditionals.MarginAmt = null;
+                        //    FiTransactionAdditionals.InterestAmt = null;
+                        FiTransactionAdditionals.AvailableAmt = null;
+                        FiTransactionAdditionals.AllocationPerc = null;
+                        //   FiTransactionAdditionals.InterestPerc = null;
+                        FiTransactionAdditionals.TolerencePerc = null;
+                        FiTransactionAdditionals.CountryID = null;
+                        FiTransactionAdditionals.CountryOfOriginID = null;
+                        FiTransactionAdditionals.MaxDays = null;
+                        //    FiTransactionAdditionals.DocumentNo = null;
+                        //    FiTransactionAdditionals.DocumentDate = null;
+                        FiTransactionAdditionals.BEMaxDays = null;
+                        //   FiTransactionAdditionals.EntryDate = null;
+                        //   FiTransactionAdditionals.EntryNo = null;
+                        FiTransactionAdditionals.ApplicationCode = null;
+                        //  FiTransactionAdditionals.BankAddress = null;
+                        FiTransactionAdditionals.Unit = null;
+                        FiTransactionAdditionals.Amount = null;
+                        FiTransactionAdditionals.AcceptDate = null;
+                        //   FiTransactionAdditionals.ExpiryDate = null;
+                        FiTransactionAdditionals.DueDate = null;
+                        FiTransactionAdditionals.OpenDate = null;
+                        FiTransactionAdditionals.CloseDate = null;
+                        FiTransactionAdditionals.StartDate = null;
+                        FiTransactionAdditionals.EndDate = null;
+                        FiTransactionAdditionals.ClearDate = null;
+                        FiTransactionAdditionals.ReceiveDate = null;
+                        //   FiTransactionAdditionals.SubmitDate = null;
+                        FiTransactionAdditionals.EndTime = null;
+                        FiTransactionAdditionals.HandOverTime = null;
+                        FiTransactionAdditionals.LorryHireRate = null;
+                        FiTransactionAdditionals.QtyPerLoad = null;
+                        //  FiTransactionAdditionals.PassNo = null;
+                        //   FiTransactionAdditionals.ReferenceDate = null;
+                        //   FiTransactionAdditionals.ReferenceNo = null;
+                        FiTransactionAdditionals.AuditNote = null;
+                        FiTransactionAdditionals.Terms = null;
+                        FiTransactionAdditionals.FirmID = null;
+                        FiTransactionAdditionals.VehicleID = null;
+                        FiTransactionAdditionals.WeekDays = null;
+                        FiTransactionAdditionals.BankWeekDays = null;
+                        FiTransactionAdditionals.RecommendByID = null;
+                        FiTransactionAdditionals.RecommendDate = null;
+                        FiTransactionAdditionals.RecommendNote = null;
+                        FiTransactionAdditionals.RecommendStatus = null;
+                        FiTransactionAdditionals.IsHigherApproval = null;
+                        FiTransactionAdditionals.LCApplnTransID = null;
+                        FiTransactionAdditionals.InLocID = null;
+                        FiTransactionAdditionals.ExchangeRate2 = null;
+                        FiTransactionAdditionals.AccountID = null;
+                        FiTransactionAdditionals.RouteID = null;
+                        FiTransactionAdditionals.AccountID2 = null;
+                        FiTransactionAdditionals.Hours = null;
+                        FiTransactionAdditionals.Year = null;
+                        //  FiTransactionAdditionals.AreaID = null;
+                        FiTransactionAdditionals.OtherBranchID = null;
+                        FiTransactionAdditionals.TaxFormID = null;
+                        FiTransactionAdditionals.PriceCategoryID = null;
+                        FiTransactionAdditionals.IsClosed = null;
+                        FiTransactionAdditionals.DepartmentID = null;
+                        DALVouchers.UpdateAdditionals(FiTransactionAdditionals);
+                        return Json(new { success = true, message = "Transaction updated", transactionNo = FiTransactions.ID });
+                    }
+                    else
+                    {
+                        return Json(new { success = false, message = Result, transactionNo = "" });
+                    }
+                }
+            }
+            catch (Exception Ex)
+            {
+                return Json(new { success = false, message = Ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetInventoryTransaction1(int ID)
+        {
+            try
+            {
+                DataTable Transaction = DALVouchers.DataTableFillTransactions(ID);
+                DataTable Entries = DALVouchers.DataTableFillTransactionEntries(ID);
+                DataTable Additional = DALVouchers.DataTableFillTransactionAdditionals(ID);
+                // var locs = "";
+                StringBuilder sb = new StringBuilder();
+                string ListWarehouse = "";
+
+                if (Additional.Rows.Count > 0)
+                {
+                    DataRow locs = Additional.Rows[0];
+                    DataTable warehouses = DALVouchers.FillLocationusingBranch(BranchID);
+
+                    foreach (DataRow dr in warehouses.Rows)
+                    {
+                        sb.Append("<option value='");
+                        sb.Append(dr["ID"]);
+                        sb.Append("'");
+                        if (dr["ID"].ToString() == locs["OutLocID"].ToString())
+                        {
+                            sb.Append(" selected");
+                        }
+                        sb.Append(">");
+                        sb.Append(dr["Name"]);
+                        sb.Append("</option>");
+                    }
+                    ListWarehouse = sb.ToString();
+                    sb.Clear();
+                }
+                //=============To get the default account ================//
+                DataSet ds = DALVouchers.GetAccountIDPurchaseReturn();
+                DataRow dr2 = ds.Tables[0].Rows[0];
+                string Account = dr2["AccountName"].ToString();
+                if (Account != "")
+                {
+                    string accountname = dr2["AccountName"].ToString();
+                    ViewBag.Account = accountname.ToString();
+                }
+                int Sn = 0;
+                sb.Clear();
+                foreach (DataRow dr in Entries.Rows)
+                {
+                    DataSet Details = DALVouchers.ProductAvailableUnits(Convert.ToInt64(dr["ItemID"].ToString()));
+                    DataTable dataTable = Details.Tables[0];
+                    DataTable DtDetails = Details.Tables[1];
+                    Sn = Convert.ToInt32(dr["ID"]);
+
+                    sb.Append("<tr>");
+
+                    // 1. Product Code
+                    sb.Append("<td id='TdproductCode" + Sn + "' style='width: 5cm;'>");
+                    sb.Append("<input type='text' id='productCode" + Sn + "' class='form-control productCode' element-id='" + Sn + "' ");
+                    sb.Append("onkeydown=\"ShowLookup(event,'productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+                    sb.Append("oninput=\"LookupTextChanged('productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+                    sb.Append("data-lookupcriteria='Items' data-idcolumn='ID' data-idvalue='" + dr["ItemID"] + "' ");
+                    sb.Append("data-assigncolumnname='ItemName' data-ismandatory='false' data-intparam1='' data-intparam2='' data-intparam3='' ");
+                    sb.Append("value='" + dr["ItemName"] + "' />");
+                    sb.Append("<div id='lookupDIVproductCode" + Sn + "'></div>");
+                    sb.Append("</td>");
+
+                    // 2. Unit
+                    sb.Append("<td id='unitTd" + Sn + "' style='width: 3cm;'>");
+                    sb.Append("<select name='ItemUnit" + Sn + "' element-id='" + Sn + "' id='ItemUnit" + Sn + "' class='form-select ItemUnit excelCells'>");
+                    foreach (DataRow dr1 in dataTable.Rows)
+                    {
+                        sb.Append("<option value='" + dr1["Unit"] + "'" + (dr["Unit"].ToString() == dr1["Unit"].ToString() ? " selected" : "") + ">" + dr1["Unit"] + "</option>");
+                    }
+                    sb.Append("</select></td>");
+
+                    // 3. Qty
+                    sb.Append("<td id='qtyTd" + Sn + "' style='width: 1.5cm;'>");
+                    sb.Append("<input type='text' class='form-control ItemQty' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Qty"]), 2) + "' element-id='" + Sn + "' id='ItemQty" + Sn + "' /></td>");
+
+                    // 4. Rate
+                    sb.Append("<td id='rateTd" + Sn + "' style='width: 1.5cm;'>");
+                    sb.Append("<input type='text' class='form-control ItemRate excelCells' element-factor='" + ToFixedNoRound(Convert.ToDecimal(dr["Factor"]), 2) + "' element-id='" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Rate"]), 2) + "' id='ItemRate" + Sn + "' disabled/></td>");
+
+                    // 5. Gross Amount
+                    sb.Append("<td class='ItemGrossAmtTd' style='width: 1.5cm;'>");
+                    sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["GrossAmount"]), 2) + "' disabled/></td>");
+
+                    // 6. Discount %
+                    sb.Append("<td class='discsTd' id='dicsTd" + Sn + "' style='width: 1.5cm;'>");
+                    sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["DiscountPerc"]), 2) + "' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' /></td>");
+
+                    // 7. Discount Amt
+                    sb.Append("<td class='dicsAmtTd' id='dicsAmtTd" + Sn + "' style='width: 1.5cm;'>");
+                    sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Discount"]), 2) + "' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' /></td>");
+
+                    // 8. Amount
+                    sb.Append("<td class='amtTd' id='amtTd" + Sn + "' style='width: 1.5cm;'>");
+                    sb.Append("<input type='text' class='form-control ItemAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Amount"]), 2) + "' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/></td>");
+
+                    // 9. Tax %
+                    sb.Append("<td class='taxPerTd' id='taxPerTd" + Sn + "' style='width: 1.5cm;'>");
+                    if (dr["TaxTypeID"].ToString() != "")
+                    {
+                        DataTable TaxDetails = DALVouchers.ProductTaxDetails(Convert.ToInt64(DtDetails.Rows[0]["TaxTypeID"]));
+                        // Always display two decimal places (50.00 instead of 50.0)
+                        sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "'  value='" + String.Format("{0:F2}", TaxDetails.Rows[0]["SalesPerc"]) + "' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+                    }
+                    else
+                    {
+                        sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+                    }
+                    sb.Append("</td>");
+
+
+                    // 10. Tax Amt
+                    sb.Append("<td class='taxAmtTd' id='taxAmtTd" + Sn + "' style='width: 1.5cm;'>");
+                    sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TaxValue"]), 2) + "' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' /></td>");
+
+                    // 11. Total
+                    sb.Append("<td class='itemTotalTd' id='itemTotalTd" + Sn + "' style='width: 1.5cm;'>");
+                    sb.Append("<input type='text' class='form-control ItemTotal excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TotalAmount"]), 2) + "' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled/></td>");
+
+                    // 12. Add button
+                    sb.Append("<td class='col' style='width: 1.5cm;'><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "'><i class='fa-solid fa-plus'></i></button></td>");
+
+                    // 13. Delete action
+                    sb.Append("<td class='col' id='deleteaction" + Sn + "' style='width: 1.5cm;'>");
+                    sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul></td>");
+
+                    // 14. Hidden ItemID
+                    sb.Append("<td style='width: 1.5cm;'>");
+                    sb.Append("<input type='hidden' class='itemid excelCells numbersOnly form-control' id='itemid" + Sn + "' value='" + Sn + "' element-id='" + Sn + "' autocomplete='off'></td>");
+
+                    sb.Append("</tr>");
+
+                }
+
+                Sn += 1;
+                sb.Append("<tr>");
+
+                // 1. Product Code (Wider)
+                sb.Append("<td id='TdproductCode" + Sn + "' style='width: 5cm;'>");
+                sb.Append("<input type='text' id='productCode" + Sn + "' class='form-control productCode' element-id='" + Sn + "' ");
+                sb.Append("onkeydown=\"ShowLookup(event,'productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+                sb.Append("oninput=\"LookupTextChanged('productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+                sb.Append("data-lookupcriteria='Items' data-idcolumn='ID' data-idvalue='" + Sn + "' ");
+                sb.Append("data-assigncolumnname='ItemName' data-ismandatory='false' data-intparam1='' data-intparam2='' data-intparam3='' />");
+                sb.Append("<div id='lookupDIVproductCode" + Sn + "' ></div>");
+                sb.Append("</td>");
+
+                // 2. Unit (Wider)
+                sb.Append("<td id='unitTd" + Sn + "' style='width: 3cm;'>");
+                sb.Append("<select name='ItemUnit" + Sn + "' element-id='" + Sn + "' id='ItemUnit" + Sn + "' class='form-select ItemUnit excelCells'></select>");
+                sb.Append("</td>");
+
+                // 3. Qty
+                sb.Append("<td id='qtyTd" + Sn + "' style='width: 1.5cm;'>");
+                sb.Append("<input type='text' class='form-control ItemQty' element-id='" + Sn + "' id='ItemQty" + Sn + "' />");
+                sb.Append("</td>");
+
+                // 4. Rate
+                sb.Append("<td id='rateTd" + Sn + "' style='width: 1.5cm;'>");
+                sb.Append("<input type='text' class='form-control ItemRate excelCells' element-id='" + Sn + "' id='ItemRate" + Sn + "' disabled/>");
+                sb.Append("</td>");
+
+                // 5. Gross Amount
+                sb.Append("<td class='ItemGrossAmtTd' style='width: 1.5cm;'>");
+                sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' disabled/>");
+                sb.Append("</td>");
+
+                // 6. Discount %
+                sb.Append("<td class='discsTd' id='dicsTd" + Sn + "' style='width: 1.5cm;'>");
+                sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' />");
+                sb.Append("</td>");
+
+                // 7. Discount Amount
+                sb.Append("<td class='dicsAmtTd' id='dicsAmtTd" + Sn + "' style='width: 1.5cm;'>");
+                sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' />");
+                sb.Append("</td>");
+
+                // 8. Amount
+                sb.Append("<td class='amtTd' id='amtTd" + Sn + "' style='width: 1.5cm;'>");
+                sb.Append("<input type='text' class='form-control ItemAmt excelCells' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/>");
+                sb.Append("</td>");
+
+                // 9. Tax %
+                sb.Append("<td class='taxPerTd' id='taxPerTd" + Sn + "' style='width: 1.5cm;'>");
+                sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+                sb.Append("</td>");
+
+                // 10. Tax Amount
+                sb.Append("<td class='taxAmtTd' id='taxAmtTd" + Sn + "' style='width: 1.5cm;'>");
+                sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' />");
+                sb.Append("</td>");
+
+                // 11. Total
+                sb.Append("<td class='itemTotalTd' id='itemTotalTd" + Sn + "' style='width: 1.5cm;'>");
+                sb.Append("<input type='text' class='form-control ItemTotal excelCells' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled/>");
+                sb.Append("</td>");
+
+                // 12. Action
+                sb.Append("<td class='col' style='width: 1.5cm;'><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "' style=''><i class='fa-solid fa-plus'></i></button></td>");
+
+                sb.Append("<td class='col' id='deleteaction" + Sn + "' style='width: 1.5cm;'>");
+                sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
+                sb.Append("</td>");
+                sb.Append("<td style='width: 1.5cm;'>");
+                sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
+                sb.Append("</td>");
+                sb.Append("</tr>");
+                string Entities = sb.ToString();
+                sb.Clear();
+
+                Dictionary<string, object> row;
+                List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
+                foreach (DataRow dr1 in Transaction.Rows)
+                {
+                    row = new Dictionary<string, object>();
+                    foreach (DataColumn col1 in Transaction.Columns)
+                    {
+                        row.Add(col1.ColumnName, dr1[col1]);
+                    }
+                    rows.Add(row);
+                }
+                string Trans = JsonConvert.SerializeObject(rows);
+                rows.Clear();
+                Dictionary<string, object> row1;
+                foreach (DataRow dr1 in Transaction.Rows)
+                {
+                    row1 = new Dictionary<string, object>();
+                    foreach (DataColumn col1 in Transaction.Columns)
+                    {
+                        row1.Add(col1.ColumnName, dr1[col1]);
+                    }
+                    rows.Add(row1);
+                }
+                string Add = JsonConvert.SerializeObject(rows);
+                rows.Clear();
+                Dictionary<string, object> row2;
+                foreach (DataRow dr1 in Additional.Rows)
+                {
+                    row2 = new Dictionary<string, object>();
+                    foreach (DataColumn col1 in Additional.Columns)
+                    {
+                        row2.Add(col1.ColumnName, dr1[col1]);
+                    }
+                    rows.Add(row2);
+                }
+                string Additionalentries = JsonConvert.SerializeObject(rows);
+                //warehouses = ListWarehouses,
+                return Json(new { success = true, innerHTML = Entities, trans = Trans, fiadditional = Additionalentries, additional = Add, account = ViewBag.Account, warehouses = ListWarehouse, message = "Success" });
+            }
+            catch (Exception Ex)
+            {
+                return Json(new { success = false, message = Ex.Message });
+
+            }
+        }
+    }
+}

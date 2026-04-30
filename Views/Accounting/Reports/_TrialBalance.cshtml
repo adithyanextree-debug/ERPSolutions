@@ -1,0 +1,215 @@
+﻿@model ERPSample.Models.Accounting.Reports.TrialBalanceModel
+@using System.Data
+
+@if (Model != null && Model.ReportTable != null && Model.ReportTable.Rows.Count > 0)
+{
+    <div class="col-sm-12" id="trialbalanceTable">
+        <style type="text/css" media="print">
+            @@page {
+                size: landscape;
+                margin: 20mm 10mm 20mm 10mm;
+                min-height: 200mm; /* Approx. height for A4 minus margins */
+            }
+
+            @@media print {
+                .header {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 80px; /* Adjust as needed */
+                    background-color: #f0f0f0; /* Optional: Add a background color */
+                    z-index: 1; /* Ensure it's above the content */
+                    text-align: center; /* Center the image */
+                    /* Add any other header styles */
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .footer {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 80px; /* Adjust as needed */
+                    background-color: #f0f0f0; /* Optional: Add a background color */
+                    z-index: 1; /* Ensure it's above the content */
+                    text-align: center; /* Center the image */
+                    /* Add any other footer styles */
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                table.table {
+                    border-collapse: collapse;
+                    width: 100%;
+                }
+                    /* Apply inner borders to all cells */
+                    table.table th,
+                    table.table td {
+                        border: 1px solid #e5e5e5;
+                    }
+                    /* Remove outer borders from first and last columns */
+                    table.table tr td:first-child,
+                    table.table tr th:first-child {
+                        border-left: none;
+                    }
+
+                    table.table tr td:last-child,
+                    table.table tr th:last-child {
+                        border-right: none;
+                    }
+                    /* Remove top border of the first visible row */
+                    table.table thead tr:first-child th,
+                    table.table thead tr:first-child td {
+                        border-top: none;
+                    }
+                    /* Remove bottom border of last row in table */
+                    table.table tfoot td {
+                        border: none;
+                    }
+                    /* Remove borders from specific cells */
+                    table.table td.no-border {
+                        border: none !important;
+                    }
+            }
+
+        </style>
+        <style type="text/css" media="screen">
+            .header, .footer {
+                display: none;
+            }
+        </style>
+        <div class="card">
+            <div class="card-block row">
+                <div class="col-sm-12 col-lg-12 col-xl-12">
+                    <div class="header">
+                        <!-- Your header content, including the image -->
+                        <img id="headerimage" style="height:80px;width:100%;" src="@ViewBag.HeaderImage" />
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <!-- <caption>List of users</caption> -->
+
+                            <thead>
+                                <tr>
+                                    <td colspan="8" style="height:80px;width:100%;">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="no-border" style="background-color:white; font-weight:bold;text-align:end;">
+                                        Trial Balance
+                                    </td>
+                                    <td colspan="5" class="no-border" style="background-color:white; font-weight:bold;text-align:end;">
+                                        Period: @Model.StartDate.ToString("dd/MM/yyyy") to @Model.EndDate.ToString("dd/MM/yyyy")
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th></th>
+                                    <th></th>
+                                    <th colspan="2" style="text-align:center">OPENING</th>
+                                    <th colspan="2" style="text-align:center">TRANSACTION</th>
+                                    <th colspan="2" style="text-align:center">CLOSING</th>
+                                </tr>
+
+                                <tr>
+                                    <th>ACCOUNT CODE</th>
+                                    <th>ACCOUNT NAME</th>
+                                    <th>DEBIT</th>
+                                    <th>CREDIT</th>
+                                    <th>DEBIT</th>
+                                    <th>CREDIT</th>
+                                    <th>DEBIT</th>
+                                    <th>CREDIT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    decimal totalOpenDebit = 0;
+                                    decimal totalOpenCredit = 0;
+                                    decimal totalDebit = 0;
+                                    decimal totalCredit = 0;
+                                    decimal totalClosDebit = 0;
+                                    decimal totalClosCredit = 0;
+
+                                    decimal SafeDecimal(object value) => value != DBNull.Value ? Convert.ToDecimal(value) : 0;
+                                }
+
+                                @foreach (DataRow dr in Model.ReportTable.Rows)
+                                {
+                                    // Safely parse each value
+                                    decimal openDebit = SafeDecimal(dr["OpenDebit"]);
+                                    decimal openCredit = SafeDecimal(dr["OpenCredit"]);
+                                    decimal debit = SafeDecimal(dr["Debit"]);
+                                    decimal credit = SafeDecimal(dr["Credit"]);
+                                    decimal closDebit = SafeDecimal(dr["ClosDebit"]);
+                                    decimal closCredit = SafeDecimal(dr["ClosCredit"]);
+
+                                    // Accumulate totals
+                                    totalOpenDebit += openDebit;
+                                    totalOpenCredit += openCredit;
+                                    totalDebit += debit;
+                                    totalCredit += credit;
+                                    totalClosDebit += closDebit;
+                                    totalClosCredit += closCredit;
+
+                                    <tr ondblclick="RowDoubleClick(@dr["ID"])">
+                                        @if (Convert.ToBoolean(dr["VoucherEntry"]))
+                                        {
+                                            <td>@dr["AccountCode"]</td>
+                                            <td style="white-space: pre; color: #2985be;">@dr["AccountName"]</td>
+                                            <td style="text-align:right">@openDebit.ToString("N2")</td>
+                                            <td style="text-align:right">@openCredit.ToString("N2")</td>
+                                            <td style="text-align:right">@debit.ToString("N2")</td>
+                                            <td style="text-align:right">@credit.ToString("N2")</td>
+                                            <td style="text-align:right">@closDebit.ToString("N2")</td>
+                                            <td style="text-align:right; padding-right:2px;">@closCredit.ToString("N2")</td>
+                                        }
+                                        else
+                                        {
+                                            <td style="font-weight: 400;">@dr["AccountCode"]</td>
+                                            <td style="white-space: pre; color: #2985be; font-weight: 400">@dr["AccountName"]</td>
+                                            <td style="text-align:right; font-weight: 400">@openDebit.ToString("N2")</td>
+                                            <td style="text-align:right; font-weight: 400">@openCredit.ToString("N2")</td>
+                                            <td style="text-align:right; font-weight: 400">@debit.ToString("N2")</td>
+                                            <td style="text-align:right; font-weight: 400">@credit.ToString("N2")</td>
+                                            <td style="text-align:right; font-weight: 400">@closDebit.ToString("N2")</td>
+                                            <td style="text-align:right; font-weight: 400; padding-right:2px;">@closCredit.ToString("N2")</td>
+                                        }
+                                    </tr>
+                                }
+
+                                <!-- Totals Row -->
+                                <tr style="font-weight: bold; background-color: #f1f1f1;">
+                                    <td colspan="2" style="text-align:right;">Total:</td>
+                                    <td style="text-align:right">@totalOpenDebit.ToString("N2")</td>
+                                    <td style="text-align:right">@totalOpenCredit.ToString("N2")</td>
+                                    <td style="text-align:right">@totalDebit.ToString("N2")</td>
+                                    <td style="text-align:right">@totalCredit.ToString("N2")</td>
+                                    <td style="text-align:right">@totalClosDebit.ToString("N2")</td>
+                                    <td style="text-align:right; padding-right:2px;">@totalClosCredit.ToString("N2")</td>
+                                </tr>
+                            </tbody>
+
+                            <tfoot>
+                                <tr>
+                                    <td colspan="8" style="height:80px;width:100%;">
+                                    </td>
+                                </tr>
+                            </tfoot>
+
+                        </table>
+                    </div>
+                    <div class="footer">
+                        <!-- Your footer content, including the image -->
+                        <img id="footerimage" style="height:80px;width:100%;" src="@ViewBag.FooterImage" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Table End  -->
+    </div>
+
+}

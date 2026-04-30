@@ -1,0 +1,150 @@
+﻿@{
+    ViewData["Title"] = "Brand Master";
+}
+
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Brand Master</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="Home">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Inventory</li>
+                    <li class="breadcrumb-item active">Masters</li>
+                    <li class="breadcrumb-item active">Brand Master</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Zero Configuration  Starts-->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="list-product-header mt-4">
+                    <div>
+                        @(await Component.InvokeAsync("ToolBar", new
+                        {
+                            PageName = "Brand Master",
+                            AllowNew = ViewBag.UserPermissions.IsCreate,
+                            AllowEdit = ViewBag.UserPermissions.IsEdit,
+                            AllowDelete = ViewBag.UserPermissions.IsDelete,
+                            AllowCopy = ViewBag.UserPermissions.IsCopy
+                        }))
+
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="BrandMasterList">
+                        <div class="table-responsive">
+                            <table class="display table" id="project-status">
+                                <thead>
+                                    <tr>
+                                        <th class="col">SNo.</th>
+                                        <th>Brand</th>
+                                        <th>Description</th>
+                                        <th>Active</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="BrandMasterTable">
+                                    @Html.Raw(ViewBag.BrandMaster)
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="BrandMasterForm" style="display:none;">
+                        <!--Add Details -->
+                        <div class="col-md-12">
+                            <div class="card">
+
+                                <div class="card-body basic-form">
+                                    <div class="theme-form row g-3">
+                                        <input type="text" class="text-center transparent_text" id="ID" style="display:none" />
+                                        <input type="text" class="text-center transparent_text" id="MenuID" style="display:none" value="@ViewBag.MenuID" />
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Code", DisplayText = "Code" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Value", DisplayText = "Brand Name", IsMandatory = true }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 mb-1">
+                                            <div class="row">
+                                                <div class="col-md-4 pr-0">
+                                                    <span class="grpspn">Active</span>
+                                                </div>
+                                                <div class="col-md-8 pl-0">
+                                                    <li class="list-group-item">
+                                                        <div class="form-check form-switch form-check-reverse">
+                                                            <input class="form-check-input" id="Active" type="checkbox" role="switch" checked="">
+                                                        </div>
+                                                    </li>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="col-md-2 pr-0">
+                                                    <span class="grpspn">Description</span>
+                                                </div>
+                                                <div class="col-md-10 pl-0">
+                                                    <input type="text" id="Description" class="form-control salesInvoiceDescription" data-ismandatory="false">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="theme-form row mt-3">
+                                        <div class="col-md-4">
+                                            <form method="post" asp-controller="BrandMaster" asp-action="AddImage" enctype="multipart/form-data" onsubmit="AJAXSubmit(this);return false;">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0">
+                                                        <span class="grpspn">Image Upload</span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <!-- hidden file input -->
+                                                        <input type="file" id="FileUpload_FormFile" name="FileUpload_FormFile" style="display:none;" accept="image/*" />
+
+                                                        <!-- image placeholder -->
+                                                        <img id="brandimagepreview" src="~/Resources/demo.jpg" alt="Click to upload" style="width:100px; height:100px; cursor:pointer; border:1px solid #ccc; border-radius:5px;" />
+                                                        <!-- hidden field to store file name -->
+                                                        <input type="hidden" id="hiddenimg" name="hiddenimg" />
+
+                                                        <input type='submit' style='display:none;' id='BrandImageUploadBtn' />
+                                                    </div>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- DEtails Ends  -->
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!--- list div-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="~/assets/js/custom-add-product3.js"></script>
+<script src="~/assets/custom/Inventory/Masters/BrandMaster.js?v=1.0.4"></script>

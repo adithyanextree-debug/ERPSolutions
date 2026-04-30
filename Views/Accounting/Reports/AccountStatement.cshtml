@@ -1,0 +1,288 @@
+﻿@model ERPSample.Models.Accounting.Reports.AccountStatementModel
+@using System.Data
+@{
+    ViewData["Title"] = "Account Statement";
+}
+<style>
+    .totals-row {
+        background-color: #f9f9f9;
+        border-top: 2px solid #ccc;
+        font-weight: bold;
+    }
+
+</style>
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Statement of Account</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="index.html">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Accounting</li>
+                    <li class="breadcrumb-item">Statement</li>
+                    <li class="breadcrumb-item active">Account Statement</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Container-fluid starts-->
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="list-product-header">
+                        <div>
+                            <ul class="quick-file d-flex flex-row">
+                                <li onclick="printOnlyTable()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-print text-warning">
+                                        </i>
+                                    </div>
+                                    <h6 class="mb-2">Print</h6>
+                                </li>
+                                <li onclick="exportToPDF()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-file text-info"></i>
+                                    </div>
+                                    <h6 class="mb-2">PDF</h6>
+                                </li>
+                                <li onclick="exportToExcel()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-book text-primary"></i>
+                                    </div>
+                                    <h6 class="mb-2">Excel</h6>
+                                </li>
+                                <li onclick="emailTableData()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-envelope text-title-gray"></i>
+                                    </div>
+                                    <h6 class="mb-2">Email</h6>
+                                </li>
+                                <li onclick="CloseEntry()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-close text-danger"></i>
+                                    </div>
+                                    <h6 class="mb-2">Close</h6>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+                    <!--Add Products -->
+                    <div>
+                        <div class="col-md-12">
+                            <div class="card">
+
+                                <div class="card-body basic-form">
+                                     <form id="accountStatementForm" class="theme-form row g-3" asp-controller="AccountStatement" asp-action="ShowReport" enctype="multipart/form-data" method="post">
+                                        <div class="col-md-3"> 
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "StartDate", DisplayText = "Date From"}))
+                                            </div>
+                                        </div>                                        
+                                        <div class="col-md-3">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "EndDate", DisplayText = "Date Upto" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "AccountName",DisplayText = "Account",IDColumn = "ID",
+                                            LookupCriteria = "Accounts",IDValue = 0,AssignColumn = "AccountName"}))
+                                            </div>
+                                        </div>
+                                        <!-- Hidden field for actual AccountID (bound to model) -->
+                                        <input type="hidden" id="AccountID" name="AccountID" />
+                                        <div class="col-md-1">
+                                            <div class="text-end">
+                                                <button class="btn btn-primary me-2"
+                                                        type="submit">
+                                                    Submit
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Add Products Ends  -->
+                    <!-- Table Starts  -->
+                    <div id="reportContainer">
+                    @if (Model != null && Model.ReportTable != null && Model.ReportTable.Rows.Count > 0)
+                    {
+                    <div class="col-sm-12" id="accountTable">
+                        <style type="text/css" media="print">
+                            @@page {
+                                size: portrait;
+                                margin: 20mm 10mm 20mm 10mm;
+                                min-height: 200mm; /* Approx. height for A4 minus margins */
+                            }
+
+                            @@media print {
+                                .header {
+                                    position: fixed;
+                                    top: 0;
+                                    left: 0;
+                                    width: 100%;
+                                    height: 80px; /* Adjust as needed */
+                                    background-color: #f0f0f0; /* Optional: Add a background color */
+                                    z-index: 1; /* Ensure it's above the content */
+                                    text-align: center; /* Center the image */
+                                    /* Add any other header styles */
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                }
+
+                                .footer {
+                                    position: fixed;
+                                    bottom: 0;
+                                    left: 0;
+                                    width: 100%;
+                                    height: 80px; /* Adjust as needed */
+                                    background-color: #f0f0f0; /* Optional: Add a background color */
+                                    z-index: 1; /* Ensure it's above the content */
+                                    text-align: center; /* Center the image */
+                                    /* Add any other footer styles */
+                                    display: flex;
+                                    justify-content: center;
+                                    align-items: center;
+                                }
+
+                                table.table {
+                                    border-collapse: collapse;
+                                    width: 100%;
+                                }
+                                /* Apply inner borders to all cells */
+                                table.table th,
+                                table.table td {
+                                    border: 1px solid #e5e5e5;
+                                }
+                                /* Remove outer borders from first and last columns */
+                                table.table tr td:first-child,
+                                table.table tr th:first-child {
+                                    border-left: none;
+                                }
+
+                                table.table tr td:last-child,
+                                table.table tr th:last-child {
+                                    border-right: none;
+                                }
+                                /* Remove top border of the first visible row */
+                                table.table thead tr:first-child th,
+                                table.table thead tr:first-child td {
+                                    border-top: none;
+                                }
+                                /* Remove bottom border of last row in table */
+                                table.table tfoot td {
+                                    border: none;
+                                }
+                                /* Remove borders from specific cells */
+                                table.table td.no-border {
+                                    border: none !important;
+                                }
+                            }
+                        </style>
+                        <style type="text/css" media="screen">
+                            .header, .footer {
+                                display: none;
+                            }
+                        </style>
+                        <div class="card">
+                            <div class="card-block row">
+                                <div class="col-sm-12 col-lg-12 col-xl-12">
+                                    <div class="header">
+                                        <!-- Your header content, including the image -->
+                                        <img id="headerimage" style="height:80px;width:100%;" src="@ViewBag.HeaderImage" />
+                                    </div>
+                                    <div class="table-responsive">
+                                        @{
+                                            decimal totalDebit = 0;
+                                            decimal totalCredit = 0;
+                                            decimal totalRBalance = 0;
+                                        }
+                                        <table class="table">
+                                            <thead>
+                                                <tr id="">
+                                                    <td colspan="6" style="height:80px;width:100%;"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td colspan="3" class="no-border" style="background-color:white; font-weight:bold;text-align:end;">
+                                                        Statement of @Model.AccountName
+                                                    </td>
+                                                    <td colspan="3" class="no-border" style="background-color:white; font-weight:bold;text-align:end;">
+                                                        Period: @Model.StartDate.ToString("dd/MM/yyyy") to @Model.EndDate.ToString("dd/MM/yyyy")
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th style="width:5cm">Voucher Date</th>
+                                                    <th style="width:5cm">Voucher Number</th>
+                                                    <th style="width:5cm">Narration</th>
+                                                    <th style="width:5cm">Debit</th>
+                                                    <th style="width:5cm">Credit</th>
+                                                    <th style="width:5cm">R Balance</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (DataRow dr in Model.ReportTable.Rows)
+                                                {
+                                                    decimal debit = (dr["Debit"] != DBNull.Value) ? Convert.ToDecimal(dr["Debit"]) : 0;
+                                                    decimal credit = (dr["Credit"] != DBNull.Value) ? Convert.ToDecimal(dr["Credit"]) : 0;
+                                                    decimal rBalance = (dr["RBalance"] != DBNull.Value) ? Convert.ToDecimal(dr["RBalance"]) : 0;
+                                                    totalDebit += debit;
+                                                    totalCredit += credit;
+                                                    totalRBalance += rBalance;
+                                                    <tr>
+                                                        <td class="voucherdate">@((dr["VDate"] == DBNull.Value) ? string.Empty : String.Format("{0:dd/MM/yyyy}", dr["VDate"]))</td>
+                                                        <td class="voucherno">@((dr["VNo"] == DBNull.Value) ? string.Empty : dr["VNo"])</td>
+                                                        <td style="white-space: pre-wrap;" class="text-left">@((dr["Narration"] == DBNull.Value) ? string.Empty : dr["Narration"])</td>
+                                                        <td style="text-align:right;">@debit.ToString("N2")</td>
+                                                        <td style="text-align:right;">@credit.ToString("N2")</td>
+                                                        <td style="text-align:right;">@rBalance.ToString("N2")</td>
+                                                    </tr>
+                                                }
+                                                <!-- Total Row -->
+                                                <tr class="totals-row">
+                                                    <td colspan="3" style="text-align:right;font-weight:bold;">Total:</td>
+                                                    <td style="text-align:right;font-weight:bold;">@totalDebit.ToString("N2")</td>
+                                                    <td style="text-align:right;font-weight:bold;">@totalCredit.ToString("N2")</td>
+                                                    <td style="text-align:right;font-weight:bold;">@totalRBalance.ToString("N2")</td>
+                                                </tr>
+                                            </tbody>
+                                            <tfoot>
+                                                <tr>
+                                                    <td colspan="6" style="height:80px;width:100%;"></td>
+                                                </tr>
+                                            </tfoot>
+                                        </table>
+                                    </div>
+                                    <div class="footer">
+                                        <!-- Your footer content, including the image -->
+                                        <img id="footerimage" style="height:80px;width:100%;" src="@ViewBag.FooterImage" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Table End  -->
+                    </div>
+                    }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Container-fluid Ends -->
+</div>
+<!-- Container-fluid Ends -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script src="~/assets/Custom/Accounting/Reports/AccountStatement.js"></script>

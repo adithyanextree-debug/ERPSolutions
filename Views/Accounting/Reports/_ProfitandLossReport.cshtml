@@ -1,0 +1,373 @@
+﻿@model ERPSample.Models.Accounting.Reports.ProfitLossModel
+@using System.Data
+
+@if (Model != null && Model.ReportTable != null && Model.ReportTable.Tables[0].Rows.Count > 0)
+{
+    @if (Model.ReportTable.Tables.Count > 1)
+    {
+        <div class="col-sm-12" id="profitandlossTable">
+            <style type="text/css" media="print">
+                @@page {
+                    size: landscape;
+                    margin: 20mm 10mm 20mm 10mm;
+                    min-height: 200mm; /* Approx. height for A4 minus margins */
+                }
+
+                @@media print {
+                    .header {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 80px; /* Adjust as needed */
+                        background-color: #f0f0f0; /* Optional: Add a background color */
+                        z-index: 1; /* Ensure it's above the content */
+                        text-align: center; /* Center the image */
+                        /* Add any other header styles */
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    .footer {
+                        position: fixed;
+                        bottom: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 80px; /* Adjust as needed */
+                        background-color: #f0f0f0; /* Optional: Add a background color */
+                        z-index: 1; /* Ensure it's above the content */
+                        text-align: center; /* Center the image */
+                        /* Add any other footer styles */
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    table.table {
+                        border-collapse: collapse;
+                        width: 100%;
+                    }
+                        /* Apply inner borders to all cells */
+                        table.table th,
+                        table.table td {
+                            border: 1px solid #e5e5e5;
+                        }
+                        /* Remove outer borders from first and last columns */
+                        table.table tr td:first-child,
+                        table.table tr th:first-child {
+                            border-left: none;
+                        }
+
+                        table.table tr td:last-child,
+                        table.table tr th:last-child {
+                            border-right: none;
+                        }
+                        /* Remove top border of the first visible row */
+                        table.table thead tr:first-child th,
+                        table.table thead tr:first-child td {
+                            border-top: none;
+                        }
+                        /* Remove bottom border of last row in table */
+                        table.table tfoot td {
+                            border: none;
+                        }
+                        /* Remove borders from specific cells */
+                        table.table td.no-border {
+                            border: none !important;
+                        }
+                }
+
+            </style>
+            <style type="text/css" media="screen">
+                .header, .footer {
+                    display: none;
+                }
+            </style>
+            <div class="card">
+                <div class="card-block row">
+                    <div class="col-sm-12 col-lg-12 col-xl-12">
+                        <div class="header">
+                            <!-- Your header content, including the image -->
+                            <img id="headerimage" style="height:80px;width:100%;" src="@ViewBag.HeaderImage" />
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <td colspan="6" style="height:80px;width:100%;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="no-border"></td>
+                                        <td class="no-border"></td>
+                                        <td colspan="2" class="no-border" style="background-color:white; font-weight:bold; text-align:center;">
+                                            Profit and Loss
+                                        </td>
+                                        <td colspan="2" class="no-border" style="background-color:white; font-weight:bold; text-align:start;">
+                                            Period: @Model.StartDate.ToString("dd/MM/yyyy") to @Model.EndDate.ToString("dd/MM/yyyy")
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th style="width:5cm;">ACCOUNT CODE</th>
+                                        <th style="width:5cm;">ACCOUNT NAME</th>
+                                        <th style="width:5cm;">AMOUNT</th>
+                                        <th style="width:5cm;">ACCOUNT CODE</th>
+                                        <th style="width:5cm;">ACCOUNT NAME</th>
+                                        <th style="width:5cm;">AMOUNT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        var leftTable = Model.ReportTable.Tables[0];
+                                        var rightTable = Model.ReportTable.Tables.Count > 1 ? Model.ReportTable.Tables[1] : null;
+
+                                        decimal leftTotal = 0, rightTotal = 0;
+
+                                        int maxRows = Math.Max(leftTable.Rows.Count, rightTable?.Rows.Count ?? 0);
+
+                                        for (int i = 0; i < maxRows; i++)
+                                        {
+                                            var leftRow = i < leftTable.Rows.Count ? leftTable.Rows[i] : null;
+                                            var rightRow = rightTable != null && i < rightTable.Rows.Count ? rightTable.Rows[i] : null;
+
+                                            if (leftRow != null && decimal.TryParse(leftRow["Amount"].ToString(), out var leftAmt))
+                                            {
+                                                leftTotal += leftAmt;
+                                            }
+
+                                            if (rightRow != null && decimal.TryParse(rightRow["Amount"].ToString(), out var rightAmt))
+                                            {
+                                                rightTotal += rightAmt;
+                                            }
+                                            <tr>
+                                                @* Left Side *@
+                                                @if (leftRow != null)
+                                                {
+                                                    var isBold = leftRow["VoucherEntry"].ToString() == "False";
+                                                    <td style="@(isBold ? "font-weight:bold;" : "")">@leftRow["AccountCode"]</td>
+                                                    <td style="white-space: pre; @(isBold ? "font-weight:bold;" : "")">@leftRow["AccountName"]</td>
+                                                    <td style="text-align:right; @(isBold ? "font-weight:bold;" : "")">@String.Format("{0:N2}", leftRow["Amount"])</td>
+                                                }
+                                                else
+                                                {
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                }
+
+                                                @* Right Side *@
+                                                @if (rightRow != null)
+                                                {
+                                                    var isBold = rightRow["VoucherEntry"].ToString() == "False";
+                                                    <td style="@(isBold ? "font-weight:bold;" : "")">@rightRow["AccountCode"]</td>
+                                                    <td style="white-space: pre; @(isBold ? "font-weight:bold;" : "")">@rightRow["AccountName"]</td>
+                                                    <td style="text-align:right; @(isBold ? "font-weight:bold;" : "")">@String.Format("{0:N2}", rightRow["Amount"])</td>
+                                                }
+                                                else
+                                                {
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                }
+                                            </tr>
+                                        }
+                                    }
+
+                                    <tr style="font-weight:bold;">
+                                        <td colspan="2" style="text-align:right;">Total</td>
+                                        <td style="text-align:right;">@String.Format("{0:N2}", leftTotal)</td>
+                                        <td colspan="2" style="text-align:right;">Total</td>
+                                        <td style="text-align:right;">@String.Format("{0:N2}", rightTotal)</td>
+                                    </tr>
+                                </tbody>
+
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="6" style="height:80px;width:100%;"></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="footer">
+                            <!-- Your footer content, including the image -->
+                            <img id="footerimage" style="height:80px;width:100%;" src="@ViewBag.FooterImage" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Table End  -->
+        </div>
+    }
+    else
+    {
+        <div class="col-sm-12" id="profitandlossTable">
+            <style type="text/css" media="print">
+                @@page {
+                    size: portrait;
+                    margin: 20mm 10mm 20mm 10mm;
+                    min-height: 200mm; /* Approx. height for A4 minus margins */
+                }
+
+                @@media print {
+                    .header {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 80px; /* Adjust as needed */
+                        background-color: #f0f0f0; /* Optional: Add a background color */
+                        z-index: 1; /* Ensure it's above the content */
+                        text-align: center; /* Center the image */
+                        /* Add any other header styles */
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    .footer {
+                        position: fixed;
+                        bottom: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 80px; /* Adjust as needed */
+                        background-color: #f0f0f0; /* Optional: Add a background color */
+                        z-index: 1; /* Ensure it's above the content */
+                        text-align: center; /* Center the image */
+                        /* Add any other footer styles */
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+
+                    table.table {
+                        border-collapse: collapse;
+                        width: 100%;
+                    }
+                        /* Apply inner borders to all cells */
+                        table.table th,
+                        table.table td {
+                            border: 1px solid #e5e5e5;
+                        }
+                        /* Remove outer borders from first and last columns */
+                        table.table tr td:first-child,
+                        table.table tr th:first-child {
+                            border-left: none;
+                        }
+
+                        table.table tr td:last-child,
+                        table.table tr th:last-child {
+                            border-right: none;
+                        }
+                        /* Remove top border of the first visible row */
+                        table.table thead tr:first-child th,
+                        table.table thead tr:first-child td {
+                            border-top: none;
+                        }
+                        /* Remove bottom border of last row in table */
+                        table.table tfoot td {
+                            border: none;
+                        }
+                        /* Remove borders from specific cells */
+                        table.table td.no-border {
+                            border: none !important;
+                        }
+                }
+
+            </style>
+            <style type="text/css" media="screen">
+                .header, .footer {
+                    display: none;
+                }
+            </style>
+            <div class="card">
+                <div class="card-block row">
+                    <div class="col-sm-12 col-lg-12 col-xl-12">
+                        <div class="header">
+                            <!-- Your header content, including the image -->
+                            <img id="headerimage" style="height:80px;width:100%;" src="@ViewBag.HeaderImage" />
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <!-- <caption>List of users</caption> -->
+
+                                <thead>
+                                    <tr>
+                                        <td colspan="3" style="height:80px;width:100%;">
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="no-border"></td>
+                                        <td class="no-border" style="background-color:white; font-weight:bold;text-align:center;">
+                                            Profit and Loss
+                                        </td>
+                                        <td class="no-border" style="background-color:white; font-weight:bold;text-align:center;">
+                                            Period: @Model.StartDate.ToString("dd/MM/yyyy") to @Model.EndDate.ToString("dd/MM/yyyy")
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        
+                                        <th style="text-align:center;width:10cm;">ACCOUNT CODE</th>
+                                        <th style="text-align:center;width:10cm;">ACCOUNT NAME</th>
+                                        <th style="text-align:center;width:10cm;">AMOUNT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{
+                                        decimal total = 0;
+                                    }
+
+                                    @foreach (DataRow dr in Model.ReportTable.Tables[0].Rows)
+                                    {
+                                        var voucherEntry = dr["VoucherEntry"]?.ToString();
+                                        decimal amount = 0;
+                                        decimal.TryParse(dr["Amount"].ToString(), out amount);
+                                        total += amount;
+                                        <tr>
+                                            @if (string.IsNullOrEmpty(voucherEntry) || voucherEntry == "True")
+                                            {
+                                                <td style="text-align:center;">@dr["AccountCode"]</td>
+                                                <td style="white-space: pre;">@dr["AccountName"]</td>
+                                                <td style="text-align: right;">@String.Format("{0:N2}", amount)</td>
+                                            }
+                                            else if (voucherEntry == "False")
+                                            {
+                                                <td style="font-weight: bold;text-align:center;">@dr["AccountCode"]</td>
+                                                <td style="font-weight: bold;white-space: pre;">@dr["AccountName"]</td>
+                                                <td style="text-align: right; font-weight: bold;">@String.Format("{0:N2}", amount)</td>
+                                            }
+                                            else
+                                            {
+                                                <td style="text-align:center;">@dr["AccountCode"]</td>
+                                                <td style="white-space: pre;">@dr["AccountName"]</td>
+                                                <td style="text-align: right;">@String.Format("{0:N2}", amount)</td>
+                                            }
+                                        </tr>
+                                    }
+
+                                    <tr style="font-weight: bold;">
+                                        <td colspan="2" style="text-align: right;">Total</td>
+                                        <td style="text-align: right;">@String.Format("{0:N2}", total)</td>
+                                    </tr>
+                                </tbody>
+
+                                <tfoot>
+                                    <tr>
+                                        <td colspan="3" style="height:80px;width:100%;">
+                                        </td>
+                                    </tr>
+                                </tfoot>
+
+                            </table>
+                        </div>
+                        <div class="footer">
+                            <!-- Your footer content, including the image -->
+                            <img id="footerimage" style="height:80px;width:100%;" src="@ViewBag.FooterImage" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Table End  -->
+        </div>
+    }
+}

@@ -1,0 +1,210 @@
+﻿@model ERPSample.Models.Accounting.Reports.CorporateTax
+@using System.Data
+
+@if (Model != null && Model.ReportTable != null && Model.ReportTable.Tables[0].Rows.Count > 0)
+{
+
+    <div class="col-sm-12" id="corporatetaxTable">
+        <style type="text/css" media="print">
+            @@page {
+                size: portrait;
+                margin: 20mm 10mm 20mm 10mm;
+                min-height: 200mm; /* Approx. height for A4 minus margins */
+            }
+
+            @@media print {
+                .header {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 80px; /* Adjust as needed */
+                    background-color: #f0f0f0; /* Optional: Add a background color */
+                    z-index: 1; /* Ensure it's above the content */
+                    text-align: center; /* Center the image */
+                    /* Add any other header styles */
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                .footer {
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 80px; /* Adjust as needed */
+                    background-color: #f0f0f0; /* Optional: Add a background color */
+                    z-index: 1; /* Ensure it's above the content */
+                    text-align: center; /* Center the image */
+                    /* Add any other footer styles */
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+
+                table.table {
+                    border-collapse: collapse;
+                    width: 100%;
+                }
+                    /* Apply inner borders to all cells */
+                    table.table th,
+                    table.table td {
+                        border: 1px solid #e5e5e5;
+                    }
+                    /* Remove outer borders from first and last columns */
+                    table.table tr td:first-child,
+                    table.table tr th:first-child {
+                        border-left: none;
+                    }
+
+                    table.table tr td:last-child,
+                    table.table tr th:last-child {
+                        border-right: none;
+                    }
+                    /* Remove top border of the first visible row */
+                    table.table thead tr:first-child th,
+                    table.table thead tr:first-child td {
+                        border-top: none;
+                    }
+                    /* Remove bottom border of last row in table */
+                    table.table tfoot td {
+                        border: none;
+                    }
+                    /* Remove borders from specific cells */
+                    table.table td.no-border {
+                        border: none !important;
+                    }
+            }
+
+        </style>
+        <style type="text/css" media="screen">
+            .header, .footer {
+                display: none;
+            }
+        </style>
+        <div class="card">
+            <div class="card-block row">
+                <div class="col-sm-12 col-lg-12 col-xl-12">
+                    <div class="header">
+                        <!-- Your header content, including the image -->
+                        <img id="headerimage" style="height:80px;width:100%;" src="@ViewBag.HeaderImage" />
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <!-- <caption>List of users</caption> -->
+                            <thead>
+                                <tr>
+                                    <td colspan="2" style="height:80px;width:100%;">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="no-border" style="background-color:white; font-weight:bold;text-align:right;">
+                                        Corporate Tax
+                                    </td>
+                                    <td class="no-border" style="background-color:white; font-weight:bold;text-align:right;">
+                                        Period: @Model.StartDate.ToString("dd/MM/yyyy") to @Model.EndDate.ToString("dd/MM/yyyy")
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th style="text-align:center;width:10cm;">PARTICULARS</th>
+                                    <th style="text-align:center;width:10cm;">AMOUNT</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @{
+                                    DataTable dt1 = Model.ReportTable.Tables[0];
+                                    DataTable dt2 = Model.ReportTable.Tables[1];
+                                    DataTable dt3 = Model.ReportTable.Tables[2];
+                                    DataTable dt4 = Model.ReportTable.Tables[3];
+                                    DataTable dt5 = Model.ReportTable.Tables[4];
+                                    DataTable dt6 = Model.ReportTable.Tables[5];
+                                    DataTable dt7 = Model.ReportTable.Tables[6];
+
+                                    DataRow dr1 = dt1.Rows[0];
+                                    DataRow dr2 = dt2.Rows[0];
+                                    DataRow dr3 = dt3.Rows[0];
+                                    DataRow dr4 = dt4.Rows[0];
+                                    DataRow dr5 = dt5.Rows[0];
+                                    DataRow dr6 = dt6.Rows[0];
+                                    DataRow dr7 = dt7.Rows[0];
+
+                                    <tr>
+                                        <td style="">@dr1["Particulars"]</td>
+                                        <td style="text-align: right;">@String.Format("{0:N2}", dr1["Amount"])</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="">@dr2["Particulars"]</td>
+                                        <td style="text-align: right;">@String.Format("{0:N2}", dr2["Amount"])</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold;">Category 1</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left: 40px;">@dr3["Particulars"]</td>
+                                        <td style="text-align: right;">@String.Format("{0:N2}", dr3["Amount"])</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left: 40px;">@dr4["Particulars"]</td>
+                                        <td style="text-align: right;">@String.Format("{0:N2}", dr4["Amount"])</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="font-weight: bold;">Category 2</td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left: 40px;">@dr5["Particulars"]</td>
+                                        <td style="text-align: right;">@String.Format("{0:N2}", dr5["Amount"])</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-left: 40px;">@dr6["Particulars"]</td>
+                                        <td style="text-align: right;">@String.Format("{0:N2}", dr6["Amount"])</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="">@dr7["Particulars"]</td>
+                                        <td style="text-align: right;">@String.Format("{0:N2}", dr7["Amount"])</td>
+                                    </tr>
+                                }
+                               @*  @{
+                                    decimal total = 0;
+                                }
+                                @foreach (DataTable table in Model.ReportTable.Tables)
+                                {
+                                    foreach (DataRow dr in table.Rows)
+                                    {
+                                     decimal amount = 0;
+                                        decimal.TryParse(dr["Amount"].ToString(), out amount);
+                                        total += amount;
+                                    <tr>
+                                        <td style="text-align: center;">@dr["Particulars"]</td>
+                                        <td style="text-align: right;">@dr["Amount"]</td>
+                                        <td style="text-align: right;">@amount</td>
+                                          <td style="text-align: right;">@String.Format("{0:N2}", amount)</td>
+                                    </tr>
+                                    }
+                                }
+                                <tr style="font-weight: bold;">
+                                    <td style="text-align: right;">Total</td>
+                                    <td style="text-align: right;">@String.Format("{0:N2}", total)</td>
+                                </tr> *@
+                            </tbody>
+
+                            <tfoot>
+                                <tr>
+                                    <td colspan="2" style="height:80px;width:100%;">
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    <div class="footer">
+                        <!-- Your footer content, including the image -->
+                        <img id="footerimage" style="height:80px;width:100%;" src="@ViewBag.FooterImage" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Table End  -->
+    </div>
+}

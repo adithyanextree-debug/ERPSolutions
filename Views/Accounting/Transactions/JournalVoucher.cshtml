@@ -1,0 +1,176 @@
+﻿@using System.Data
+@{
+    ViewData["Title"] = "Journal Voucher";
+
+}
+
+<style>
+    #Itemtable input.form-control, select {
+        border: none !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        background-color: transparent !important; /* Optional: make background transparent */
+    }
+
+</style>
+
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Journal Voucher</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="index.html">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Accounting</li>
+                    <li class="breadcrumb-item">Vouchers</li>
+                    <li class="breadcrumb-item active">Journal Voucher</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Zero Configuration  Starts-->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="list-product-header mt-4">
+                    <div>
+                        @(await Component.InvokeAsync("ToolBar", new
+                        {
+                            PageName = "Journal Voucher",
+                            AllowNew = ViewBag.UserPermissions.IsCreate,
+                            AllowDelete = ViewBag.UserPermissions.IsDelete,
+                            AllowPDF = true,
+                            AllowPrint = ViewBag.UserPermissions.IsPrint,
+                        }))
+
+                    </div>
+
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" id="JournalVoucherList">
+                       @*  @(await Component.InvokeAsync("GridView", new
+                        {
+                            Heading = "JournalVoucher",
+                            IDColumnName = "ID",
+                            DatasTable = ViewBag.DataTable,
+                            TableID = "JournalVoucher",
+                            Searching = true,
+                            PageLength = 5,
+                            HideColumns = "ID,Amount,EntryNo,EntryDate,Phone,SerialNo,Status,AccountName"
+                        })) *@
+                        <table class="display table" id="project-status">
+                            <thead>
+                                <tr>
+                                    <th class="col">SNo.</th>
+                                    <th>TRANSACTION NO.</th>
+                                    <th>DATE</th>
+                                    <th>CANCELLED</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="JournalVoucherTbody">
+                                @Html.Raw(ViewBag.DataTable)
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="JournalVoucherForm" style="display:none;">
+                        
+                        <!--Add Details -->
+                        <div class="col-md-12">
+                            <div class="card">
+
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <input type="text" class="text-center transparent_text" id="JournalTransactionID" style="display:none" />
+
+                                        <div class="col-md-4" id="vouchernodiv" style="display:none">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "VoucherNo", DisplayText = "Voucher No.", IsMandatory = true }))
+                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "VoucherDate", DisplayText = "Voucher Date", IsMandatory = true }))
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Reference", DisplayText = "Reference No" }))
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="col-md-2 pr-0">
+                                                    <span class="grpspn">Description</span>
+                                                </div>
+                                                <div class="col-md-10 pl-0">
+                                                    <input type="text" id="Description" class="form-control salesInvoiceDescription" data-ismandatory="false">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- DEtails Ends  -->
+                        <!--Table Starts  -->
+                        <div class="col-sm-12">
+                            <div class="card overflow-hidden">
+                                <div class="card-header card-no-border" style="background-color:#C0CAC9">
+                                    <h3>Journal Entries</h3>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table" id="Itemtable">
+                                        <thead>
+                                            <tr>
+                                                <th>Account Name</th>
+                                                <th>Description</th>
+                                                <th>Due Date</th>
+                                                <th>Debit</th>
+                                                <th>Credit</th>
+                                                <th>Add</th>
+                                                <th>Delete</th>
+
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                                <td><p id='DAmtSum'></p></td>
+                                                <td><p id='CAmtSum'></p></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Container-fluid Ends -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script src="~/assets/custom/Accounting/Transactions/JournalVoucher.js"></script>
