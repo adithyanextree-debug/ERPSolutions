@@ -51,6 +51,7 @@ $(document).on("keyup", ".productCode", function (event) {
         $("#ItemTotal" + id).val('');
         $("#ItemGrossAmt" + id).val('');
         $("#ItemTaxAmt" + id).val('');
+        $("#ItemTaxPer" + id).val('');
 
         // Clear total summary
         updateAllSums();
@@ -118,9 +119,12 @@ $(document).on("keyup", ".productCode", function (event) {
                     if (taxList.length > 0) {
                         if (taxItem["SalesPerc"] != null && taxItem["SalesPerc"] !== "") {
                             $("#ItemTaxPer" + id).val(taxItem["SalesPerc"]);
-                            $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["TaxMiscID"]);
+                            $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["ID"]);
+                            $("#ItemTaxPer" + id).attr('taxaccountid', taxItem["TaxAccountID"]);
+
                         } else {
                             $("#ItemTaxPer" + id).attr('taxTypeID', "");
+                            $("#ItemTaxPer" + id).attr('taxaccountid', "");
                         }
                     }
                     const taxPerVal = $("#ItemTaxPer" + id).val();
@@ -234,11 +238,13 @@ $(document).on("change", ".ItemUnit", function () {
                 // STEP 3 - Set Tax% 
                 if (taxList.length > 0) {
                     if (taxItem["SalesPerc"] != null && taxItem["SalesPerc"] !== "") {
-                        $("#ItemTaxPer" + id).val(toTwoDecimal(taxItem["SalesPerc"]));
-                        $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["TaxMiscID"]);
+                        $("#ItemTaxPer" + id).val(taxItem["SalesPerc"]);
+                        $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["ID"]);
+                        $("#ItemTaxPer" + id).attr('taxaccountid', taxItem["TaxAccountID"]);
+
                     } else {
-                        $("#ItemTaxPer" + id).val('');
-                        $("#ItemTaxPer" + id).attr('taxTypeID', '');
+                        $("#ItemTaxPer" + id).attr('taxTypeID', "");
+                        $("#ItemTaxPer" + id).attr('taxaccountid', "");
                     }
                 }
 
@@ -474,7 +480,9 @@ function SaveEntry() {
             var InTransItemId = parseInt($("#itemid" + i).val()) || 0;
             var rawItem = $("#productCode" + i).attr('data-idvalue');
             var rawTaxType = $("#ItemTaxPer" + i).attr('taxTypeID');
-            
+            var factor = parseFloat($("#ItemRate" + i).attr('element-factor')) || 1;
+            var qty = parseFloat($("#ItemQty" + i).val()) || 0;
+
             var itemAry = {
                 'ID': InTransItemId, // Nullable int (assuming InTransItemId can be null)
                 'TransactionID': idValue,
@@ -483,24 +491,27 @@ function SaveEntry() {
                     : null,
                 'Unit': $("#ItemUnit" + i).val() || '', // Nullable string
                 'Qty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : null, // Nullable float
+                'BasicQty': factor * qty,
                 'Rate': $("#ItemRate" + i).val() ? parseFloat($("#ItemRate" + i).val()) : null, // Nullable float
-                'BasicQty': ($("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1) * ($("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0), // Nullable float
+                'RowType': $("#RowType").val() ? parseInt($("#RowType").val()) : null,  //     
+                'Description': $("#Description").val() || '', // Nullable string
+                'Discount': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
+                'Factor': factor,
+                'StockQty': factor * qty,
+                'OutLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
+                'DiscountPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxPerc': $("#ItemTaxPer" + i).val() ? parseFloat($("#ItemTaxPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxValue': $("#ItemTaxAmt" + i).val() ? parseFloat($("#ItemTaxAmt" + i).val()) : 0, // Nullable float (default to 0)
-                'RateDiscPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
-                'RateDisc': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
-                'DiscountPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxTypeID': (rawTaxType && !isNaN(rawTaxType) && parseInt(rawTaxType) > 0)
                     ? parseInt(rawTaxType)
                     : null,
+                'RateDiscPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
+                'RateDisc': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
+                'SerialNo': parseInt($(this).closest('tr').find('.serial-no').text()) || null,
                 'TempQty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0, // Nullable float (default to 0)
-                'Discount': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
-                'Factor': $("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1, // Nullable float (default to 1)
-                'StockQty': ($("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1) * ($("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0), // Nullable float
-                'OutLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
-                'Description': $("#Description").val() || '', // Nullable string
-                'SerialNo': $("#Sn" + i).html(),
-                'RowType': $("#RowType").val(),
+                'TaxAccountID': ($("#ItemTaxPer" + i).attr('taxaccountid') && !isNaN($("#ItemTaxPer" + i).attr('taxaccountid')))
+                    ? parseInt($("#ItemTaxPer" + i).attr('taxaccountid'))
+                    : null,
                 'RowState': (InTransItemId === null || InTransItemId === 0 || InTransItemId === undefined) ? 1 : 2,
             };
 
@@ -819,17 +830,6 @@ function RowClick(RowID) {
         },
     });
 }
-
-function toFixedNoRound(num, decimals) {
-    num = Number(num);
-    console.log(num + " num")
-    console.log(decimals +" decimals")
-    if (isNaN(num)) return "0.00";
-    const factor = Math.pow(10, decimals);
-    console.log(factor + " factor")
-    console.log((Math.trunc(num * factor) / factor).toFixed(decimals)+"RETURN RESULT")
-    return (Math.trunc(num * factor) / factor).toFixed(decimals);
-}
 function DeleteEntry() {
     if ($("#ID").val() == null) {
         return false
@@ -874,11 +874,19 @@ function DeleteEntry() {
     });
 
 }
-
+function toFixedNoRound(num, decimals) {
+    num = Number(num);
+    console.log(num + " num")
+    console.log(decimals +" decimals")
+    if (isNaN(num)) return "0.00";
+    const factor = Math.pow(10, decimals);
+    console.log(factor + " factor")
+    console.log((Math.trunc(num * factor) / factor).toFixed(decimals)+"RETURN RESULT")
+    return (Math.trunc(num * factor) / factor).toFixed(decimals);
+}
 function toTwoDecimal(val) {
     return parseFloat(val || 0).toFixed(2);
 }
-
 function updateSum(selector, targetSelector, align = 'right') {
     let sum = 0;
     $(selector).each(function () {
@@ -887,7 +895,6 @@ function updateSum(selector, targetSelector, align = 'right') {
     });
     $(targetSelector).html(toTwoDecimal(sum)).css('text-align', align);
 }
-
 function calculateRow(id, changedField = '') {
 
     let rawQty = $("#ItemQty" + id).val();
@@ -936,7 +943,6 @@ function calculateRow(id, changedField = '') {
     $("#ItemAmt" + id).val(toTwoDecimal(amt));
     $("#ItemTotal" + id).val(toTwoDecimal(total));
 }
-
 function updateAllSums() {
     updateSum('.ItemQty', '#qtySum', 'center');
     updateSum('.ItemGrossAmt', '#ItemGrossAmtSum');
@@ -1409,7 +1415,7 @@ function printOnlyTable() {
 //                // Tax Info
 //                if (tax["SalesPerc"]) {
 //                    $("#ItemTaxPer" + id).val(toTwoDecimal(tax["SalesPerc"]));
-//                    $("#ItemTaxPer" + id).attr('taxTypeID', tax["TaxMiscID"]);
+//                    $("#ItemTaxPer" + id).attr('taxTypeID', tax["TaxTypeID"]);
 //                } else {
 //                    $("#ItemTaxPer" + id).val('');
 //                    $("#ItemTaxPer" + id).attr('taxTypeID', '');

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace ERPSample.Controllers.Inventory.Transactions
 {
-    public class PurchaseOrderController : BaseController
+    public class PurchaseEnquiryController : BaseController
     {
         private Lazy<DAL.Inventory.Transactions.Purchase> _DALPurchase;
         private Lazy<DAL.Inventory.Masters.FiMaVouchers> _DALFiMaVouchers;
@@ -42,8 +42,8 @@ namespace ERPSample.Controllers.Inventory.Transactions
             _DALLocations = new Lazy<DAL.General.Masters.Locations>(() => new(conn));
             _DALMenu = new Lazy<DAL.General.Common.Menu>(() => new(conn));
             _DALVouchers = new Lazy<DAL.General.Common.Vouchers>(() => new(conn));
-            _MenuRow = new Lazy<DataRow>(() => DALMenu.LoadWindowsForm(231).Rows[0]);
-            _VoucherTypeRow = new Lazy<DataRow>(() => DALVouchers.FillVoucherRow(231, MenuRow["ID"]));
+            _MenuRow = new Lazy<DataRow>(() => DALMenu.LoadWindowsForm(268).Rows[0]);
+            _VoucherTypeRow = new Lazy<DataRow>(() => DALVouchers.FillVoucherRow(268, MenuRow["ID"]));
         }
         // ── Your actions — just use DAL directly, nothing extra needed ──
 
@@ -79,7 +79,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
             ViewBag.VoucherCode = dr2["Code"].ToString();
             ViewBag.VoucherID = dr2["VoucherID"].ToString();
 
-            return View("~/Views/Invertory/Transactions/PurchaseOrder.cshtml");
+            return View("~/Views/Invertory/Transactions/PurchaseEnquiry.cshtml");
         }
 
 
@@ -105,7 +105,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 request.FiTransactions.Active = true;
                 request.FiTransactions.Cancelled = false;
                 request.FiTransactions.Posted = true;
-                request.FiTransactions.PageID = (int)PageIDs.PurchaseOrder;
+                request.FiTransactions.PageID = (int)PageIDs.PurchaseEnquiry;
                 request.FiTransactions.ApprovalStatus = 'A';
                 foreach (var item in request.InvTransItems)
                 {
@@ -142,6 +142,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 {
                     DataRow locs = Additional.Rows[0];
                     DataTable warehouses = DALVouchers.FillLocationusingBranch(BranchID);
+                    sb.Append("<option value=''> -- Choose Warehouse -- </option>");
                     foreach (DataRow dr in warehouses.Rows)
                     {
                         string selected = dr["ID"].ToString() == locs["InLocID"].ToString() ? " selected" : "";
@@ -697,5 +698,4 @@ namespace ERPSample.Controllers.Inventory.Transactions
 
 
     }
-
 }

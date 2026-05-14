@@ -117,9 +117,12 @@ $(document).on("keyup", ".productCode", function (event) {
                     if (taxList.length > 0) {
                         if (taxItem["SalesPerc"] != null && taxItem["SalesPerc"] !== "") {
                             $("#ItemTaxPer" + id).val(taxItem["SalesPerc"]);
-                            $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["TaxMiscID"]);
+                            $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["ID"]);
+                            $("#ItemTaxPer" + id).attr('taxaccountid', taxItem["TaxAccountID"]);
+
                         } else {
                             $("#ItemTaxPer" + id).attr('taxTypeID', "");
+                            $("#ItemTaxPer" + id).attr('taxaccountid', "");
                         }
                     }
                     const taxPerVal = $("#ItemTaxPer" + id).val();
@@ -233,11 +236,13 @@ $(document).on("change", ".ItemUnit", function () {
                 // STEP 3 - Set Tax% 
                 if (taxList.length > 0) {
                     if (taxItem["SalesPerc"] != null && taxItem["SalesPerc"] !== "") {
-                        $("#ItemTaxPer" + id).val(toTwoDecimal(taxItem["SalesPerc"]));
-                        $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["TaxMiscID"]);
+                        $("#ItemTaxPer" + id).val(taxItem["SalesPerc"]);
+                        $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["ID"]);
+                        $("#ItemTaxPer" + id).attr('taxaccountid', taxItem["TaxAccountID"]);
+
                     } else {
-                        $("#ItemTaxPer" + id).val('');
-                        $("#ItemTaxPer" + id).attr('taxTypeID', '');
+                        $("#ItemTaxPer" + id).attr('taxTypeID', "");
+                        $("#ItemTaxPer" + id).attr('taxaccountid', "");
                     }
                 }
 
@@ -473,6 +478,8 @@ function SaveEntry() {
             var InTransItemId = parseInt($("#itemid" + i).val()) || 0;
             var rawItem = $("#productCode" + i).attr('data-idvalue');
             var rawTaxType = $("#ItemTaxPer" + i).attr('taxTypeID');
+            var factor = parseFloat($("#ItemRate" + i).attr('element-factor')) || 1;
+            var qty = parseFloat($("#ItemQty" + i).val()) || 0;
 
             var itemAry = {
                 'ID': InTransItemId, // Nullable int (assuming InTransItemId can be null)
@@ -482,14 +489,14 @@ function SaveEntry() {
                     : null,
                 'Unit': $("#ItemUnit" + i).val() || '', // Nullable string
                 'Qty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : null, // Nullable float
+                'BasicQty': factor * qty,
                 'Rate': $("#ItemRate" + i).val() ? parseFloat($("#ItemRate" + i).val()) : null, // Nullable float
-                'BasicQty': ($("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1) * ($("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0), // Nullable float
                 'RowType': $("#RowType").val() ? parseInt($("#RowType").val()) : null,  //     
                 'Description': $("#Description").val() || '', // Nullable string
                 'IsReturn': true,
                 'Discount': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
-                'Factor': $("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1, // Nullable float (default to 1)
-                'StockQty': ($("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1) * ($("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0), // Nullable float
+                'Factor': factor,
+                'StockQty': factor * qty,
                 'InLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
                 'DiscountPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxPerc': $("#ItemTaxPer" + i).val() ? parseFloat($("#ItemTaxPer" + i).val()) : 0, // Nullable float (default to 0)
@@ -499,8 +506,11 @@ function SaveEntry() {
                     : null,
                 'RateDiscPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
                 'RateDisc': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
-                'SerialNo': $("#Sn" + i).html(),
-                'Visible':true,               
+                'SerialNo': parseInt($(this).closest('tr').find('.serial-no').text()) || null,
+                'TaxAccountID': ($("#ItemTaxPer" + i).attr('taxaccountid') && !isNaN($("#ItemTaxPer" + i).attr('taxaccountid')))
+                    ? parseInt($("#ItemTaxPer" + i).attr('taxaccountid'))
+                    : null,
+                'Visible': true,               
                 'TempQty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0, // Nullable float (default to 0)
                 'RowState': (InTransItemId === null || InTransItemId === 0 || InTransItemId === undefined) ? 1 : 2,
             };

@@ -1,14 +1,15 @@
-﻿var webUrl = '/PurchaseReturn/';
+﻿var webUrl = '/PurchaseForm/';
 var CommonUrl = '/CommonFunctions/';
 
 function NewEntry() {
-    $("#PurchaseReturnList").hide();
-    $("#PurchaseReturnForm").show();
+    $("#PurchaseForm8List").hide();
+    $("#PurchaseForm8Form").show();
     $.ajax({
-        url: webUrl + "NewEntryDetails",
+        url: CommonUrl + "NewEntryDetailsPurchase",
         method: "POST",
         dataType: 'JSON',
         success: function (data) {
+            // $("#VoucherNo").val(data['nextVNo'])
             $("#VoucherNo").prop("disabled", true)
             var date = new Date().getFullYear() + '-' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '-' + ("0" + new Date().getDate()).slice(-2);
             $("#VoucherDate").val(date)
@@ -103,14 +104,6 @@ $(document).on("keyup", ".productCode", function (event) {
                     const qty = parseFloat(qtyField.val()) || 0;
                     const rate = parseFloat(rateField.val()) || 0;
 
-                    if (qty > 0) {
-                        const tot = qty * (rate > 0 ? rate : ItemUnitPrice);
-
-                        grossAmtField.val(parseFloat(tot).toFixed(2)).css('text-align', 'right');
-                        totalField.val(parseFloat(tot).toFixed(2)).css('text-align', 'right');
-                        amtField.val(parseFloat(tot).toFixed(2)).css('text-align', 'right');
-                    }
-
                     if (taxList.length > 0) {
                         if (taxItem["SalesPerc"] != null && taxItem["SalesPerc"] !== "") {
                             $("#ItemTaxPer" + id).val(taxItem["SalesPerc"]);
@@ -120,6 +113,15 @@ $(document).on("keyup", ".productCode", function (event) {
                         } else {
                             $("#ItemTaxPer" + id).attr('taxTypeID', "");
                             $("#ItemTaxPer" + id).attr('taxaccountid', "");
+                        }
+                    }
+
+                    if (taxList.length > 0) {
+                        if (taxItem["SalesPerc"] != null && taxItem["SalesPerc"] !== "") {
+                            $("#ItemTaxPer" + id).val(taxItem["SalesPerc"]);
+                            $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["ID"]);
+                        } else {
+                            $("#ItemTaxPer" + id).attr('taxTypeID', "");
                         }
                     }
                     const taxPerVal = $("#ItemTaxPer" + id).val();
@@ -242,6 +244,7 @@ $(document).on("change", ".ItemUnit", function () {
                         $("#ItemTaxPer" + id).attr('taxaccountid', "");
                     }
                 }
+
                 // STEP 4 - Calculate TaxAmt using GrossAmt
                 const taxPerVal = $("#ItemTaxPer" + id).val();
                 if (taxPerVal != null && taxPerVal !== "") {
@@ -407,6 +410,7 @@ function ReindexRows() {
         $(this).find('td.serial-no').text(rowIndex);
     });
 }
+
 function CloseEntry() {
     location.reload()
 }
@@ -476,7 +480,6 @@ function SaveEntry() {
             var rawTaxType = $("#ItemTaxPer" + i).attr('taxTypeID');
             var factor = parseFloat($("#ItemRate" + i).attr('element-factor')) || 1;
             var qty = parseFloat($("#ItemQty" + i).val()) || 0;
-
             var itemAry = {
                 'ID': InTransItemId,
                 'TransactionID': idValue,
@@ -492,7 +495,7 @@ function SaveEntry() {
                 'Discount': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
                 'Factor': factor,
                 'StockQty': factor * qty,
-                'OutLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
+                'InLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
                 'DiscountPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxPerc': $("#ItemTaxPer" + i).val() ? parseFloat($("#ItemTaxPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxValue': $("#ItemTaxAmt" + i).val() ? parseFloat($("#ItemTaxAmt" + i).val()) : 0, // Nullable float (default to 0)
@@ -502,10 +505,10 @@ function SaveEntry() {
                 'RateDiscPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
                 'RateDisc': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
                 'SerialNo': parseInt($(this).closest('tr').find('.serial-no').text()) || null,
-                'TempQty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxAccountID': ($("#ItemTaxPer" + i).attr('taxaccountid') && !isNaN($("#ItemTaxPer" + i).attr('taxaccountid')))
                     ? parseInt($("#ItemTaxPer" + i).attr('taxaccountid'))
                     : null,
+                'TempQty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0, // Nullable float (default to 0)
                 'RowState': (InTransItemId === null || InTransItemId === 0 || InTransItemId === undefined) ? 1 : 2,
             }
             if ($(this).val() != '' && $("#ItemUnit" + i).val() != '' && $("#ItemQty" + i).val() != '' && $("#ItemRate" + i).val() != '') {
@@ -527,15 +530,15 @@ function SaveEntry() {
         Date: $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null, // Nullable DateTime
         EffectiveDate: $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null, // Nullable DateTime
         VoucherID: $("#VoucherType").attr("data-value") ? parseInt($("#VoucherType").attr("data-value")) : null, // Nullable int
-        SerialNo: $("#VoucherNo").val() ? parseInt($("#VoucherNo").val()) : null, // Nullable long  
+        SerialNo: $("#VoucherNo").val() ? parseInt($("#VoucherNo").val()) : null, // Nullable long
         TransactionNo: $("#VoucherNo").val() || '', // Nullable string
         ExchangeRate: 1.0, // Decimal, assuming default of 1.0
+        ReferenceNo: $("#Reference").val() || '', // Nullable string
         CommonNarration: $("#Description").val() || '', // Nullable string
         AddedDate: new Date().toISOString(), // DateTime
         AccountID: (rawParty !== undefined && rawParty !== null && rawParty.trim() !== "" && !isNaN(rawParty) && parseInt(rawParty) > 0)
             ? parseInt(rawParty)
             : null,
-        ReferenceNo: $("#Reference").val() || '', // Nullable string
         CostCentreID: (rawProject !== undefined && rawProject !== null && rawProject.trim() !== "" && !isNaN(rawProject) && parseInt(rawProject) > 0)
             ? parseInt(rawProject)
             : null,
@@ -543,26 +546,30 @@ function SaveEntry() {
     };
 
     var rawWarehouse = $("#Warehouse").val();
-
-    // Build additionals object
     var additionals = {
         TransactionID: idValue, // Nullable int
         TypeID: null, // Explicitly set as null
         ModeID: $("#Mode").val() ? parseInt($("#Mode").val()) : null, // Nullable int
-        FromLocationID: (rawWarehouse && !isNaN(rawWarehouse) && parseInt(rawWarehouse) > 0)
+        ToLocationID: (rawWarehouse && !isNaN(rawWarehouse) && parseInt(rawWarehouse) > 0)
             ? parseInt(rawWarehouse)
             : null,
         Name: $("#PartyNameAddress").val() || '', // Nullable string
+        Address: $("#TermsofDelivery").val() || '', // Nullable string
+        DocumentNo: $("#DispatchNo").val() || '', // Nullable string
+        DocumentDate: $("#DispatchDate").val() ? new Date($("#DispatchDate").val()) : null, // Nullable DateTime
         EntryDate: $("#PartyInvoiceDate").val() ? new Date($("#PartyInvoiceDate").val()) : null, // Nullable DateTime
         EntryNo: $("#PartyInvoiceNo").val() || '', // Nullable string
         BankAddress: $("#Attention").val() || '', // Nullable string
         ExpiryDate: $("#ExpiryDate").val() ? new Date($("#ExpiryDate").val()) : null, // Nullable DateTime
+        SubmitDate: $("#DeliveryNoteDate").val() ? new Date($("#DeliveryNoteDate").val()) : null, // Nullable DateTime
+        PassNo: $("#DeliveryNoteNo").val() || '', // Nullable string
         ReferenceDate: $("#OrderDate").val() ? new Date($("#OrderDate").val()) : null, // Nullable DateTime
         ReferenceNo: $("#OrderNo").val() || '', // Nullable string
         Terms: $("#Terms").val() || '', // Nullable string
-        OutLocID: (rawWarehouse && !isNaN(rawWarehouse) && parseInt(rawWarehouse) > 0)
+        InLocID: (rawWarehouse && !isNaN(rawWarehouse) && parseInt(rawWarehouse) > 0)
             ? parseInt(rawWarehouse)
             : null,
+        AccountID: null,
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
     };
 
@@ -649,7 +656,7 @@ function SaveEntry() {
                     timerProgressBar: true
                 }).then(() => {
                     var menuId = $("#MenuID").val();
-                    window.location.href = "/PurchaseReturn/Index?MenuID=" + menuId;
+                    window.location.href = "/PurchaseForm/Index?MenuID=" + menuId;
                 });
 
                 $("#ID").val(data.transactionNo);
@@ -684,8 +691,9 @@ function SaveEntry() {
 }
 function RowClick(RowID) {
     EntryEnable('Edit')
-    $("#PurchaseReturnList").hide();
-    $("#PurchaseReturnForm").show();
+    $("#PurchaseForm8List").hide();
+    $("#PurchaseForm8Form").show();
+
     $.ajax({
         url: webUrl + "GetInventoryTransaction?ID=" + RowID,
         method: "GET",
@@ -705,12 +713,12 @@ function RowClick(RowID) {
                 additionals = JSON.parse(fiadditional)[0];
 
                 $("#vouchernodiv").show();
-                $("#ID").val(transaction.ID);
-                $("#VoucherNo").val(transaction.TransactionNo);
+                $("#ID").val(transaction.ID)
+                $("#VoucherNo").val(transaction.TransactionNo)
                 $("#VoucherCode").val(transaction.Code);
-                $("#Reference").val(transaction.ReferenceNo);
-                $("#Mode").html(data['mode']);
-
+                $("#Reference").val(transaction.ReferenceNo)
+                $("#Mode").html(data['mode'])
+                // Helper function to format date or return empty string if invalid
                 function formatDate(dateStr) {
                     if (!dateStr || dateStr === '' || dateStr === ' ') return '';
                     const date = new Date(dateStr);
@@ -718,15 +726,15 @@ function RowClick(RowID) {
                         ("0" + (date.getMonth() + 1)).slice(-2) + '-' +
                         ("0" + date.getDate()).slice(-2);
                 }
-
+                // Apply the helper function to each date field
                 $("#VoucherDate").val(formatDate(transaction.Date));
                 $("#Party").val(transaction.AccountName);
                 $("#Party").attr('data-idvalue', transaction.AccountID);
                 $("#Description").val(transaction.CommonNarration);
                 $("#Itemtable tbody").append(data['innerHTML']);
                 $("#Warehouse").html(data['warehouses']);
-                $("#Project").attr('data-idvalue', transaction.CostCentreID);
                 $("#Project").val(transaction.ProjectName);
+                $("#Project").attr('data-idvalue', transaction.CostCentreID);
                 $("#Account").val(data.account);
 
                 //Additionals
@@ -738,10 +746,14 @@ function RowClick(RowID) {
                 $("#PartyNameAddress").val(additionals.Name);
                 $("#ExpiryDate").val(formatDate(additionals.ExpiryDate));
                 $("#Attention").val(additionals.BankAddress);
+                $("#DeliveryNoteNo").val(additionals.PassNo);
+                $("#DeliveryNoteDate").val(formatDate(additionals.SubmitDate));
+                $("#DispatchNo").val(additionals.DocumentNo);
+                $("#DispatchDate").val(formatDate(additionals.DocumentDate));
+                $("#TermsofDelivery").val(additionals.Address);
                 $("#Terms").val(additionals.Terms);
 
                 // -------- SUM CALCULATIONS WITH NO ROUNDING --------
-
                 var qtysum = 0;
                 $('.ItemQty').each(function () {
                     if ($(this).val() != null && $(this).val() !== '') qtysum += Number($(this).val());
@@ -800,6 +812,17 @@ function RowClick(RowID) {
     });
 }
 
+function toFixedNoRound(num, decimals) {
+    num = Number(num);
+    console.log(num + " num")
+    console.log(decimals + " decimals")
+    if (isNaN(num)) return "0.00";
+    const factor = Math.pow(10, decimals);
+    console.log(factor + " factor")
+    console.log((Math.trunc(num * factor) / factor).toFixed(decimals) + "RETURN RESULT")
+    return (Math.trunc(num * factor) / factor).toFixed(decimals);
+}
+
 function DeleteEntry() {
     if ($("#ID").val() == null) {
         return false
@@ -820,7 +843,7 @@ function DeleteEntry() {
                     timerProgressBar: true
                 }).then(() => {
                     var menuId = $("#MenuID").val();
-                    window.location.href = "/PurchaseReturn/Index?MenuID=" + menuId;
+                    window.location.href = "/PurchaseForm/Index?MenuID=" + menuId;
                 });
             } else {
                 Swal.fire({
@@ -844,7 +867,6 @@ function DeleteEntry() {
     });
 
 }
-
 function toTwoDecimal(val) {
     return parseFloat(val || 0).toFixed(2);
 }
@@ -929,23 +951,7 @@ function updateAllSums() {
     calculateGrandTotal();
 }
 
-//// Unified handler — now tracks which field changed
-//$(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
-//    const id = $(this).attr('element-id');
-//    const changedField = $(this).attr("id").replace(id, '');
-//    // Validate input to ensure no negative or invalid values
-//    let val = $(this).val();
-//    // Prevent entering negative values or invalid non-numeric characters
-//    if (val.includes('-') || isNaN(val) || val < 0) {
-//        alert("A")
-//        $(this).val('');  // Reset invalid value
-//        return;  // Exit the function to prevent further actions
-//    }
-
-//    calculateRow(id, changedField);
-//    updateAllSums();
-//});
-
+// 🔁 Unified handler — now tracks which field changed
 $(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
 
     const id = $(this).attr('element-id');
@@ -1023,3 +1029,5 @@ $(document).on("input", "#Cash, #Card, #Cheque", function () {
 
     calculateBalance();
 });
+
+

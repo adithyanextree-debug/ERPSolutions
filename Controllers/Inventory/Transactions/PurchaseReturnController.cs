@@ -315,6 +315,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 foreach (var item in request.InvTransItems)
                 {
                     item.TranType = "Normal";
+                    item.Visible = true;
                 }
 
                 List<Models.InvTransItems> InvTransItems = request.InvTransItems;
@@ -325,7 +326,11 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 //additional 
                 return Json(new { success = true });
             }
-            catch (Exception ex) { throw; }
+            catch (Exception ex)
+            {
+                // Actually handle it like your other action does
+                return Json(new { success = false, message = ex.Message });
+            }
 
         }
 
@@ -346,62 +351,46 @@ namespace ERPSample.Controllers.Inventory.Transactions
                     DataRow locs = Additional.Rows[0];
                     DataTable warehouses = DALVouchers.FillLocationusingBranch(BranchID);
                     sb.Append("<option value=''> -- Choose Warehouse -- </option>");
-
                     foreach (DataRow dr in warehouses.Rows)
                     {
-                        sb.Append("<option value='");
-                        sb.Append(dr["ID"]);
-                        sb.Append("'");
-                        if (dr["ID"].ToString() == locs["OutLocID"].ToString())
-                        {
-                            sb.Append(" selected");
-                        }
-                        sb.Append(">");
-                        sb.Append(dr["Name"]);
-                        sb.Append("</option>");
+                        string selected = dr["ID"].ToString() == locs["OutLocID"].ToString() ? " selected" : "";
+                        sb.Append($"<option value='{dr["ID"]}'{selected}>{dr["Name"]}</option>");
                     }
                     ListWarehouse = sb.ToString();
                     sb.Clear();
 
                     DataTable mode = DALVouchers.GetMode();
                     sb.Append("<option value=''> -- Choose Payment Type -- </option>");
-                    foreach (DataRow datarow in mode.Rows)
+                    foreach (DataRow dr in mode.Rows)
                     {
-                        sb.Append("<option value='");
-                        sb.Append(datarow["ID"]);
-                        sb.Append("'");
-                        if (datarow["ID"].ToString() == locs["ModeID"].ToString())
-                        {
-                            sb.Append(" selected");
-                        }
-                        sb.Append(">");
-                        sb.Append(datarow["Value"]);
-                        sb.Append("</option>");
+                        string selected = dr["ID"].ToString() == locs["ModeID"].ToString() ? " selected" : "";
+                        sb.Append($"<option value='{dr["ID"]}'{selected}>{dr["Value"]}</option>");
                     }
                     paymentmode = sb.ToString();
                     sb.Clear();
-                   
+
                 }
                 //=============To get the default account ================//
                 DataSet ds = DALVouchers.GetAccountIDPurchaseReturn();
-                DataRow dr2 = ds.Tables[0].Rows[0];
-                string Account = dr2["AccountName"].ToString();
-                ViewBag.Account = Account.ToString();
-
-                //if (Account != "")
-                //{
-                //    string accountname = dr2["AccountName"].ToString();
-                //    ViewBag.Account = accountname.ToString();
-                //}
+                if (ds?.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+                {
+                    ViewBag.Account = ds.Tables[0].Rows[0]["AccountName"]?.ToString() ?? "";
+                }
+                else
+                {
+                    ViewBag.Account = "";
+                }
                 int Sn = 0;
                 int No = 1;
                 sb.Clear();
+
                 foreach (DataRow dr in Entries.Rows)
                 {
-                    DataSet Details = DALVouchers.ProductAvailableUnits(Convert.ToInt64(dr["ItemID"].ToString()));
+                    DataSet Details = DALVouchers.ProductAvailableUnits(Convert.ToInt64(dr["ItemID"]));
                     DataTable dataTable = Details.Tables[0];
                     DataTable DtDetails = Details.Tables[1];
                     Sn = Convert.ToInt32(dr["ID"]);
+
                     sb.Append("<tr>");
                     sb.Append("<td class='serial-no'>" + No + "</td>");
                     //Product Image
@@ -409,8 +398,8 @@ namespace ERPSample.Controllers.Inventory.Transactions
                     sb.Append(" <img src='" + dr["Image"].ToString() + "' alt='product image' id='productimagepreview" + Sn + "' class='productimagepreview' element-id='" + Sn + "' style='cursor:pointer; width: 50px; height: 40px;' />");
                     sb.Append(" </td>");
                     // 1. Product Code
-                    sb.Append("<td id='TdproductCode" + Sn + "'>");
-                    sb.Append("<input type='text' id='productCode" + Sn + "' style='width: 5cm;' class='form-control productCode' element-id='" + Sn + "' ");
+                    sb.Append("<td id='TdproductCode" + Sn + "' >");
+                    sb.Append("<input type='text' id='productCode" + Sn + "' style='width: 7cm;'  class='form-control productCode excelCells changedValue' element-id='" + Sn + "' ");
                     sb.Append("onkeydown=\"ShowLookup(event,'productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
                     sb.Append("oninput=\"LookupTextChanged('productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
                     sb.Append("data-lookupcriteria='Items' data-idcolumn='ID' data-idvalue='" + dr["ItemID"] + "' ");
@@ -421,7 +410,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
 
                     // 2. Unit
                     sb.Append("<td id='unitTd" + Sn + "'>");
-                    sb.Append("<select name='ItemUnit" + Sn + "' element-id='" + Sn + "' id='ItemUnit" + Sn + "' style='width: 3cm;' class='form-select ItemUnit excelCells'>");
+                    sb.Append("<select name='ItemUnit" + Sn + "' style='width: 3cm;' element-id='" + Sn + "' id='ItemUnit" + Sn + "' class='form-select ItemUnit excelCells'>");
                     foreach (DataRow dr1 in dataTable.Rows)
                     {
                         sb.Append("<option value='" + dr1["Unit"] + "'" + (dr["Unit"].ToString() == dr1["Unit"].ToString() ? " selected" : "") + ">" + dr1["Unit"] + "</option>");
@@ -430,27 +419,27 @@ namespace ERPSample.Controllers.Inventory.Transactions
 
                     // 3. Qty
                     sb.Append("<td id='qtyTd" + Sn + "'>");
-                    sb.Append("<input type='text' class='form-control ItemQty' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Qty"]), 2) + "' element-id='" + Sn + "' style='width: 2cm;' id='ItemQty" + Sn + "' /></td>");
+                    sb.Append("<input type='text' style='width: 2cm;text-align:center;' class='form-control ItemQty excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Qty"]), 2) + "' element-id='" + Sn + "' id='ItemQty" + Sn + "' /></td>");
 
                     // 4. Rate
                     sb.Append("<td id='rateTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemRate excelCells' element-factor='" + ToFixedNoRound(Convert.ToDecimal(dr["Factor"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Rate"]), 2) + "' id='ItemRate" + Sn + "' disabled/></td>");
+                    sb.Append("<input type='text' style='width: 2cm;text-align:right;' class='form-control ItemRate excelCells' element-factor='" + ToFixedNoRound(Convert.ToDecimal(dr["Factor"]), 2) + "' element-id='" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Rate"]), 2) + "' id='ItemRate" + Sn + "' disabled/></td>");
 
                     // 5. Gross Amount
                     sb.Append("<td class='ItemGrossAmtTd' >");
-                    sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' style='width: 2cm;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["GrossAmount"]), 2) + "' disabled/></td>");
+                    sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells'style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["GrossAmount"]), 2) + "' disabled/></td>");
 
                     // 6. Discount %
                     sb.Append("<td class='discsTd' id='dicsTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["DiscountPerc"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' style='width: 2cm;text-align:center;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["DiscountPerc"]), 2) + "' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' /></td>");
 
                     // 7. Discount Amt
                     sb.Append("<td class='dicsAmtTd' id='dicsAmtTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Discount"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' style='width: 2cm;text-align:right;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Discount"]), 2) + "' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' /></td>");
 
                     // 8. Amount
-                    sb.Append("<td class='amtTd' id='amtTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Amount"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/></td>");
+                    sb.Append("<td class='amtTd' id='amtTd" + Sn + "'>");
+                    sb.Append("<input type='text' class='form-control ItemAmt excelCells' style='width: 2cm;text-align:right;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Amount"]), 2) + "' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/></td>");
 
                     // 9. Tax %
                     sb.Append("<td class='taxPerTd' id='taxPerTd" + Sn + "' >");
@@ -458,91 +447,54 @@ namespace ERPSample.Controllers.Inventory.Transactions
                     {
                         object taxTypeValue = DtDetails.Rows[0]["TaxTypeID"];
 
-                        if (taxTypeValue != DBNull.Value &&
-                            taxTypeValue != null &&
-                            !string.IsNullOrWhiteSpace(taxTypeValue.ToString()) &&
-                            taxTypeValue.ToString() != "0")
+                        if (taxTypeValue != DBNull.Value && taxTypeValue != null && !string.IsNullOrWhiteSpace(taxTypeValue.ToString()) && taxTypeValue.ToString() != "0")
                         {
                             DataTable TaxDetails = DALVouchers.ProductTaxDetails(Convert.ToInt64(taxTypeValue));
                             // Always display two decimal places (50.00 instead of 50.0)
-                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;'  value='" + String.Format("{0:F2}", TaxDetails.Rows[0]["SalesPerc"]) + "' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
-
+                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;text-align:center;'  value='" + String.Format("{0:F2}", TaxDetails.Rows[0]["SalesPerc"]) + "' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' taxaccountid='" + TaxDetails.Rows[0]["TaxAccountID"] + "' />");
                         }
                         else
                         {
                             // Always display two decimal places (50.00 instead of 50.0)
-                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;'  value='' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
-
+                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;text-align: center;'  value='' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
                         }
                     }
                     else
                     {
-                        sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' style='width: 2cm;' />");
+                        sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' style='width: 2cm;text-align: center;' />");
                     }
                     sb.Append("</td>");
 
-
-                    // 10. Tax Amt
+                    // 10. Tax Amount
                     sb.Append("<td class='taxAmtTd' id='taxAmtTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TaxValue"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TaxValue"]), 2) + "' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' /></td>");
 
                     // 11. Total
                     sb.Append("<td class='itemTotalTd' id='itemTotalTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemTotal excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TotalAmount"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled/></td>");
+                    sb.Append("<input type='text' class='form-control ItemTotal excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TotalAmount"]), 2) + "' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled/></td>");
 
-                    // 12. Add button
-                    sb.Append("<td class='col' ><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "'><i class='fa-solid fa-plus'></i></button></td>");
+                    // 12. Add Row Button
+                    sb.Append("<td class='col'><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "'><i class='fa-solid fa-plus'></i></button></td>");
 
-                    // 13. Delete action
+                    // 13. Delete Action
                     sb.Append("<td class='col' id='deleteaction" + Sn + "' >");
                     sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul></td>");
 
-                    // 14. Hidden ItemID
-                    sb.Append("<td >");
+                    // 14. Hidden Item ID
+                    sb.Append("<td style='display:none;'>");
                     sb.Append("<input type='hidden' class='itemid excelCells numbersOnly form-control' id='itemid" + Sn + "' value='" + Sn + "' element-id='" + Sn + "' autocomplete='off'></td>");
 
                     sb.Append("</tr>");
                     No++;
+
                 }
                 string Entities = sb.ToString();
                 sb.Clear();
 
-                Dictionary<string, object> row;
-                List<Dictionary<string, object>> rows = new List<Dictionary<string, object>>();
-                foreach (DataRow dr1 in Transaction.Rows)
-                {
-                    row = new Dictionary<string, object>();
-                    foreach (DataColumn col1 in Transaction.Columns)
-                    {
-                        row.Add(col1.ColumnName, dr1[col1]);
-                    }
-                    rows.Add(row);
-                }
-                string Trans = JsonConvert.SerializeObject(rows);
-                rows.Clear();
-                Dictionary<string, object> row1;
-                foreach (DataRow dr1 in Transaction.Rows)
-                {
-                    row1 = new Dictionary<string, object>();
-                    foreach (DataColumn col1 in Transaction.Columns)
-                    {
-                        row1.Add(col1.ColumnName, dr1[col1]);
-                    }
-                    rows.Add(row1);
-                }
-                string Add = JsonConvert.SerializeObject(rows);
-                rows.Clear();
-                Dictionary<string, object> row2;
-                foreach (DataRow dr1 in Additional.Rows)
-                {
-                    row2 = new Dictionary<string, object>();
-                    foreach (DataColumn col1 in Additional.Columns)
-                    {
-                        row2.Add(col1.ColumnName, dr1[col1]);
-                    }
-                    rows.Add(row2);
-                }
-                string Additionalentries = JsonConvert.SerializeObject(rows);
+                // Serialize once each — no duplicate loop
+                string Trans = SerializeDataTable(Transaction);
+                string Additionalentries = SerializeDataTable(Additional);
+
                 //warehouses = ListWarehouses,
                 return Json(new
                 {
@@ -550,7 +502,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
                     innerHTML = Entities,
                     trans = Trans,
                     fiadditional = Additionalentries,
-                    additional = Add,
+                    additional = Trans,
                     account = ViewBag.Account,
                     warehouses = ListWarehouse,
                     message = "Success",
@@ -562,6 +514,19 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 return Json(new { success = false, message = Ex.Message });
 
             }
+        }
+
+        private string SerializeDataTable(DataTable table)
+        {
+            var rows = new List<Dictionary<string, object>>();
+            foreach (DataRow dr in table.Rows)
+            {
+                var row = new Dictionary<string, object>();
+                foreach (DataColumn col in table.Columns)
+                    row[col.ColumnName] = dr[col];
+                rows.Add(row);
+            }
+            return JsonConvert.SerializeObject(rows);
         }
 
         public static string ToFixedNoRound(decimal value, int decimals)

@@ -1,19 +1,21 @@
-﻿var webUrl = '/PurchaseReturn/';
+﻿var webUrl = '/SalesEstimate/';
 var CommonUrl = '/CommonFunctions/';
 
 function NewEntry() {
-    $("#PurchaseReturnList").hide();
-    $("#PurchaseReturnForm").show();
+    $("#SalesEstimateList").hide();
+    $("#SalesEstimateForm").show();
     $.ajax({
-        url: webUrl + "NewEntryDetails",
+        url: CommonUrl + "NewEntryDetailsSales",
         method: "POST",
         dataType: 'JSON',
         success: function (data) {
+            // $("#VoucherNo").val(data['nextVNo'])
             $("#VoucherNo").prop("disabled", true)
+            $("#SalesArea").html(data.area);
+
             var date = new Date().getFullYear() + '-' + ("0" + (new Date().getMonth() + 1)).slice(-2) + '-' + ("0" + new Date().getDate()).slice(-2);
             $("#VoucherDate").val(date)
-            $("#Account").val(data.account)
-            $("#Mode").html(data.mode);
+            //$("#Account").val(data.account)
 
             $("#Itemtable tbody").append(data['newEntry'])
             $("#Warehouse").html(data['warehouses'])
@@ -233,15 +235,16 @@ $(document).on("change", ".ItemUnit", function () {
                 // STEP 3 - Set Tax% 
                 if (taxList.length > 0) {
                     if (taxItem["SalesPerc"] != null && taxItem["SalesPerc"] !== "") {
-                        $("#ItemTaxPer" + id).val(taxItem["SalesPerc"]);
+                        $("#ItemTaxPer" + id).val(toTwoDecimal(taxItem["SalesPerc"]));
                         $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["ID"]);
                         $("#ItemTaxPer" + id).attr('taxaccountid', taxItem["TaxAccountID"]);
-
                     } else {
-                        $("#ItemTaxPer" + id).attr('taxTypeID', "");
-                        $("#ItemTaxPer" + id).attr('taxaccountid', "");
+                        $("#ItemTaxPer" + id).val('');
+                        $("#ItemTaxPer" + id).attr('taxTypeID', '');
+                        $("#ItemTaxPer" + id).attr('taxaccountid', '');
                     }
                 }
+
                 // STEP 4 - Calculate TaxAmt using GrossAmt
                 const taxPerVal = $("#ItemTaxPer" + id).val();
                 if (taxPerVal != null && taxPerVal !== "") {
@@ -304,6 +307,7 @@ $(document).on("click", ".addrow", function (event) {
 
     $.ajax({
         url: CommonUrl + "NewRow?no=" + serialno,
+        // url: "/SalesEstimate/NewRow?no=" + serialno,
         method: "GET",
         dataType: 'JSON',
         success: function (data) {
@@ -447,6 +451,7 @@ function SaveEntry() {
         return false;
     }
     var idValue = $("#ID").val() ? parseInt($("#ID").val()) : null;
+
     var flag1 = true;
     var flag2 = true;
     var flag3 = true;
@@ -455,21 +460,19 @@ function SaveEntry() {
     var entries = [];
 
     $('.productCode').each(function () {
-        if ($(this).val() != '') {
+        if ($(this).val() != null && $(this).val() != '') {
             var i = $(this).attr('element-id');
             if ($("#ItemUnit" + i).val() == '' || $("#ItemUnit" + i).val() == null) {
                 flag1 = false;
                 return false;
-
             }
             if ($("#ItemQty" + i).val() == '' || $("#ItemQty" + i).val() == null || parseInt($("#ItemQty" + i).val()) == 0) {
                 flag2 = false;
                 return false;
-
             }
             if ($("#ItemRate" + i).val() == '' || $("#ItemRate" + i).val() == null) {
                 flag3 = false;
-                return false;
+                return false;   
             }
             var InTransItemId = parseInt($("#itemid" + i).val()) || 0;
             var rawItem = $("#productCode" + i).attr('data-idvalue');
@@ -478,7 +481,7 @@ function SaveEntry() {
             var qty = parseFloat($("#ItemQty" + i).val()) || 0;
 
             var itemAry = {
-                'ID': InTransItemId,
+                'ID': InTransItemId, // Nullable int (assuming InTransItemId can be null)
                 'TransactionID': idValue,
                 'ItemID': (rawItem !== undefined && rawItem !== null && rawItem.toString().trim() !== "" && !isNaN(rawItem) && parseInt(rawItem) > 0)
                     ? parseInt(rawItem)
@@ -492,7 +495,7 @@ function SaveEntry() {
                 'Discount': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
                 'Factor': factor,
                 'StockQty': factor * qty,
-                'OutLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
+                'OutLocID': null, // Null
                 'DiscountPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxPerc': $("#ItemTaxPer" + i).val() ? parseFloat($("#ItemTaxPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxValue': $("#ItemTaxAmt" + i).val() ? parseFloat($("#ItemTaxAmt" + i).val()) : 0, // Nullable float (default to 0)
@@ -507,67 +510,77 @@ function SaveEntry() {
                     ? parseInt($("#ItemTaxPer" + i).attr('taxaccountid'))
                     : null,
                 'RowState': (InTransItemId === null || InTransItemId === 0 || InTransItemId === undefined) ? 1 : 2,
-            }
+            };
+
             if ($(this).val() != '' && $("#ItemUnit" + i).val() != '' && $("#ItemQty" + i).val() != '' && $("#ItemRate" + i).val() != '') {
                 items.push(itemAry);
             }
-
         }
         else {
             flag4 = false;
             return false;
         }
     });
-
     var rawProject = $("#Project").attr('data-idvalue');
     var rawParty = $("#Party").attr('data-idvalue');
+
     // Build transaction object
     var transaction = {
         ID: idValue, // Nullable int
         Date: $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null, // Nullable DateTime
         EffectiveDate: $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null, // Nullable DateTime
         VoucherID: $("#VoucherType").attr("data-value") ? parseInt($("#VoucherType").attr("data-value")) : null, // Nullable int
-        SerialNo: $("#VoucherNo").val() ? parseInt($("#VoucherNo").val()) : null, // Nullable long  
+        SerialNo: $("#VoucherNo").val() ? parseInt($("#VoucherNo").val()) : null, // Nullable long
         TransactionNo: $("#VoucherNo").val() || '', // Nullable string
         ExchangeRate: 1.0, // Decimal, assuming default of 1.0
+        ReferenceNo: $("#Reference").val() || '', // Nullable string
         CommonNarration: $("#Description").val() || '', // Nullable string
         AddedDate: new Date().toISOString(), // DateTime
         AccountID: (rawParty !== undefined && rawParty !== null && rawParty.trim() !== "" && !isNaN(rawParty) && parseInt(rawParty) > 0)
             ? parseInt(rawParty)
             : null,
-        ReferenceNo: $("#Reference").val() || '', // Nullable string
         CostCentreID: (rawProject !== undefined && rawProject !== null && rawProject.trim() !== "" && !isNaN(rawProject) && parseInt(rawProject) > 0)
             ? parseInt(rawProject)
             : null,
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
     };
 
+    var rawSalesman = $("#Salesman").attr('data-idvalue');
     var rawWarehouse = $("#Warehouse").val();
 
     // Build additionals object
     var additionals = {
         TransactionID: idValue, // Nullable int
         TypeID: null, // Explicitly set as null
-        ModeID: $("#Mode").val() ? parseInt($("#Mode").val()) : null, // Nullable int
-        FromLocationID: (rawWarehouse && !isNaN(rawWarehouse) && parseInt(rawWarehouse) > 0)
-            ? parseInt(rawWarehouse)
-            : null,
+        ModeID: null, // Explicitly set as null
+        FromLocationID: null,
         Name: $("#PartyNameAddress").val() || '', // Nullable string
+        Address: null, // Explicitly set as null
+        InterestAmt: $("#StaffIncentive").val() ? parseFloat($("#StaffIncentive").val()) : null, // Nullable decimal
+        InterestPerc: $("#StaffIncentivePerc").val() ? parseFloat($("#StaffIncentivePerc").val()) : null, // Nullable decimal
+        DocumentNo: null, // Explicitly set as null
+        DocumentDate: null, // Explicitly set as null
         EntryDate: $("#PartyInvoiceDate").val() ? new Date($("#PartyInvoiceDate").val()) : null, // Nullable DateTime
         EntryNo: $("#PartyInvoiceNo").val() || '', // Nullable string
         BankAddress: $("#Attention").val() || '', // Nullable string
         ExpiryDate: $("#ExpiryDate").val() ? new Date($("#ExpiryDate").val()) : null, // Nullable DateTime
+        SubmitDate: null, // Explicitly set as null
+        PassNo: null, // Explicitly set as null
         ReferenceDate: $("#OrderDate").val() ? new Date($("#OrderDate").val()) : null, // Nullable DateTime
         ReferenceNo: $("#OrderNo").val() || '', // Nullable string
         Terms: $("#Terms").val() || '', // Nullable string
         OutLocID: (rawWarehouse && !isNaN(rawWarehouse) && parseInt(rawWarehouse) > 0)
             ? parseInt(rawWarehouse)
             : null,
+        AccountID: (rawSalesman !== undefined && rawSalesman !== null && rawSalesman.toString().trim() !== "" && !isNaN(rawSalesman) && parseInt(rawSalesman) > 0)
+            ? parseInt(rawSalesman)
+            : null,
+        AreaID: $("#SalesArea").val() ? parseInt($("#SalesArea").val()) : null,
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
-    };
 
+    };
     var entriesarray = {
-        DueDate: $("#DueDate").val() ? new Date($("#DueDate").val()) : null,
+        DueDate: null,
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
     }
     entries.push(entriesarray)
@@ -620,8 +633,9 @@ function SaveEntry() {
             });
             return false;
         }
+
     }
-    console.log(model)
+    console.log(JSON.stringify(model))
     $.ajax({
         url: webUrl + "InsertTransaction",
         method: "POST",
@@ -649,7 +663,7 @@ function SaveEntry() {
                     timerProgressBar: true
                 }).then(() => {
                     var menuId = $("#MenuID").val();
-                    window.location.href = "/PurchaseReturn/Index?MenuID=" + menuId;
+                    window.location.href = "/SalesEstimate/Index?MenuID=" + menuId;
                 });
 
                 $("#ID").val(data.transactionNo);
@@ -678,20 +692,22 @@ function SaveEntry() {
                 confirmButtonColor: '#d33',
             });
         }
-
     });
+
 
 }
 function RowClick(RowID) {
     EntryEnable('Edit')
-    $("#PurchaseReturnList").hide();
-    $("#PurchaseReturnForm").show();
+    $("#SalesEstimateList").hide();
+    $("#SalesEstimateForm").show();
+
     $.ajax({
-        url: webUrl + "GetInventoryTransaction?ID=" + RowID,
+        url: CommonUrl + "GetInventoryTransaction?ID=" + RowID,
         method: "GET",
         dataType: 'JSON',
         success: function (data) {
             if (data['success'] == true) {
+
                 function toFixedNoRound(num, decimals) {
                     num = Number(num);
                     if (isNaN(num)) return "0.00";
@@ -709,7 +725,7 @@ function RowClick(RowID) {
                 $("#VoucherNo").val(transaction.TransactionNo);
                 $("#VoucherCode").val(transaction.Code);
                 $("#Reference").val(transaction.ReferenceNo);
-                $("#Mode").html(data['mode']);
+                //$("#Mode").html(data['mode']);
 
                 function formatDate(dateStr) {
                     if (!dateStr || dateStr === '' || dateStr === ' ') return '';
@@ -727,7 +743,7 @@ function RowClick(RowID) {
                 $("#Warehouse").html(data['warehouses']);
                 $("#Project").attr('data-idvalue', transaction.CostCentreID);
                 $("#Project").val(transaction.ProjectName);
-                $("#Account").val(data.account);
+                //$("#Account").val(data.account);
 
                 //Additionals
 
@@ -738,7 +754,17 @@ function RowClick(RowID) {
                 $("#PartyNameAddress").val(additionals.Name);
                 $("#ExpiryDate").val(formatDate(additionals.ExpiryDate));
                 $("#Attention").val(additionals.BankAddress);
+                $("#SalesArea").html(data['area']);
+                $("#StaffIncentive").val(additionals.InterestAmt);
+                $("#StaffIncentivePerc").val(additionals.InterestPerc);
+                //$("#DeliveryNoteNo").val(additionals.PassNo);
+                //$("#DeliveryNoteDate").val(formatDate(additionals.SubmitDate));
+                //$("#DispatchNo").val(additionals.DocumentNo);
+                //$("#DispatchDate").val(formatDate(additionals.DocumentDate));
+                //$("#TermsofDelivery").val(additionals.Address);
                 $("#Terms").val(additionals.Terms);
+                $("#Salesman").val(additionals.AccountName);
+                $("#Salesman").attr('data-idvalue', additionals.AccountID);
 
                 // -------- SUM CALCULATIONS WITH NO ROUNDING --------
 
@@ -800,6 +826,16 @@ function RowClick(RowID) {
     });
 }
 
+function toFixedNoRound(num, decimals) {
+    num = Number(num);
+    console.log(num + " num")
+    console.log(decimals + " decimals")
+    if (isNaN(num)) return "0.00";
+    const factor = Math.pow(10, decimals);
+    console.log(factor + " factor")
+    console.log((Math.trunc(num * factor) / factor).toFixed(decimals) + "RETURN RESULT")
+    return (Math.trunc(num * factor) / factor).toFixed(decimals);
+}
 function DeleteEntry() {
     if ($("#ID").val() == null) {
         return false
@@ -820,7 +856,7 @@ function DeleteEntry() {
                     timerProgressBar: true
                 }).then(() => {
                     var menuId = $("#MenuID").val();
-                    window.location.href = "/PurchaseReturn/Index?MenuID=" + menuId;
+                    window.location.href = "/SalesEstimate/Index?MenuID=" + menuId;
                 });
             } else {
                 Swal.fire({
@@ -928,23 +964,6 @@ function updateAllSums() {
 
     calculateGrandTotal();
 }
-
-//// Unified handler — now tracks which field changed
-//$(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
-//    const id = $(this).attr('element-id');
-//    const changedField = $(this).attr("id").replace(id, '');
-//    // Validate input to ensure no negative or invalid values
-//    let val = $(this).val();
-//    // Prevent entering negative values or invalid non-numeric characters
-//    if (val.includes('-') || isNaN(val) || val < 0) {
-//        alert("A")
-//        $(this).val('');  // Reset invalid value
-//        return;  // Exit the function to prevent further actions
-//    }
-
-//    calculateRow(id, changedField);
-//    updateAllSums();
-//});
 
 $(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
 

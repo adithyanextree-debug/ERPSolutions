@@ -280,6 +280,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 foreach (var item in request.InvTransItems)
                 {
                     item.TranType = "Normal";
+                    item.Visible = true;
                 }
 
                 List<Models.InvTransItems> InvTransItems = request.InvTransItems;

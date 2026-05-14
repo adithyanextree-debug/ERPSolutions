@@ -1,6 +1,4 @@
-﻿
-
-var webUrl = '/POS/';
+﻿var webUrl = '/POS/';
 var CommonUrl = '/CommonFunctions/';
 
 // ENTER KEY GLOBAL HANDLER (Tab + ProductCode logic)
@@ -59,48 +57,129 @@ $(document).on('keydown', function (e) {
             data: data,
             dataType: 'JSON',
             success: function (data) {
-                $("#ItemUnit" + id).html(data['units']);
+                if (data.success) {
+                    // STEP 1 - Set unit dropdown & image
+                    // STEP 2 - Parse unitList, taxList
+                    // STEP 3 - Set ItemRate(ItemUnitPrice)
+                    // STEP 4 - Set Qty = 1, calculate GrossAmt / Total / Amt
+                    // STEP 5 - Set Tax % using taxItem(taxList)
+                    // STEP 6 - Calculate TaxAmt using GrossAmt (now correctly set in Step 4)
+                    // STEP 7 - Recalculate Total = GrossAmt + TaxAmt
+                    // STEP 8 - updateAllSums() + calculateGrandTotal()
+                    // STEP 9 - Focus on Qty field
 
-                var unitList = JSON.parse(data['unitDetails']);
-                var taxList = JSON.parse(data['taxDetails']);
-                var unit = unitList.length > 0 ? unitList[0] : {};
-                var tax = taxList.length > 0 ? taxList[0] : {};
+                    console.log(data)
+                    $("#ItemUnit" + id).html(data['units']);
+                    var imagesrc = data['imagesrc'];
+                    $("#productimagepreview" + id).attr("src", "");
+                    $("#productimagepreview" + id).attr("src", imagesrc);
 
-                var ItemUnitPrice = parseFloat(data['itemUnitPrice']);
-                if (isNaN(ItemUnitPrice) || data['itemUnitPrice'] == '') {
-                    ItemUnitPrice = parseFloat(unit["SellingPrice"]) || 0;
+                    const unitList = JSON.parse(data['unitDetails']);
+                    const unit = unitList.length > 0 ? unitList[0] : {};
+                    const taxList = JSON.parse(data['taxDetails']);
+                    const taxItem = taxList.length > 0 ? taxList[0] : {};
+
+                    let ItemUnitPrice = parseFloat(data['itemUnitPrice']) || 0;
+                    if (!ItemUnitPrice) {
+                        ItemUnitPrice = parseFloat(unit["OnlinePrice"]) || 0;
+                    }
+                    $("#ItemRate" + id).val(parseFloat(ItemUnitPrice).toFixed(2));
+                    $("#ItemRate" + id).css('text-align', 'right');
+                    $("#ItemRate" + id).attr('element-factor', unit["Factor"]);
+
+                    const qtyField = $("#ItemQty" + id);
+                    const rateField = $("#ItemRate" + id);
+                    const grossAmtField = $("#ItemGrossAmt" + id);
+                    const totalField = $("#ItemTotal" + id);
+                    const amtField = $("#ItemAmt" + id);
+
+                    qtyField.val(parseFloat(1).toFixed(2));
+                    qtyField.css('text-align', 'center');
+
+                    const qty = parseFloat(qtyField.val()) || 0;
+                    const rate = parseFloat(rateField.val()) || 0;
+
+                    if (qty > 0) {
+                        const tot = qty * (rate > 0 ? rate : ItemUnitPrice);
+
+                        grossAmtField.val(parseFloat(tot).toFixed(2)).css('text-align', 'right');
+                        totalField.val(parseFloat(tot).toFixed(2)).css('text-align', 'right');
+                        amtField.val(parseFloat(tot).toFixed(2)).css('text-align', 'right');
+                    }
+
+                    if (taxList.length > 0) {
+                        if (taxItem["SalesPerc"] != null && taxItem["SalesPerc"] !== "") {
+                            $("#ItemTaxPer" + id).val(taxItem["SalesPerc"]);
+                            $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["ID"]);
+                            $("#ItemTaxPer" + id).attr('taxaccountid', taxItem["TaxAccountID"]);
+
+                        } else {
+                            $("#ItemTaxPer" + id).attr('taxTypeID', "");
+                            $("#ItemTaxPer" + id).attr('taxaccountid', "");
+                        }
+                    }
+                    const taxPerVal = $("#ItemTaxPer" + id).val();
+                    if (taxPerVal != null && taxPerVal !== "") {
+                        $("#ItemTaxPer" + id).val(parseFloat(taxPerVal).toFixed(2));
+
+                        const amt = parseFloat($("#ItemGrossAmt" + id).val()) || 0;
+                        const taxAmt = amt * (parseFloat(taxPerVal) / 100);  // renamed from 'tax' to 'taxAmt'
+
+                        $("#ItemTaxAmt" + id).val(parseFloat(taxAmt).toFixed(2));
+                        $("#ItemTaxAmt" + id).css('text-align', 'right');
+
+                        const sum = amt + taxAmt;
+                        $("#ItemTotal" + id).val(parseFloat(sum).toFixed(2));
+                        $("#ItemTotal" + id).css('text-align', 'right');
+                    }
+
+                    updateAllSums();
+                    calculateGrandTotal();
+
+                    $("#ItemQty" + id).focus();
                 }
+                //$("#ItemUnit" + id).html(data['units']);
 
-                var imagesrc = data['imagesrc'];
-                $("#productimagepreview" + id).attr("src", "");
-                $("#productimagepreview" + id).attr("src", imagesrc);
+                //var unitList = JSON.parse(data['unitDetails']);
+                //var taxList = JSON.parse(data['taxDetails']);
+                //var unit = unitList.length > 0 ? unitList[0] : {};
+                //var tax = taxList.length > 0 ? taxList[0] : {};
 
-                // Set Tax
-                if (taxList.length > 0 && tax["SalesPerc"] != null && tax["SalesPerc"] != "") {
-                    $("#ItemTaxPer" + id).val(toTwoDecimal(tax["SalesPerc"]));
-                    $("#ItemTaxPer" + id).attr('taxTypeID', tax["TaxMiscID"]);
-                } else {
-                    $("#ItemTaxPer" + id).val('');
-                    $("#ItemTaxPer" + id).attr('taxTypeID', '');
-                }
+                //var ItemUnitPrice = parseFloat(data['itemUnitPrice']);
+                //if (isNaN(ItemUnitPrice) || data['itemUnitPrice'] == '') {
+                //    ItemUnitPrice = parseFloat(unit["SellingPrice"]) || 0;
+                //}
 
-                // Set Rate and Factor
-                $("#ItemRate" + id).val(toTwoDecimal(ItemUnitPrice));
-                $("#ItemRate" + id).css('text-align', 'right');
-                $("#ItemRate" + id).attr('element-factor', unit["Factor"]);
+                //var imagesrc = data['imagesrc'];
+                //$("#productimagepreview" + id).attr("src", "");
+                //$("#productimagepreview" + id).attr("src", imagesrc);
 
-                // Set default Qty
-                $("#ItemQty" + id).val('1.00');
-                $("#ItemQty" + id).css('text-align', 'center');
+                //// Set Tax
+                //if (taxList.length > 0 && tax["SalesPerc"] != null && tax["SalesPerc"] != "") {
+                //    $("#ItemTaxPer" + id).val(toTwoDecimal(tax["SalesPerc"]));
+                //    $("#ItemTaxPer" + id).attr('taxTypeID', tax["TaxTypeID"]);
+                //} else {
+                //    $("#ItemTaxPer" + id).val('');
+                //    $("#ItemTaxPer" + id).attr('taxTypeID', '');
+                //}
 
-                // Recalculate row (tax + disc + total)
-                calculateRow(id);
+                //// Set Rate and Factor
+                //$("#ItemRate" + id).val(toTwoDecimal(ItemUnitPrice));
+                //$("#ItemRate" + id).css('text-align', 'right');
+                //$("#ItemRate" + id).attr('element-factor', unit["Factor"]);
 
-                // Update all column sums and grand total
-                updateAllSums();
+                //// Set default Qty
+                //$("#ItemQty" + id).val('1.00');
+                //$("#ItemQty" + id).css('text-align', 'center');
 
-                // Focus qty
-                $("#ItemQty" + id).focus();
+                //// Recalculate row (tax + disc + total)
+                //calculateRow(id);
+
+                //// Update all column sums and grand total
+                //updateAllSums();
+
+                //// Focus qty
+                //$("#ItemQty" + id).focus();
             },
         });
 
@@ -133,10 +212,23 @@ function NewEntry() {
 }
 
 // For getting item price details while changing unit
+
 $(document).on("change", ".ItemUnit", function () {
     const id = $(this).attr('element-id');
     const selectedUnit = $(this).val();
+    // Reset row fields
+    $("#ItemUnit" + id).html('');
+    $("#ItemQty" + id).val('');
+    $("#ItemRate" + id).val('');
+    $("#ItemDiscPer" + id).val('');
+    $("#ItemDiscAmt" + id).val('');
+    $("#ItemAmt" + id).val('');
+    $("#ItemTotal" + id).val('');
+    $("#ItemGrossAmt" + id).val('');
+    $("#ItemTaxAmt" + id).val('');
 
+    // Clear total summary
+    updateAllSums();
     if (!selectedUnit) {
         $("#ItemQty" + id).val('');
         $("#ItemRate" + id).val('');
@@ -144,9 +236,8 @@ $(document).on("change", ".ItemUnit", function () {
         $("#ItemDiscAmt" + id).val('');
         $("#ItemAmt" + id).val('');
         $("#ItemTotal" + id).val('');
-        $("#ItemGrossAmt" + id).val('');
+        $("#ItemGrossAmt" + id).val('');  //  .val() not .html()
         $("#ItemTaxAmt" + id).val('');
-        $("#ItemTaxPer" + id).val('');
         updateAllSums();
         return;
     }
@@ -162,45 +253,84 @@ $(document).on("change", ".ItemUnit", function () {
         },
         dataType: 'JSON',
         success: function (data) {
-            $("#ItemUnit" + id).html(data['units']);
+            if (data.success) {
+                console.log(data);
 
-            const unitList = JSON.parse(data['unitDetails']);
-            const taxList = JSON.parse(data['taxDetails']);
-            const unit = unitList.length > 0 ? unitList[0] : {};
-            const tax = taxList.length > 0 ? taxList[0] : {};
+                $("#ItemUnit" + id).html(data['units']);
 
-            let ItemUnitPrice = parseFloat(data['itemUnitPrice']);
-            if (isNaN(ItemUnitPrice)) {
-                ItemUnitPrice = parseFloat(unit["SellingPrice"]) || 0;
+                const unitList = JSON.parse(data['unitDetails']);
+                const taxList = JSON.parse(data['taxDetails']);
+                const unit = unitList.length > 0 ? unitList[0] : {};
+                const taxItem = taxList.length > 0 ? taxList[0] : {};  //  renamed from 'tax'
+
+                console.log(unitList);
+                console.log(unit);
+
+                // STEP 1 - Set Rate
+                let ItemUnitPrice = parseFloat(data['itemUnitPrice']) || 0;
+                if (!ItemUnitPrice) {
+                    ItemUnitPrice = parseFloat(unit["OnlinePrice"]) || 0;
+                }
+                console.log("ItemUnitPrice:", ItemUnitPrice);  //  removed alerts
+
+                $("#ItemRate" + id).val(toTwoDecimal(ItemUnitPrice)).css('text-align', 'right');
+                $("#ItemRate" + id).attr('element-factor', unit["Factor"]);
+
+                // STEP 2 - Set Qty and calculate GrossAmt
+                const qtyField = $("#ItemQty" + id);
+                const rateField = $("#ItemRate" + id);
+                const grossAmtField = $("#ItemGrossAmt" + id);
+                const totalField = $("#ItemTotal" + id);
+                const amtField = $("#ItemAmt" + id);
+
+                qtyField.val(toTwoDecimal(1)).css('text-align', 'center');
+
+                const qty = parseFloat(qtyField.val()) || 0;
+                const rate = parseFloat(rateField.val()) || 0;
+
+                if (qty > 0) {
+                    const tot = qty * (rate > 0 ? rate : ItemUnitPrice);
+                    grossAmtField.val(toTwoDecimal(tot)).css('text-align', 'right');
+                    amtField.val(toTwoDecimal(tot)).css('text-align', 'right');
+                }
+
+                // STEP 3 - Set Tax% 
+                if (taxList.length > 0) {
+                    if (taxItem["SalesPerc"] != null && taxItem["SalesPerc"] !== "") {
+                        $("#ItemTaxPer" + id).val(taxItem["SalesPerc"]);
+                        $("#ItemTaxPer" + id).attr('taxTypeID', taxItem["ID"]);
+                        $("#ItemTaxPer" + id).attr('taxaccountid', taxItem["TaxAccountID"]);
+
+                    } else {
+                        $("#ItemTaxPer" + id).attr('taxTypeID', "");
+                        $("#ItemTaxPer" + id).attr('taxaccountid', "");
+                    }
+                }
+
+                // STEP 4 - Calculate TaxAmt using GrossAmt
+                const taxPerVal = $("#ItemTaxPer" + id).val();
+                if (taxPerVal != null && taxPerVal !== "") {
+                    $("#ItemTaxPer" + id).val(toTwoDecimal(taxPerVal));
+
+                    const amt = parseFloat(grossAmtField.val()) || 0;  //  GrossAmt already set
+                    const taxAmt = amt * (parseFloat(taxPerVal) / 100);
+
+                    $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt)).css('text-align', 'right');
+
+                    const sum = amt + taxAmt;
+                    totalField.val(toTwoDecimal(sum)).css('text-align', 'right');
+                }
+
+                // STEP 5 - Update sums and focus
+                updateAllSums();
+                calculateGrandTotal();
+                $("#ItemQty" + id).focus();
             }
-
-            // Set Rate
-            $("#ItemRate" + id).val(toTwoDecimal(ItemUnitPrice));
-            $("#ItemRate" + id).attr('element-factor', unit["Factor"]);
-
-            // Set Tax
-            if (taxList.length > 0 && tax["SalesPerc"] != null && tax["SalesPerc"] != "") {
-                $("#ItemTaxPer" + id).val(toTwoDecimal(tax["SalesPerc"]));
-                $("#ItemTaxPer" + id).attr('taxTypeID', tax["TaxMiscID"]);
-            } else {
-                $("#ItemTaxPer" + id).val('');
-                $("#ItemTaxPer" + id).attr('taxTypeID', '');
-            }
-
-            // Default Quantity = 1
-            $("#ItemQty" + id).val('1');
-
-            // Recalculate row and all sums
-            calculateRow(id);
-            updateAllSums();
-
-            // Focus qty field
-            $("#ItemQty" + id).focus();
         }
     });
 });
 
-// For adding new row for item add
+
 $(document).on("click", ".addrow", function (event) {
     event.preventDefault();
 
@@ -239,7 +369,8 @@ $(document).on("click", ".addrow", function (event) {
     }
 
     $.ajax({
-        url: "/POS/NewRow?no=" + serialno,
+        url: CommonUrl + "NewRow?no=" + serialno,
+        // url: "/POS/NewRow?no=" + serialno,
         method: "GET",
         dataType: 'JSON',
         success: function (data) {
@@ -333,15 +464,17 @@ $(document).on("click", ".action_delete", function (event) {
 
 function toFixedNoRound(num, decimals) {
     num = Number(num);
+    console.log(num + " num")
+    console.log(decimals + " decimals")
     if (isNaN(num)) return "0.00";
     const factor = Math.pow(10, decimals);
+    console.log(factor + " factor")
+    console.log((Math.trunc(num * factor) / factor).toFixed(decimals) + "RETURN RESULT")
     return (Math.trunc(num * factor) / factor).toFixed(decimals);
 }
-
 function toTwoDecimal(val) {
     return parseFloat(val || 0).toFixed(2);
 }
-
 function updateSum(selector, targetSelector, align = 'right') {
     let sum = 0;
     $(selector).each(function () {
@@ -373,7 +506,8 @@ function calculateRow(id, changedField = '') {
     } else if (changedField === 'ItemDiscPer') {
         discAmt = (grossAmt * discPer) / 100;
         $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
-    } else {
+    }
+    else {
         // On qty/rate change or fresh load: recalculate discAmt from discPer
         if (discPer > 0) {
             discAmt = (grossAmt * discPer) / 100;
@@ -636,7 +770,8 @@ function SaveEntry() {
             var InTransItemId = parseInt($("#itemid" + i).val()) || 0;
             var rawItem = $("#productCode" + i).attr('data-idvalue');
             var rawTaxType = $("#ItemTaxPer" + i).attr('taxTypeID');
-
+            var factor = parseFloat($("#ItemRate" + i).attr('element-factor')) || 1;
+            var qty = parseFloat($("#ItemQty" + i).val()) || 0;
             var itemAry = {
                 'ID': InTransItemId,
                 'TransactionID': idValue,
@@ -644,22 +779,26 @@ function SaveEntry() {
                     ? parseInt(rawItem) : null,
                 'Unit': $("#ItemUnit" + i).val() || '',
                 'Qty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : null,
+                'BasicQty': factor * qty,
                 'Rate': $("#ItemRate" + i).val() ? parseFloat($("#ItemRate" + i).val()) : null,
-                'BasicQty': ($("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1) * ($("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0),
+                'RowType': $("#RowType").val() ? parseInt($("#RowType").val()) : null,  //     
+                'Description': $("#Description").val() || '',
+                'Discount': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0,
+                'Factor': factor,
+                'StockQty': factor * qty,
+                'OutLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null,
+                'DiscountPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0,
                 'TaxPerc': $("#ItemTaxPer" + i).val() ? parseFloat($("#ItemTaxPer" + i).val()) : 0,
                 'TaxValue': $("#ItemTaxAmt" + i).val() ? parseFloat($("#ItemTaxAmt" + i).val()) : 0,
-                'RateDiscPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0,
-                'RateDisc': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0,
-                'DiscountPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0,
                 'TaxTypeID': (rawTaxType && !isNaN(rawTaxType) && parseInt(rawTaxType) > 0)
                     ? parseInt(rawTaxType) : null,
+                'RateDiscPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0,
+                'RateDisc': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0,
+                'SerialNo': parseInt($(this).closest('tr').find('.serial-no').text()) || null,
                 'TempQty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0,
-                'Discount': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0,
-                'Factor': $("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1,
-                'StockQty': ($("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1) * ($("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0),
-                'OutLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null,
-                'Description': $("#Description").val() || '',
-                'RowType': $("#RowType").val(),
+                'TaxAccountID': ($("#ItemTaxPer" + i).attr('taxaccountid') && !isNaN($("#ItemTaxPer" + i).attr('taxaccountid')))
+                    ? parseInt($("#ItemTaxPer" + i).attr('taxaccountid'))
+                    : null,
                 'RowState': (InTransItemId === null || InTransItemId === 0 || InTransItemId === undefined) ? 1 : 2,
             };
 
@@ -843,7 +982,7 @@ $(document).on("keyup", ".productCode1", function (event) {
                 // Set Tax
                 if (taxList.length > 0 && tax["SalesPerc"] != null && tax["SalesPerc"] != "") {
                     $("#ItemTaxPer" + id).val(toTwoDecimal(tax["SalesPerc"]));
-                    $("#ItemTaxPer" + id).attr('taxTypeID', tax["TaxMiscID"]);
+                    $("#ItemTaxPer" + id).attr('taxTypeID', tax["TaxTypeID"]);
                 } else {
                     $("#ItemTaxPer" + id).val('');
                     $("#ItemTaxPer" + id).attr('taxTypeID', '');

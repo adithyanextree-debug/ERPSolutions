@@ -261,7 +261,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
                     sb.Append(" </td>");
                     // 1. Product Code
                     sb.Append("<td id='TdproductCode" + Sn + "'>");
-                    sb.Append("<input type='text' id='productCode" + Sn + "' style='width: 5cm;' class='form-control productCode' element-id='" + Sn + "' ");
+                    sb.Append("<input type='text' id='productCode" + Sn + "' style='width: 7cm;' class='form-control productCode' element-id='" + Sn + "' ");
                     sb.Append("onkeydown=\"ShowLookup(event,'productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
                     sb.Append("oninput=\"LookupTextChanged('productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
                     sb.Append("data-lookupcriteria='Items' data-idcolumn='ID' data-idvalue='" + dr["ItemID"] + "' ");
@@ -281,27 +281,27 @@ namespace ERPSample.Controllers.Inventory.Transactions
 
                     // 3. Qty
                     sb.Append("<td id='qtyTd" + Sn + "'>");
-                    sb.Append("<input type='text' class='form-control ItemQty' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Qty"]), 2) + "' element-id='" + Sn + "' style='width: 2cm;' id='ItemQty" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemQty' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Qty"]), 2) + "' element-id='" + Sn + "' style='width: 2cm;text-align:center;' id='ItemQty" + Sn + "' /></td>");
 
                     // 4. Rate
                     sb.Append("<td id='rateTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemRate excelCells' element-factor='" + ToFixedNoRound(Convert.ToDecimal(dr["Factor"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Rate"]), 2) + "' id='ItemRate" + Sn + "' disabled/></td>");
+                    sb.Append("<input type='text' class='form-control ItemRate excelCells' element-factor='" + ToFixedNoRound(Convert.ToDecimal(dr["Factor"]), 2) + "' style='width: 2cm;text-align:right;' element-id='" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Rate"]), 2) + "' id='ItemRate" + Sn + "' disabled/></td>");
 
                     // 5. Gross Amount
                     sb.Append("<td class='ItemGrossAmtTd' >");
-                    sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' style='width: 2cm;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["GrossAmount"]), 2) + "' disabled/></td>");
+                    sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' style='width: 2cm;text-align:right;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["GrossAmount"]), 2) + "' disabled/></td>");
 
                     // 6. Discount %
                     sb.Append("<td class='discsTd' id='dicsTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["DiscountPerc"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["DiscountPerc"]), 2) + "' style='width: 2cm;text-align:center;' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' /></td>");
 
                     // 7. Discount Amt
                     sb.Append("<td class='dicsAmtTd' id='dicsAmtTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Discount"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Discount"]), 2) + "' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' /></td>");
 
                     // 8. Amount
                     sb.Append("<td class='amtTd' id='amtTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Amount"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/></td>");
+                    sb.Append("<input type='text' class='form-control ItemAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Amount"]), 2) + "' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/></td>");
 
                     // 9. Tax %
                     sb.Append("<td class='taxPerTd' id='taxPerTd" + Sn + "' >");
@@ -316,30 +316,30 @@ namespace ERPSample.Controllers.Inventory.Transactions
                         {
                             DataTable TaxDetails = DALVouchers.ProductTaxDetails(Convert.ToInt64(taxTypeValue));
                             // Always display two decimal places (50.00 instead of 50.0)
-                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;'  value='" + String.Format("{0:F2}", TaxDetails.Rows[0]["SalesPerc"]) + "' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;text-align:center;'  value='" + String.Format("{0:F2}", TaxDetails.Rows[0]["SalesPerc"]) + "' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
 
                         }
                         else
                         {
                             // Always display two decimal places (50.00 instead of 50.0)
-                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;'  value='' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;text-align:center;'  value='' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
 
                         }
                     }
                     else
                     {
-                        sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' style='width: 2cm;' />");
+                        sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' style='width: 2cm;text-align:center;' />");
                     }
                     sb.Append("</td>");
 
 
                     // 10. Tax Amt
                     sb.Append("<td class='taxAmtTd' id='taxAmtTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TaxValue"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TaxValue"]), 2) + "' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' /></td>");
 
                     // 11. Total
                     sb.Append("<td class='itemTotalTd' id='itemTotalTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemTotal excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TotalAmount"]), 2) + "' style='width: 2cm;' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled/></td>");
+                    sb.Append("<input type='text' class='form-control ItemTotal excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TotalAmount"]), 2) + "' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled/></td>");
 
                     // 12. Add button
                     sb.Append("<td class='col' ><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "'><i class='fa-solid fa-plus'></i></button></td>");
