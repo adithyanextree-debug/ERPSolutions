@@ -1,0 +1,266 @@
+﻿@using System.Data
+@{
+    ViewData["Title"] = "Opening Stock";
+}
+
+<style>
+    #Itemtable input.form-control {
+        border: 0.5px solid #ccc;
+        padding: 6px !important;
+        box-shadow: none !important;
+        background-color: #fff !important; /* Optional: make background transparent */
+    }
+
+    .col-form-label {
+        font-size: 13px;
+        padding-top: 6px;
+        font-weight: 500;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Opening Stock</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="Home">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Inventory</li>
+                    <li class="breadcrumb-item ">Transaction</li>
+                    <li class="breadcrumb-item ">Stock</li>
+                    <li class="breadcrumb-item active">Opening Stock</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Zero Configuration  Starts-->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="list-product-header mt-4">
+                    <div>
+                        @(await Component.InvokeAsync("ToolBar", new
+                        {
+                            PageName = "Opening Stock",
+                            AllowNew = ViewBag.UserPermissions.IsCreate,
+                            AllowDelete = ViewBag.UserPermissions.IsDelete,
+                            AllowPrint = ViewBag.UserPermissions.IsPrint,
+                        }))
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" id="OpeningStockList">
+                       @*  @(await Component.InvokeAsync("GridView", new
+                        {
+                            Heading = "OpeningStock",
+                            IDColumnName = "ID",
+                            DatasTable = ViewBag.DataTable,
+                            TableID = "OpeningStock",
+                            Searching = true,
+                            PageLength = 5,
+                            HideColumns = "ID,Amount,EntryNo,EntryDate,Phone,SerialNo,Status"
+                        })) *@
+                        @* <table class="display table" id="project-status">
+                            <thead>
+                                <tr>
+                                    <th class="col">SNo.</th>
+                                    <th>TRANSACTION NO.</th>
+                                    <th>DATE</th>
+                                    <th>ACCOUNT NAME</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="OpeningStockTbody">
+                                @Html.Raw(ViewBag.DataTable)
+                            </tbody>
+                        </table> *@
+                        <table class="display dataTable" id="keytable" role="grid" aria-describedby="keytable_info" style="position: relative;">
+                            <thead>
+                                <tr>
+                                    <th class="col">SNo.</th>
+                                    <th>TRANSACTION No.</th>
+                                    <th>DATE</th>
+                                    <th>ACTION</th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="OpeningStockTbody">
+                                @Html.Raw(ViewBag.DataTable)
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="OpeningStockForm" style="display:none;">
+                        <!--Add Details -->
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <input type="text" class="text-center transparent_text" id="ID" style="display:none" />
+                                        <input type="text" class="text-center transparent_text" id="MenuID" style="display:none" value="@ViewBag.MenuID" />
+                                        <input type="text" class="text-center transparent_text" id="RowType" style="display:none" value="@ViewBag.RowType" />
+                                        <input type="text" class="text-center transparent_text" id="VoucherID" style="display:none" value="@ViewBag.VoucherID" />
+
+                                        @* <div class="col-md-4" id="vouchernodiv" style="display:none">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "VoucherNo", DisplayText = "Voucher No.", IsMandatory = true }))
+                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
+                                            </div>
+                                        </div> *@
+                                        <div class="col-md-4" id="vouchernodiv" style="display:none">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Voucher No.<span class="text-danger">*</span></span>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <input type="text" id="VoucherCode" class="form-control" name="VoucherCode" disabled value="@ViewBag.VoucherCode">
+                                                    </div>
+                                                    <div class="col-md-6 pl-0">
+                                                        <input type="text" id="VoucherNo" class="form-control " name="VoucherNo" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "VoucherDate", DisplayText = "Voucher Date", IsMandatory = true }))
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Reference", DisplayText = "Reference" }))
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "Warehouse", DisplayText = "Warehouse" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox",
+                                                    new
+                                                    {
+                                                        Type = "Lookup",
+                                                        ID = "Project",
+                                                        DisplayText = "Project",
+                                                        IDColumn = "ID",
+                                                        LookupCriteria = "Project",
+                                                        IDValue = 0,
+                                                        AssignColumn = "Value",
+                                                        IsMandatory = false
+                                                    }))
+                                            </div>
+                                        </div>
+                                       
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-2 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Description</span>
+                                                    </div>
+                                                    <div class="col-md-10 pl-0">
+                                                        <input type="text" id="Description" class="form-control OpeningStockDescription" data-ismandatory="false">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- DEtails Ends  -->
+                        
+                        <!--Table Starts  -->
+                        <div class="col-sm-12">
+                            <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5 text-customtitle-primary" style="font-weight: 600;">
+                                ITEMS
+                            </h6>
+                            <div class="card rounded-custom overflow-hidden">
+
+                                <div class="table-responsive">
+                                    <table class="table table-light" id="Itemtable">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th></th>
+                                                <th>Item Name</th>
+                                                <th>Unit</th>
+                                                <th>Qty</th>
+                                                <th>Rate</th>                                               
+                                                <th>Amount</th>
+                                                <th>Tax %</th>
+                                                <th>TaxValue</th>
+                                                <th>Add</th>
+                                                <th>Delete</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                        <tfoot>
+                                            <tr>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="qtySum"></p></td>
+                                                <td><p id=""></p></td>                                                
+                                                <td><p id="amtSum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id="taxAmtSum"></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                                <td><p id=""></p></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Item table End-->
+                        <!--Entries form starts-->
+                        <div class="col-md-12">
+                            <div class="card rounded-custom">
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-2 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Terms</span>
+                                                    </div>
+                                                    <div class="col-md-10 pl-0">
+                                                        <input type="text" id="Terms" class="form-control Terms" data-ismandatory="false">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Entries form end-->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Container-fluid Ends -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script src="~/assets/custom/Inventory/Transactions/OpeningStock.js"></script>

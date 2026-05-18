@@ -585,6 +585,192 @@ namespace ERPSample.Controllers.Inventory.Transactions
             return Json(new { success = true, NewEntry = NewEntry, warehouses = ListWarehouse, account = ViewBag.Account, mode = paymentmode });
         }
 
+
+        [HttpPost]
+        public async Task<IActionResult> NewEntryDetailsStock()
+        {
+            DataTable ds = DALVouchers.GetVoucherDate();
+            string StartDate = "";
+            if (ds.Rows.Count > 0 && ds.Rows[0]["StartDate"] != DBNull.Value)
+            {
+                DataRow dr1 = ds.Rows[0];
+
+                DateTime startDate = Convert.ToDateTime(dr1["StartDate"]);
+
+                DateTime previousDate = startDate.AddDays(-1);
+
+                StartDate = previousDate.ToString("dd-MM-yyyy");
+            }
+            else
+            {
+                StartDate = "";
+            }
+
+            //=============To get the defaut account ================//
+            StringBuilder sb = new StringBuilder();
+            int Sn = 1;
+            sb.Append("<tr>");
+            //Product Image
+            sb.Append("<td class='serial-no'>" + Sn + "</td>");
+            sb.Append(" <td>");
+            sb.Append(" <img src='../assets/images/profile.png' alt='product image' id='productimagepreview" + Sn + "' class='productimagepreview' element-id='" + Sn + "' style='cursor:pointer; width: 50px; height: 40px;' />");
+            sb.Append(" </td>");
+            // 1. Product Code
+            sb.Append("<td id='TdproductCode" + Sn + "' >");
+            sb.Append("<input type='text' id='productCode" + Sn + "' style='width: 15cm;' class='form-control productCode' element-id='" + Sn + "' ");
+            sb.Append("onkeydown=\"ShowLookup(event,'productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+            sb.Append("oninput=\"LookupTextChanged('productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+            sb.Append("data-lookupcriteria='Items' data-idcolumn='ID' data-idvalue='" + Sn + "' ");
+            sb.Append("data-assigncolumnname='ItemName' data-ismandatory='false' data-intparam1='' data-intparam2='' data-intparam3='' />");
+            sb.Append("<div id='lookupDIVproductCode" + Sn + "' ></div>");
+            sb.Append("</td>");
+
+            // 2. Unit (Wider)
+            sb.Append("<td id='unitTd" + Sn + "' >");
+            sb.Append("<select name='ItemUnit" + Sn + "' element-id='" + Sn + "' id='ItemUnit" + Sn + "' style='width: 3cm;' class='form-select ItemUnit excelCells'></select>");
+            sb.Append("</td>");
+
+            // 3. Qty
+            sb.Append("<td id='qtyTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemQty' style='width: 2cm;text-align:center;' element-id='" + Sn + "' id='ItemQty" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 4. Rate
+            sb.Append("<td id='rateTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemRate excelCells' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemRate" + Sn + "' disabled />");
+            sb.Append("</td>");
+
+            //// 5. Gross Amount
+            //sb.Append("<td class='ItemGrossAmtTd" + Sn + "'>");
+            //sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' disabled/>");
+            //sb.Append("</td>");
+
+            //// 6. Discount %
+            //sb.Append("<td class='discsTd' id='dicsTd" + Sn + "' >");
+            //sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' style='width: 2cm;text-align:center;' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' />");
+            //sb.Append("</td>");
+
+            //// 7. Discount Amount
+            //sb.Append("<td class='dicsAmtTd' id='dicsAmtTd" + Sn + "' >");
+            //sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' />");
+            //sb.Append("</td>");
+
+            // 8. Amount
+            sb.Append("<td class='amtTd' id='amtTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemAmt excelCells' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/>");
+            sb.Append("</td>");
+
+            // 9. Tax %
+            sb.Append("<td class='taxPerTd' id='taxPerTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='' style='width: 2cm;text-align:center;' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 10. Tax Amount
+            sb.Append("<td class='taxAmtTd' id='taxAmtTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' />");
+            sb.Append("</td>");
+
+            //// 11. Total
+            //sb.Append("<td class='itemTotalTd' id='itemTotalTd" + Sn + "' style='width: 2cm;'>");
+            //sb.Append("<input type='text' class='form-control ItemTotal excelCells' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled />");
+            //sb.Append("</td>");
+
+            // 12. Action
+            sb.Append("<td class='col' style=''><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "' style=''><i class='fa-solid fa-plus'></i></button></td>");
+
+            sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
+            sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
+            sb.Append("</td>");
+            sb.Append("<td style=''>");
+            sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
+            sb.Append("</td>");
+            sb.Append("</tr>");
+
+            string NewEntry = sb.ToString();
+            sb.Clear();
+            DataTable warehouses = DALVouchers.FillLocationusingBranch(BranchID);
+            sb.Append("<option value=''> -- Choose Warehouse-- </option>");
+            foreach (DataRow dr in warehouses.Rows)
+            {
+                sb.Append("<option value='");
+                sb.Append(dr["ID"]);
+                sb.Append("'");
+                sb.Append(">");
+                sb.Append(dr["Name"]);
+                sb.Append("</option>");
+            }
+            string ListWarehouse = sb.ToString();
+            sb.Clear();
+          
+            return Json(new { success = true, NewEntry = NewEntry, warehouses = ListWarehouse,voucherDate=StartDate });
+        }
+
+        public async Task<IActionResult> NewRowStockItems(int? no)
+        {
+            StringBuilder sb = new StringBuilder();
+            int? Sn = no + 1;
+            sb.Append("<tr>");
+            sb.Append("<td class='serial-no'>" + Sn + "</td>");
+            //Product Image
+            sb.Append(" <td>");
+            sb.Append(" <img src='../assets/images/profile.png' alt='product image' id='productimagepreview" + Sn + "' class='productimagepreview' element-id='" + Sn + "' style='cursor:pointer; width: 50px; height: 40px;' />");
+            sb.Append(" </td>");
+
+            // 1. Product Code (Wider)
+            sb.Append("<td id='TdproductCode" + Sn + "' >");
+            sb.Append("<input type='text' id='productCode" + Sn + "' style='width: 15cm;' class='form-control productCode' element-id='" + Sn + "' ");
+            sb.Append("onkeydown=\"ShowLookup(event,'productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+            sb.Append("oninput=\"LookupTextChanged('productCode" + Sn + "','lookupDIVproductCode" + Sn + "')\" ");
+            sb.Append("data-lookupcriteria='Items' data-idcolumn='ID' data-idvalue='" + Sn + "' ");
+            sb.Append("data-assigncolumnname='ItemName' data-ismandatory='false' data-intparam1='' data-intparam2='' data-intparam3='' />");
+            sb.Append("<div id='lookupDIVproductCode" + Sn + "' ></div>");
+            sb.Append("</td>");
+
+            // 2. Unit (Wider)
+            sb.Append("<td id='unitTd" + Sn + "' >");
+            sb.Append("<select name='ItemUnit" + Sn + "' element-id='" + Sn + "' id='ItemUnit" + Sn + "' style='width: 3cm;'  class='form-select ItemUnit excelCells'></select>");
+            sb.Append("</td>");
+
+            // 3. Qty
+            sb.Append("<td id='qtyTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemQty' element-id='" + Sn + "' style='width: 2cm;text-align:center;' id='ItemQty" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 4. Rate
+            sb.Append("<td id='rateTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemRate excelCells' element-id='" + Sn + "'style='width: 2cm;text-align:right;' id='ItemRate" + Sn + "' disabled/>");
+            sb.Append("</td>");
+           
+            // 8. Amount
+            sb.Append("<td class='amtTd' id='amtTd" + Sn + "'>");
+            sb.Append("<input type='text' class='form-control ItemAmt excelCells' element-id='" + Sn + "' style='width: 2cm;text-align:right;' id='ItemAmt" + Sn + "' disabled/>");
+            sb.Append("</td>");
+
+            // 9. Tax %
+            sb.Append("<td class='taxPerTd' id='taxPerTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' style='width: 2cm;text-align:center;' id='ItemTaxPer" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 10. Tax Amount
+            sb.Append("<td class='taxAmtTd' id='taxAmtTd" + Sn + "' >");
+            sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' element-id='" + Sn + "' style='width: 2cm;text-align:right;' id='ItemTaxAmt" + Sn + "' />");
+            sb.Append("</td>");
+
+            // 12. Action
+            sb.Append("<td class='col' style=''><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "' style=''><i class='fa-solid fa-plus'></i></button></td>");
+
+            sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
+            sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
+            sb.Append("</td>");
+            sb.Append("<td style=''>");
+            sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
+            sb.Append("</td>");
+            sb.Append("</tr>");
+
+            string NewEntry = sb.ToString();
+            return Json(new { success = true, newrow = NewEntry });
+        }
+
         public async Task<IActionResult> NewRow(int? no)
         {
             StringBuilder sb = new StringBuilder();

@@ -13,7 +13,6 @@ namespace ERPSample.Controllers.Inventory.Transactions
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly string _baseUrl;
-        private readonly IHubContext<ProgressHub> _hub;
 
         // Lazy-initialized DAL and data members
         private readonly Lazy<DAL.General.Common.Vouchers> _dalVouchers;
@@ -28,7 +27,6 @@ namespace ERPSample.Controllers.Inventory.Transactions
         {
             _webHostEnvironment = webHostEnvironment;
             _baseUrl = configuration["BaseUrl"];
-            _hub = hub;
 
             _dalVouchers = new Lazy<DAL.General.Common.Vouchers>(() => new DAL.General.Common.Vouchers(ConnectionString));
             _dalMenu = new Lazy<DAL.General.Common.Menu>(() => new DAL.General.Common.Menu(ConnectionString));

@@ -8592,5 +8592,37 @@ namespace ERPSample.DAL.General.Common
                 throw Ex;
             }
         }
+
+        //For getting Sales area lookup on 25-04-2026
+        public DataTable GetVoucherDate()
+        {
+            try
+            {
+                DataTable dtTransactions = new DataTable();
+
+                // Use 'using' to ensure that connection, command, and adapter are properly disposed of
+                using (SqlConnection Con = new SqlConnection(ConnectionString))
+                {
+                    using (SqlCommand Cmd = new SqlCommand("MaMiscExtSP1", Con))
+                    {
+                        Cmd.CommandType = CommandType.StoredProcedure;
+                        Cmd.Parameters.AddWithValue("@Mode", 12);
+
+                        // Use SqlDataAdapter to fill the DataTable
+                        using (SqlDataAdapter sda = new SqlDataAdapter(Cmd))
+                        {
+                            sda.Fill(dtTransactions);
+                        }
+                    }
+                }
+
+                return dtTransactions;
+            }
+            catch (Exception Ex)
+            {
+                // Rethrow the exception after closing the resources
+                throw Ex;
+            }
+        }
     }
 }

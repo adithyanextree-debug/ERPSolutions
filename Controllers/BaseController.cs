@@ -757,7 +757,9 @@ namespace ERPSample.Controllers
             EmployeeMaster = 142,
             SalaryTimesheet = 128,
             Salary = 129,
-            Leave = 161
+            Leave = 161,
+            OpeningStock = 135,
+            StockAdjustment = 24
         }
 
         //ImagePath for  Company header and footer on 27-09-2023
