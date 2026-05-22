@@ -1,5 +1,6 @@
 ﻿//using Microsoft.CodeAnalysis.Operations;
 //using Microsoft.VisualStudio.Services.Profile;
+using DocumentFormat.OpenXml.Office.Word;
 using ERPSample.Models;
 using Microsoft.Data.SqlClient;
 using Microsoft.Identity.Client;
@@ -8458,6 +8459,12 @@ namespace ERPSample.DAL.General.Common
                     TypeName = "udtInvTransItems",
                     Value = itemsDT
                 });
+                //cmd.Parameters.AddWithValue("@Cash", request.FiTransactions.Cash);
+                //cmd.Parameters.AddWithValue("@Card", request.FiTransactions.Card);
+                //cmd.Parameters.AddWithValue("@IsCredit", request.FiTransactions.Credit);
+                //cmd.Parameters.AddWithValue("@Discount", request.FiTransactions.Discount);
+                //cmd.Parameters.AddWithValue("@Tax", request.FiTransactions.Tax);
+
                 con.Open();
                 cmd.ExecuteNonQuery();
             }

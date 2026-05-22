@@ -79,7 +79,6 @@ namespace ERPSample.Models
 
         public bool? PaymentCompleted { get; set; }
 
-        public decimal? Discount { get; set; }
 
         public string? Language { get; set; }
 
@@ -88,6 +87,15 @@ namespace ERPSample.Models
         public DateTime? DeliveryTimeSlotDate { get; set; }
 
         public int? DeliveryTimeSlotID { get; set; }
+        public decimal? Discount { get; set; }
+        public bool? FinanceUpdate { get; set; }
+        public bool? CostUpdate { get; set; }
+        public decimal? Cash { get; set; }
+        public decimal? Card { get; set; }
+        public decimal? Tax { get; set; }
+        public bool? IsCredit { get; set; }
+        public decimal? Credit { get; set; }
+       
     }
 
 
@@ -163,7 +171,14 @@ namespace ERPSample.Models
 
             Columns.Add("DeliveryTimeSlotDate", typeof(DateTime));
             Columns.Add("DeliveryTimeSlotID", typeof(int));
-
+            Columns.Add("FinanceUpdate", typeof(bool));
+            Columns.Add("CostUpdate", typeof(bool));
+            Columns.Add("Cash", typeof(decimal));
+            Columns.Add("Card", typeof(decimal));
+            Columns.Add("Tax", typeof(decimal));
+            Columns.Add("IsCredit", typeof(bool));
+            Columns.Add("Credit", typeof(decimal));
+            
             Columns.Add("RowState", typeof(int));
         }
     }

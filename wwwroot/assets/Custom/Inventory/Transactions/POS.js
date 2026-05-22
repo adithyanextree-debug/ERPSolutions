@@ -825,7 +825,15 @@ function SaveEntry() {
         AddedDate: new Date().toISOString(),
         AccountID: (rawParty !== undefined && rawParty !== null && rawParty.trim() !== "" && !isNaN(rawParty) && parseInt(rawParty) > 0)
             ? parseInt(rawParty) : null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
+        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2,
+        Cash: $("#CashPaid").val(),
+        Card: $("#CardPaid").val(),
+        Credit: null,
+        IsCredit: $("#Credit").is(':checked'),
+        Tax: $("#TaxSummary").val(),
+        Discount: $("#OtherDiscount").val(),
+        PaymentTypeID: cash ? cash : bank,
+
     };
 
     var bank = $("#BankID").attr("data-value");
@@ -841,6 +849,7 @@ function SaveEntry() {
     };
 
     var entriesarray = {
+       
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
     };
     entries.push(entriesarray);

@@ -31,7 +31,8 @@ namespace ERPSample.Models
         public decimal? ExchRate { get; set; }
         public decimal? TaxPerc { get; set; }
         public int? RowState { get; set; }
-
+       
+        
     }
 
     public class FiTransactionEntriesDataTable : DataTable

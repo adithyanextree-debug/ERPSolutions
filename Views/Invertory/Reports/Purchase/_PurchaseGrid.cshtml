@@ -1,0 +1,128 @@
+﻿@model ERPSample.Models.Inventory.Reports.Purchase.PurchaseRegisterModel
+@using System.Data
+@{
+    var dt = ViewBag.ReportData as DataTable;
+}
+
+@if (dt == null || dt.Rows.Count == 0)
+{
+    <div class="alert alert-warning">No records found for the selected filters.</div>
+    return;
+}
+@{
+    // Helper to safely get string value from DataRow
+    string Val(DataRow r, string col)
+        => r[col] == DBNull.Value ? "" : r[col].ToString();
+
+    string Num(DataRow r, string col)
+        => r[col] == DBNull.Value ? "" : string.Format("{0:N3}", r[col]);
+
+    string Dt(DataRow r, string col)
+        => r[col] == DBNull.Value ? "" : Convert.ToDateTime(r[col]).ToString("dd-MM-yyyy");
+}
+<div class="table-responsive" style="overflow-x: auto;">
+    <table id="purchaseTable" class="table table-bordered table-sm table-hover">
+        <thead class="">
+            <tr>
+                <th>#</th>
+                <th>VType</th>
+                <th>VNo</th>
+                <th>VDate</th>
+                <th>Particulars</th>
+                <th class="text-end">Debit</th>
+                <th class="text-end">Credit</th>
+                <th>Reference No</th>
+                <th>TaxFormID</th>
+                <th>ModeID</th>
+                <th>CounterName</th>
+                <th>Staff</th>
+                <th>Area</th>
+                <th>Qty</th>
+                <th>Unit</th>
+                @if(Model.IsColumnar == true){
+                    <th>Purchase A/C</th>
+                    <th>VAT5%</th>
+                }
+               
+            </tr>
+        </thead>
+        <tbody>
+            @{
+                int sNo = 1;
+            }
+            @foreach (DataRow row in dt.Rows)
+            {
+                <tr>
+                    <td class="text-center">@(sNo++)</td>    @*  Serial No - auto increments *@
+                    <td>@Val(row, "VType")</td>
+                    <td>@Val(row, "VNo")</td>
+                    <td>@Dt(row, "VDate")</td>
+                    <td>@Val(row, "Particulars")</td>
+                    <td class="text-end">@Num(row, "Debit")</td>
+                    <td class="text-end">@Num(row, "Credit")</td>
+                    <td>@Val(row, "RefrenceNo")</td>
+                    <td>@Val(row, "TaxFormID")</td>
+                    <td>@Val(row, "ModeID")</td>
+                    <td>@Val(row, "CounterName")</td>
+                    <td>@Val(row, "Staff")</td>
+                    <td>@Val(row, "Area")</td>
+                    @if (Model.IsColumnar == true)
+                    {
+                        <td>@Val(row, "ModeID")</td>
+                        <td>@Val(row, "ModeID")</td>
+                    }
+                </tr>
+            }
+        </tbody>
+       @*  <tfoot class="table-secondary fw-bold">
+            <tr>
+                <td colspan="4" class="text-end">Grand Total</td>
+                <td class="text-end">@string.Format("{0:N3}", Model.TotalDebit)</td>
+                <td class="text-end">@string.Format("{0:N3}", Model.TotalCredit)</td>
+                <td colspan="6"></td>
+            </tr>
+        </tfoot> *@
+    </table>
+</div>
+
+<!-- Summary footer (matches your Windows app bottom panel) -->
+@* <div class="row mt-3" style="display:none;">
+    <div class="col-md-5">
+        <table class="table table-bordered table-sm text-end">
+            <thead class="table-secondary">
+                <tr>
+                    <th class="text-start">Particulars</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td class="text-start">Cash</td>
+                    <td>@string.Format("{0:N3}", Model.CashDebit)</td>
+                    <td>@string.Format("{0:N3}", Model.CashCredit)</td>
+                </tr>
+                <tr>
+                    <td class="text-start">Credit</td>
+                    <td>0.000</td>
+                    <td>@string.Format("{0:N3}", Model.CreditAmount)</td>
+                </tr>
+                <tr>
+                    <td class="text-start">Taxable</td>
+                    <td>0.000</td>
+                    <td>@string.Format("{0:N3}", Model.Taxable)</td>
+                </tr>
+                <tr>
+                    <td class="text-start">Nontaxable</td>
+                    <td>0.000</td>
+                    <td>@string.Format("{0:N3}", Model.NonTaxable)</td>
+                </tr>
+                <tr class="fw-bold table-secondary">
+                    <td class="text-start">Total</td>
+                    <td>@string.Format("{0:N3}", Model.TotalDebit)</td>
+                    <td>@string.Format("{0:N3}", Model.TotalCredit)</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div> *@

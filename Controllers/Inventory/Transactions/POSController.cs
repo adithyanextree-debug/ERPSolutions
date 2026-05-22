@@ -267,7 +267,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 }
                 request.FiTransactions.AddedBy = (int)UserID;
                 request.FiTransactions.EditedBy = (int)UserID;
-                request.FiTransactions.CurrencyID = 1;
+                request.FiTransactions.CurrencyID = 17;
                 request.FiTransactions.IsPostDated = false;
                 request.FiTransactions.CompanyID = (int)BranchID;
                 request.FiTransactions.StatusID = 806;

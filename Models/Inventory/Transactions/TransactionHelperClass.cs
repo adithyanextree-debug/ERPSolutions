@@ -84,8 +84,17 @@
 
                         t.DeliveryTimeSlotDate ?? (object)DBNull.Value,   // 47
                         t.DeliveryTimeSlotID ?? (object)DBNull.Value,     // 48
+                        t.FinanceUpdate ?? (object)DBNull.Value,             // 55
+                        t.CostUpdate ?? (object)DBNull.Value,             // 56
 
-                        t.RowState ?? (object)DBNull.Value                // 49
+                        t.Cash ?? (object)DBNull.Value,                // 50
+                        t.Card ?? (object)DBNull.Value,             // 51
+                        t.Tax ?? (object)DBNull.Value,            // 52
+                        t.IsCredit ?? (object)DBNull.Value,             // 54
+                        t.Credit ?? (object)DBNull.Value,              // 53
+                       
+                        t.RowState ?? (object)DBNull.Value        // 49
+
                     );
                 }
 

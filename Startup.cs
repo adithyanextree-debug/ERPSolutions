@@ -1,4 +1,5 @@
-﻿using ERPSample.Hubs;
+﻿using ERPSample.DAL.Inventory.Reports.Purchase;
+using ERPSample.Hubs;
 
 namespace ERPSample
 {
@@ -23,7 +24,7 @@ namespace ERPSample
                 options.IdleTimeout = TimeSpan.FromDays(365); // Set a very long idle timeout (1 year)
             });
             services.AddSingleton<ERPSample.DAL.Inventory.Masters.ItemMaster>(); // Example of registration for Login service
-
+            services.AddScoped<PurchaseRegisterDAL>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
