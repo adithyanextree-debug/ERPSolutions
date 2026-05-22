@@ -8600,7 +8600,7 @@ namespace ERPSample.DAL.General.Common
             }
         }
 
-        //For getting Sales area lookup on 25-04-2026
+        //For getting Voucher date on 20-05-2026
         public DataTable GetVoucherDate()
         {
             try
@@ -8631,5 +8631,7 @@ namespace ERPSample.DAL.General.Common
                 throw Ex;
             }
         }
+
+        
     }
 }

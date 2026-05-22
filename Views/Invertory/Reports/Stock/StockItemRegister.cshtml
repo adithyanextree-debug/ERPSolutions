@@ -1,0 +1,152 @@
+﻿@model ERPSample.Models.Inventory.Reports.Stock.StockItemRegisterModel
+@{
+    ViewData["Title"] = "Stock Item Register";
+}
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Stock Item Register</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="Home">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Inventory</li>
+                    <li class="breadcrumb-item">Reports</li>
+                    <li class="breadcrumb-item">Stock</li>
+                    <li class="breadcrumb-item active">Stock Item Register</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row g-2 align-items-center">
+                        <!-- From Date -->
+                        <div class="col-md-3">
+                            <div class="row">
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <span class="grpspn">Date</span>
+                                </div>
+                                <div class="col-md-8" style="position:relative">
+                                    <input type="date" id="Date" class="form-control"
+                                           value="@Model.Date.ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Warehouse -->
+                        <div class="col-md-3 mt-3">
+                            <div class="row">
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <span class="grpspn">Warehouse</span>
+                                </div>
+                                <div class="col-md-8" style="position:relative">
+                                    <select id="Warehouse" class="form-select">
+                                        @Html.Raw(ViewBag.Warehouse)
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Item (Component) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "Item",DisplayText = "Item",IDColumn = "ID",LookupCriteria = "Items",IDValue = 0,
+                            AssignColumn = "ItemName"}))
+                        </div>
+                       <!-- Unit (Component) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "Unit",DisplayText = "Unit",IDColumn = "ID",LookupCriteria = "UnitMaster",IDValue = 0,
+                            AssignColumn = "Unit"}))
+                        </div>
+                        <!-- Size (Component) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "Size",DisplayText = "Size",IDColumn = "ID",LookupCriteria = "ItemSize",IDValue = 0,
+                            AssignColumn = "Value"}))
+                        </div>
+                                                
+                       
+
+                        <!-- Barcode (Component) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "Barcode",DisplayText = "Barcode",IDColumn = "ID",LookupCriteria = "Barcode",IDValue = 0,
+                            AssignColumn = "Barcode"}))
+                        </div>
+                        <!-- Item Origin (Component) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "ItemOrigin",DisplayText = "Item Origin",IDColumn = "ID",LookupCriteria = "Origin",IDValue = 0,
+                            AssignColumn = "Value"}))
+                        </div>
+                        <!-- Brand (Component) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "Brand",DisplayText = "Brand",IDColumn = "ID",LookupCriteria = "Brands",IDValue = 0,
+                            AssignColumn = "Value"}))
+                        </div>
+                        <!-- Category (Component) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "Category",DisplayText = "Category",IDColumn = "ID",LookupCriteria = "ItemCategory",IDValue = 0,
+                            AssignColumn = "Value"}))
+                        </div>
+                        <!-- Color (Component) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "Color",DisplayText = "Color",IDColumn = "ID",LookupCriteria = "Colors",IDValue = 0,
+                            AssignColumn = "Value"}))
+                        </div>
+                        <!-- Batch No. -->
+                       <div class="col-md-3">
+                            <div class="row">
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <span class="grpspn">Batch No.</span>
+                                </div>
+                                <div class="col-md-8" style="position:relative">
+                                    <input type="text" id="BatchNo" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
+                         <!-- Supplier (Component - already has label left, input right) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "Supplier",DisplayText = "Supplier",IDColumn = "AccountID",LookupCriteria = "Suppliers",IDValue = 0,
+                            AssignColumn = "Name"}))
+                        </div>
+                        <!-- Customer (Component - already has label left, input right) -->
+                        <div class="col-md-3 mt-3">
+                            @(await Component.InvokeAsync("TextBox",new{Type = "Lookup",ID = "Customer",DisplayText = "Customer",IDColumn = "AccountID",LookupCriteria = "Customers",IDValue = 0,
+                            AssignColumn = "Name"}))
+                        </div>
+                         <!-- Checkbox + buttons-->
+                        <div class="col-md-4 mt-3">
+                            <div class="d-flex flex-wrap align-items-center gap-5">
+                                <div class="form-check mb-0">
+                                   <input class="form-check-input" type="checkbox" id="ItemWise" />
+                                    <label class="form-check-label" for="ItemWise">Item Wise</label>
+                                </div>
+                                <div>
+                                    <button id="btnGo" class="btn btn-primary btn-sm me-1">Go</button>
+                                    <button id="btnClear" class="btn btn-secondary btn-sm">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grid will be injected here by Ajax -->
+<div class="container-fluid">
+    <div id="gridContainer">
+        <p class="text-muted text-center py-4">Select filters and click Go.</p>
+    </div>
+</div>
+
+<script src="~/assets/custom/Inventory/Reports/Stock/StockItemRegister.js"></script>

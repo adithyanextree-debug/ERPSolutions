@@ -25,18 +25,18 @@
         var cri = viewBy === "Finance";  // true if Finance, false if Inventory
 
         var filter = {
-            FromDate: $('#FromDate').val(),
-            ToDate: $('#ToDate').val(),
-            VTypeID: $('#VoucherTypeID').val(),      // was: VoucherType
-            AccountID: $("#Party").attr('data-idvalue'),   // was: Party
-            ItemID: $('#Item').attr('data-idvalue'),    // was: Item
-            CounterID: $('#Counter').attr('data-idvalue'), // was: Counter
-            PaymentTypeID: $('#PaymentType').val(),          // was: PaymentType
+            FromDate: $('#FromDate').val() || null,
+            ToDate: $('#ToDate').val() || null,
+            VTypeID: parseInt($('#VoucherTypeID').val()) || null,
+            AccountID: parseInt($('#Party').attr('data-idvalue')) || null,
+            ItemID: parseInt($('#Item').attr('data-idvalue')) || null,
+            CounterID: parseInt($('#Counter').attr('data-idvalue')) || null,
+            PaymentTypeID: parseInt($('#PaymentType').val()) || null,
             IsColumnar: $('#IsColumnar').is(':checked'),
             IsDetailed: $('#IsDetailed').is(':checked'),
             IsInventory: $('#IsInventory').is(':checked'),
             IsGroupItem: $('#IsGroupItem').is(':checked'),
-            Criteria: cri,
+            Criteria: cri || null,
 
             //AccountID: $('#Staff').attr('data-idvalue'),
             //AreaID: $('#Area').attr('data-idvalue'),
