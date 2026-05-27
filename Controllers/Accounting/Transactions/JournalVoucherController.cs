@@ -151,14 +151,14 @@ namespace ERPSample.Controllers.Accounting.Transactions
                 sb.Append("<td>" + count + "</td>");
                 sb.Append("<td>" + dr["TransactionNo"].ToString() + "</td>");
                 sb.Append("<td>" + Convert.ToDateTime(dr["Date"]).ToString("dd/MM/yyyy") + "</td>");
-                if (dr["Cancelled"].ToString().ToLower() == "true")
-                {
-                    sb.Append("<td>Cancelled</td>");
-                }
-                else
-                {
-                    sb.Append("<td></td>"); // Empty <td> if Cancelled is false
-                }
+                //if (dr["Cancelled"].ToString().ToLower() == "true")
+                //{
+                //    sb.Append("<td>Cancelled</td>");
+                //}
+                //else
+                //{
+                //    sb.Append("<td></td>"); // Empty <td> if Cancelled is false
+                //}
                 sb.Append("<td><ul class='action'>");
                 sb.Append("<li class='edit' onclick='RowClick(" + dr["ID"].ToString() + ")'> <a href='#'><i class='icon-pencil-alt'></i></a></li>");
                 sb.Append("</ul>");
@@ -178,79 +178,171 @@ namespace ERPSample.Controllers.Accounting.Transactions
         {
             StringBuilder sb = new StringBuilder();
             int Sn = 1;
-            sb.Append("<tr id='Row"+Sn+"'>");
-            sb.Append("<td class='p-0'><input autocomplete='off' class='form-control AccountCode excelCells' id='AccountCode"+Sn+"' name='AccountCode"+Sn+"' ");
-            sb.Append("onkeydown=");
-            sb.Append('"');
-            sb.Append("ShowLookup(");
-            sb.Append("event,'AccountCode"+Sn+"','lookupDIVAccountCode"+Sn+"')");
-            sb.Append('"');
-            sb.Append(" oninput=");
-            sb.Append('"');
-            sb.Append("LookupTextChanged('AccountCode"+Sn+"','lookupDIVAccountCode"+Sn+"')");
-            sb.Append('"');
-            sb.Append(" data-lookupcriteria='Accounts' data-idcolumn='ID' data-idvalue='"+Sn+"' element-id='"+Sn+"' data-assigncolumnname='AccountName' data-ismandatory='false'");
-            sb.Append(" data-intparam1='"+Sn+"'");
-            sb.Append(" data-intparam2='' data-intparam3=''>");
-            sb.Append("<div id='lookupDIVAccountCode"+Sn+"' ></div> </td>");
-            sb.Append("<td class='p-0' id='TdAccountName"+Sn+"' style='display:none'><p class='excelCellText' id='AccountName"+Sn+"'  element-id='"+Sn+"'></p></td>");
-            sb.Append("<td class='p-0' id='TdAccountDescription"+Sn+"' ><input class='AccountDescription excelCells form-control' type='text' id='AccountDescription"+Sn+"' value='' element-id='"+Sn+"'></td>");
-            sb.Append("<td class='p-0' id='TdDueDate"+Sn+"' ><input class='DueDate form-control excelCells' type='date' id='DueDate"+Sn+"'  element-id='"+Sn+"'></td>");
-            sb.Append("<td class='p-0' id='TdDebit"+Sn+"' ><input type='text' class='numbersOnly excelCells Debit form-control' id='Debit"+Sn+"'  element-id='"+Sn+"' style='text-align: right;'></td>");
-            sb.Append("<td class='p-0' id='TdCredit"+Sn+"' ><input type='text' class='numbersOnly excelCells Credit form-control' id='Credit"+Sn+"' value='' element-id='"+Sn+"' style='text-align: right;'></td>");
-            sb.Append("<td class='col' style=''><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "' style=''><i class='fa-solid fa-plus'></i></button></td>");
 
-            sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
-            sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
+            sb.Append("<tr id='Row" + Sn + "'>");
+
+            // Serial No
+            sb.Append("<td class='serial-no text-center align-middle' style='width:40px;'>" + Sn + "</td>");
+
+            // Account Name — widest column
+            sb.Append("<td class='p-1' style='min-width:220px;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm AccountCode excelCells' id='AccountCode" + Sn + "' name='AccountCode" + Sn + "' placeholder='Account Name'");
+            sb.Append(" onkeydown=\"ShowLookup(event,'AccountCode" + Sn + "','lookupDIVAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('AccountCode" + Sn + "','lookupDIVAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='Accounts' data-idcolumn='ID' data-idvalue='" + Sn + "' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVAccountCode" + Sn + "'></div>");
             sb.Append("</td>");
-            sb.Append("<td style=''>");
-            sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
+
+            // Description — second widest
+            sb.Append("<td class='p-1' id='TdAccountDescription" + Sn + "' style='min-width:180px;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='AccountDescription excelCells form-control form-control-sm' type='text' id='AccountDescription" + Sn + "' placeholder='Description' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Due Date — narrow
+            sb.Append("<td class='p-1' id='TdDueDate" + Sn + "' style='min-width:140px;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='DueDate form-control form-control-sm excelCells' type='date' id='DueDate" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Debit
+            sb.Append("<td class='p-1' id='TdDebit" + Sn + "' style='min-width:120px;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Debit form-control form-control-sm' id='Debit" + Sn + "' placeholder='0.00' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Credit
+            sb.Append("<td class='p-1' id='TdCredit" + Sn + "' style='min-width:120px;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Credit form-control form-control-sm' id='Credit" + Sn + "' placeholder='0.00' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrow' element-id='" + Sn + "' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='deleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            // Hidden itemid
+            sb.Append("<td style='display:none;'>");
+            sb.Append("<input type='hidden' class='itemid excelCells form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
             sb.Append("</td>");
 
             sb.Append("</tr>");
-           
+
             return Json(new { success = true, innerHTML = sb.ToString() });
         }
 
+        [HttpGet]
         public async Task<IActionResult> NewRow(int? no)
         {
             StringBuilder sb = new StringBuilder();
             int? Sn = no + 1;
-            sb.Append("<tr id='Row"+Sn+"'>");
-            sb.Append("<td class='p-0'><input autocomplete='off' class='form-control AccountCode excelCells' id='AccountCode"+Sn+"' name='AccountCode"+Sn+"' ");
-            sb.Append("onkeydown=");
-            sb.Append('"');
-            sb.Append("ShowLookup(");
-            sb.Append("event,'AccountCode"+Sn+"','lookupDIVAccountCode"+Sn+"')");
-            sb.Append('"');
-            sb.Append(" oninput=");
-            sb.Append('"');
-            sb.Append("LookupTextChanged('AccountCode"+Sn+"','lookupDIVAccountCode"+Sn+"')");
-            sb.Append('"');
-            sb.Append(" data-lookupcriteria='Accounts' data-idcolumn='ID' data-idvalue='"+Sn+"' element-id='"+Sn+"' data-assigncolumnname='AccountName' data-ismandatory='false'");
-            sb.Append(" data-intparam1='"+Sn+"'");
-            sb.Append(" data-intparam2='' data-intparam3=''>");
-            sb.Append("<div id='lookupDIVAccountCode"+Sn+"' ></div> </td>");
-            sb.Append("<td class='p-0' id='TdAccountName"+Sn+"' style='display:none'><p class='excelCellText' id='AccountName"+Sn+"'  element-id='"+Sn+"'></p></td>");
-            sb.Append("<td class='p-0' id='TdAccountDescription"+Sn+"' ><input class='AccountDescription excelCells form-control' type='text' id='AccountDescription"+Sn+"' value='' element-id='"+Sn+"'></td>");
-            sb.Append("<td class='p-0' id='TdDueDate"+Sn+"' ><input class='DueDate form-control excelCells' type='date' id='DueDate"+Sn+"'  element-id='"+Sn+"'></td>");
-            sb.Append("<td class='p-0' id='TdDebit"+Sn+"' ><input type='text' class='numbersOnly excelCells Debit form-control' id='Debit"+Sn+"'  element-id='"+Sn+"' style='text-align: right;'></td>");
-            sb.Append("<td class='p-0' id='TdCredit"+Sn+"' ><input type='text' class='numbersOnly excelCells Credit form-control' id='Credit"+Sn+"' value='' element-id='"+Sn+"' style='text-align: right;'></td>");
-            sb.Append("<td class='col' style=''><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "' style=''><i class='fa-solid fa-plus'></i></button></td>");
 
-            sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
-            sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
+            sb.Append("<tr id='Row" + Sn + "'>");
+
+            // Serial No
+            sb.Append("<td class='serial-no text-center align-middle' style='width:40px;'></td>");
+
+            // Account Name — widest column
+            sb.Append("<td class='p-1' style='min-width:220px;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm AccountCode excelCells' id='AccountCode" + Sn + "' name='AccountCode" + Sn + "' placeholder='Account Name'");
+            sb.Append(" onkeydown=\"ShowLookup(event,'AccountCode" + Sn + "','lookupDIVAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('AccountCode" + Sn + "','lookupDIVAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='Accounts' data-idcolumn='ID' data-idvalue='" + Sn + "' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVAccountCode" + Sn + "'></div>");
             sb.Append("</td>");
-            sb.Append("<td style=''>");
-            sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
+
+            // Hidden AccountName (kept for compatibility)
+            sb.Append("<td id='TdAccountName" + Sn + "' style='display:none;'>");
+            sb.Append("<p class='excelCellText' id='AccountName" + Sn + "' element-id='" + Sn + "'></p>");
+            sb.Append("</td>");
+
+            // Description — second widest
+            sb.Append("<td class='p-1' id='TdAccountDescription" + Sn + "' style='min-width:180px;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='AccountDescription excelCells form-control form-control-sm' type='text' id='AccountDescription" + Sn + "' placeholder='Description' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Due Date — narrow
+            sb.Append("<td class='p-1' id='TdDueDate" + Sn + "' style='min-width:140px;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='DueDate form-control form-control-sm excelCells' type='date' id='DueDate" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Debit
+            sb.Append("<td class='p-1' id='TdDebit" + Sn + "' style='min-width:120px;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Debit form-control form-control-sm' id='Debit" + Sn + "' placeholder='0.00' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Credit
+            sb.Append("<td class='p-1' id='TdCredit" + Sn + "' style='min-width:120px;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Credit form-control form-control-sm' id='Credit" + Sn + "' placeholder='0.00' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrow' element-id='" + Sn + "' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='deleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            // Hidden itemid
+            sb.Append("<td style='display:none;'>");
+            sb.Append("<input type='hidden' class='itemid excelCells form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
             sb.Append("</td>");
 
             sb.Append("</tr>");
 
-            string NewEntry = sb.ToString();
-            return Json(new { success = true, newrow = NewEntry });
+            return Json(new { success = true, newrow = sb.ToString() });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> InsertTransaction([FromBody] SaveTransactionEntryRequest request)
+            {
+            try
+            {
+
+                if (request.FiTransactions.ID == null || request.FiTransactions.ID == 0)
+                {
+                    var NextVNo = DALVouchers.GetTransactionNo(VoucherTypeRow["ID"], BranchID);
+                    request.FiTransactions.TransactionNo = NextVNo.ToString();
+                    request.FiTransactions.SerialNo = Convert.ToInt64(NextVNo);
+                }
+                request.FiTransactions.AddedBy = (int)UserID;
+                request.FiTransactions.EditedBy = (int)UserID;
+                request.FiTransactions.CurrencyID = 17;
+                request.FiTransactions.IsPostDated = false;
+                request.FiTransactions.CompanyID = (int)BranchID;
+                request.FiTransactions.StatusID = 806;
+                request.FiTransactions.IsAutoEntry = false;
+                request.FiTransactions.Active = true;
+                request.FiTransactions.Cancelled = false;
+                request.FiTransactions.Posted = true;
+                request.FiTransactions.PageID = (int)PageIDs.JournalVoucher;
+                request.FiTransactions.ApprovalStatus = 'A';
+                foreach (var item in request.FiTransactionEntries)
+                {
+                    item.CurrencyID = 17;
+                }
+
+                List<Models.InvTransItems> InvTransItems = null;
+                List<Models.FiTransactionEntries> FiTransactionEntries = request.FiTransactionEntries;
+                Models.FiTransactions FiTransactions = request.FiTransactions;
+                Models.FiTransactionAdditionals FiTransactionAdditionals = null;
+                DALVouchers.InsertTransaction(request);
+                return Json(new { success = true });
+            }
+            catch (Exception ex) { throw; }
+
+        }
         [HttpPost]
         public async Task<IActionResult> SaveVoucherJournalEntries(FiTransactions FiTransactions, List<FiTransactionEntries> FiTransactionEntries)
         {
@@ -352,149 +444,87 @@ namespace ERPSample.Controllers.Accounting.Transactions
                 DataTable Dt1 = new DataTable();
                 Dt1 = JournalEntries.FillTransactionEntries(ID);
                 StringBuilder sb = new StringBuilder();
-                int No = 0;
+                int No = 1;
                 foreach (DataRow dr in Dt1.Rows)
                 {
-                    sb.Append("<tr");
-                    sb.Append(" id='Row");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'>");
+                    string id = dr["ID"].ToString();
 
-                    sb.Append("<td class='p-0' id='TdAccountCode");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'><input type='text' class='form-control AccountCode excelCells ' value='");
-                    sb.Append(dr["Name"]);
-                    sb.Append("' data-id='");
-                    sb.Append(dr["AccountID"]);
-                    sb.Append("' id='AccountCode");
-                    sb.Append(dr["ID"]);
-                    sb.Append("' element-id='");
-                    sb.Append(dr["ID"]);
-                    sb.Append("' onkeydown=");
-                    sb.Append('"');
-                    sb.Append("ShowLookup(");
-                    sb.Append("event,'AccountCode" + dr["ID"] + "','lookupDIVAccountCode" + dr["ID"] + "')");
-                    sb.Append('"');
-                    sb.Append(" oninput=");
-                    sb.Append('"');
-                    sb.Append("LookupTextChanged('AccountCode" + dr["ID"] + "','lookupDIVAccountCode" + dr["ID"] + "')");
-                    sb.Append('"');
+                    sb.Append("<tr id='Row" + id + "'>");
+
+                    // Serial No
+                    sb.Append("<td class='serial-no text-center align-middle' style='width:40px;'>"+No+"</td>");
+
+                    // Account Name — widest column
+                    sb.Append("<td class='p-1' id='TdAccountCode" + id + "' style='min-width:220px;'>");
+                    sb.Append("<input type='text' style='width:100%; border-radius:6px;' class='form-control form-control-sm AccountCode excelCells' placeholder='Account Name'");
+                    sb.Append(" value='" + dr["Name"] + "'");
+                    sb.Append(" data-id='" + dr["AccountID"] + "'");
+                    sb.Append(" id='AccountCode" + id + "'");
+                    sb.Append(" element-id='" + id + "'");
+                    sb.Append(" onkeydown=\"ShowLookup(event,'AccountCode" + id + "','lookupDIVAccountCode" + id + "')\"");
+                    sb.Append(" oninput=\"LookupTextChanged('AccountCode" + id + "','lookupDIVAccountCode" + id + "')\"");
                     sb.Append(" data-lookupcriteria='Accounts' data-idcolumn='ID' data-idvalue='" + dr["AccountID"] + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
-                    sb.Append(" data-intparam1=''");
-                    sb.Append(" data-intparam2='' data-intparam3=''>");
-                    sb.Append("<div id='lookupDIVAccountCode" + dr["ID"] + "' ></div> </td>");
+                    sb.Append(" data-intparam1='' data-intparam2='' data-intparam3=''>");
+                    sb.Append("<div id='lookupDIVAccountCode" + id + "'></div>");
                     sb.Append("</td>");
 
-                    sb.Append("<td class='p-0' id='TdAccountName ");
-                    sb.Append(dr["ID"]);
-                    sb.Append("' style='display:none'><p class='excelCellText AccountName' id='AccountName");
-                    sb.Append(dr["ID"]);
-                    sb.Append("' element-id='");
-                    sb.Append(dr["ID"]);
-                    sb.Append("' journelID='");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'>");
-                    sb.Append(dr["Name"]);
-                    sb.Append("</p>");
+                    // Hidden AccountName (kept for compatibility)
+                    sb.Append("<td id='TdAccountName" + id + "' style='display:none;'>");
+                    sb.Append("<p class='excelCellText AccountName' id='AccountName" + id + "' element-id='" + id + "' journelID='" + id + "'>" + dr["Name"] + "</p>");
                     sb.Append("</td>");
 
-
-                    sb.Append("<td class='p-0' id='TdAccountDescription");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'><input type='text' class='form-control excelCells AccountDescription' value='");
-                    sb.Append(dr["Description"]);
-                    sb.Append("' id='AccountDescription");
-                    sb.Append(dr["ID"]);
-                    sb.Append("' element-id='");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'>");
+                    // Description — second widest
+                    sb.Append("<td class='p-1' id='TdAccountDescription" + id + "' style='min-width:180px;'>");
+                    sb.Append("<input type='text' style='width:100%; border-radius:6px;' class='form-control form-control-sm excelCells AccountDescription' placeholder='Description'");
+                    sb.Append(" value='" + dr["Description"] + "'");
+                    sb.Append(" id='AccountDescription" + id + "' element-id='" + id + "'>");
                     sb.Append("</td>");
-                    sb.Append("<td class='p-0' id='TdDueDate");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'><input type='date' class='form-control excelCells DueDate' value='");
-                    if (dr["DueDate"] != null)
-                    {
+
+                    // Due Date — narrow
+                    sb.Append("<td class='p-1' id='TdDueDate" + id + "' style='min-width:140px;'>");
+                    sb.Append("<input type='date' style='width:100%; border-radius:6px;' class='form-control form-control-sm excelCells DueDate'");
+                    sb.Append(" value='");
+                    if (dr["DueDate"] != DBNull.Value && dr["DueDate"] != null)
                         sb.Append(String.Format("{0:yyyy-MM-dd}", dr["DueDate"]));
-                    }
-                    else
-                    {
-                        sb.Append(dr["DueDate"]);
-                    }
-                    sb.Append("' id='DueDate");
-                    sb.Append(dr["ID"]);
-                    sb.Append("' element-id='");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'>");
+                    sb.Append("'");
+                    sb.Append(" id='DueDate" + id + "' element-id='" + id + "'>");
                     sb.Append("</td>");
 
-                    sb.Append("<td class='p-0' id='TdDebit");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'><input type='text' class='form-control excelCells Debit numbersOnly' value='");
-                    sb.Append(dr["Debit"]);
-                    sb.Append("' id='Debit");
-                    sb.Append(dr["ID"]);
-                    sb.Append("' element-id='");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'>");
+                    // Debit
+                    sb.Append("<td class='p-1' id='TdDebit" + id + "' style='min-width:120px;'>");
+                    sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='form-control form-control-sm excelCells Debit numbersOnly' placeholder='0.00'");
+                    sb.Append(" value='" + dr["Debit"] + "'");
+                    sb.Append(" id='Debit" + id + "' element-id='" + id + "'>");
                     sb.Append("</td>");
 
-                    sb.Append("<td class='p-0' id='TdCredit");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'><input type='text' class='form-control excelCells Credit numbersOnly' value='");
-                    sb.Append(dr["Credit"]);
-                    sb.Append("' id='Credit");
-                    sb.Append(dr["ID"]);
-                    sb.Append("' element-id='");
-                    sb.Append(dr["ID"]);
-                    sb.Append("'>");
+                    // Credit
+                    sb.Append("<td class='p-1' id='TdCredit" + id + "' style='min-width:120px;'>");
+                    sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='form-control form-control-sm excelCells Credit numbersOnly' placeholder='0.00'");
+                    sb.Append(" value='" + dr["Credit"] + "'");
+                    sb.Append(" id='Credit" + id + "' element-id='" + id + "'>");
                     sb.Append("</td>");
-                    sb.Append("<td class='col' style=''><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + dr["ID"] + "' serialno='" + dr["ID"] + "' style=''><i class='fa-solid fa-plus'></i></button></td>");
 
-                    sb.Append("<td class='col' id='deleteaction" + dr["ID"] + "' style=''>");
-                    sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + dr["ID"] + "' element-id='" + dr["ID"] + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
+                    // Add button
+                    sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+                    sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrow' element-id='" + id + "' serialno='" + id + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
                     sb.Append("</td>");
-                    sb.Append("<td style=''>");
-                    sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + dr["ID"] + "' value='"+ dr["ID"] + "' element-id='" + dr["ID"] + "' autocomplete='off'>");
+
+                    // Delete button
+                    sb.Append("<td class='p-1 text-center align-middle' id='deleteaction" + id + "' style='width:50px;'>");
+                    sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete action_delete' id='deleteunit" + id + "' element-id='" + id + "'>");
+                    sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+                    sb.Append("</li></ul>");
                     sb.Append("</td>");
-                    //sb.Append("<td class='badge-danger border-bottom p-0 text-center'><span class='pe-7s-trash action_delete text-white'");
-                    //sb.Append(" element-id='");
-                    //sb.Append(dr["ID"]);
-                    //sb.Append("'>");
-                    //sb.Append("</span></td>");
+
+                    // Hidden itemid
+                    sb.Append("<td style='display:none;'>");
+                    sb.Append("<input type='hidden' class='itemid excelCells form-control' id='itemid" + id + "' value='" + id + "' element-id='" + id + "' autocomplete='off'>");
+                    sb.Append("</td>");
 
                     sb.Append("</tr>");
+                    No++;
                 }
-                No = ID + 1;
-                sb.Append("<tr id='Row" + No + "'>");
-                sb.Append("<td class='p-0'><input autocomplete='off' class='form-control AccountCode excelCells' id='AccountCode" + No + "' name='AccountCode" + No + "' ");
-                sb.Append("onkeydown=");
-                sb.Append('"');
-                sb.Append("ShowLookup(");
-                sb.Append("event,'AccountCode" + No + "','lookupDIVAccountCode" + No + "')");
-                sb.Append('"');
-                sb.Append(" oninput=");
-                sb.Append('"');
-                sb.Append("LookupTextChanged('AccountCode" + No + "','lookupDIVAccountCode" + No + "')");
-                sb.Append('"');
-                sb.Append(" data-lookupcriteria='Accounts' data-idcolumn='ID' data-idvalue='1' element-id='" + No + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
-                sb.Append(" data-intparam1=''");
-                sb.Append(" data-intparam2='' data-intparam3=''>");
-                sb.Append("<div id='lookupDIVAccountCode" + No + "' ></div> </td>");
-                sb.Append("<td class='p-0' style='display:none' id='TdAccountName" + No + "' ><p class='excelCellText AccountName' id='AccountName" + No + "'  element-id='" + No + "'></p></td>");
-                sb.Append("<td class='p-0' id='TdAccountDescription" + No + "' ><input class='AccountDescription excelCells form-control' type='text' id='AccountDescription" + No + "' value='' element-id='" + No + "'></td>");
-                sb.Append("<td class='p-0' id='TdDueDate" + No + "' ><input class='DueDate form-control excelCells' type='date' id='DueDate" + No + "'  element-id='" + No + "'></td>");
-                sb.Append("<td class='p-0' id='TdDebit" + No + "' ><input type='text' class='numbersOnly excelCells Debit form-control' id='Debit" + No + "'  element-id='" + No + "' style='text-align: right;'></td>");
-                sb.Append("<td class='p-0' id='TdCredit" + No + "' ><input type='text' class='numbersOnly excelCells Credit form-control' id='Credit" + No + "' value='' element-id='" + No + "'></td>");
-                sb.Append("<td class='col' style=''><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + No + "' serialno='" + No + "' style=''><i class='fa-solid fa-plus'></i></button></td>");
 
-                sb.Append("<td class='col' id='deleteaction" + No + "' style=''>");
-                sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + No + "' element-id='" + No + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
-                sb.Append("</td>");
-                sb.Append("<td style=''>");
-                sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + No + "' value='' element-id='" + No + "' autocomplete='off'>");
-                sb.Append("</td>");
-                sb.Append("</tr>");
-               
                 return Json(new { success = true, innerHTML = sb.ToString(), header = JsonConvert.SerializeObject(rows), message = "Success" });
             }
             catch (Exception Ex)

@@ -1,0 +1,84 @@
+﻿@model ERPSample.Models.Inventory.Reports.MonthlySalesSummaryModel
+@{
+    ViewData["Title"] = "Monthly Sales Summary";
+}
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Monthly Sales Summary</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="Home">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Inventory</li>
+                    <li class="breadcrumb-item">Reports</li>
+                    <li class="breadcrumb-item active">Monthly Sales Summary</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row g-2 align-items-center">
+                        <!-- From Date -->
+                        <div class="col-md-3">
+                            <div class="row">
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <span class="grpspn">From Date</span>
+                                </div>
+                                <div class="col-md-8" style="position:relative">
+                                    <input type="date" id="FromDate" class="form-control"
+                                           value="@Model.FromDate.ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- To Date -->
+                        <div class="col-md-3">
+                            <div class="row">
+                                <div class="col-md-4 d-flex align-items-center">
+                                    <span class="grpspn">To Date</span>
+                                </div>
+                                <div class="col-md-8" style="position:relative">
+                                    <input type="date" id="ToDate" class="form-control"
+                                           value="@Model.ToDate.ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Checkboxes + Buttons -->
+                        <div class="col-md-4 mt-3">
+                            <div class="d-flex flex-wrap align-items-center gap-3">
+                                <div>
+                                    <button id="btnGo" class="btn btn-primary btn-sm me-1">Go</button>
+                                    <button id="btnClear" class="btn btn-secondary btn-sm">Clear</button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grid will be injected here by Ajax -->
+<div class="container-fluid">
+    <div id="gridContainer">
+        <p class="text-muted text-center py-4">Select filters and click Go.</p>
+    </div>
+</div>
+
+<script src="~/assets/custom/Inventory/Reports/MonthlySalesSummary.js"></script>

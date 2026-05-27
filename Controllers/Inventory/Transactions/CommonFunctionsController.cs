@@ -776,7 +776,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
             StringBuilder sb = new StringBuilder();
             int? Sn = no + 1;
             sb.Append("<tr>");
-            sb.Append("<td class='serial-no'>" + Sn + "</td>");
+            sb.Append("<td class='serial-no'></td>");
             //Product Image
             sb.Append(" <td>");
             sb.Append(" <img src='../assets/images/profile.png' alt='product image' id='productimagepreview" + Sn + "' class='productimagepreview' element-id='" + Sn + "' style='cursor:pointer; width: 50px; height: 40px;' />");

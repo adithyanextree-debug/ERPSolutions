@@ -1,0 +1,150 @@
+﻿@model ERPSample.Models.Inventory.Reports.MonthlySalesSummaryModel
+@using System.Data
+@using System.Text.Json
+@{
+    var dt = ViewBag.ReportData as DataTable;
+}
+@if (dt == null || dt.Rows.Count == 0)
+{
+    <div class="alert alert-warning">No records found for the selected filters.</div>
+    return;
+}
+@{
+    string Val(DataRow r, string col)
+        => r[col] == DBNull.Value ? "" : r[col].ToString();
+    string Num(DataRow r, string col)
+        => r[col] == DBNull.Value ? "" : string.Format("{0:N3}", r[col]);
+    // Chart Data
+    var labels = new List<string>();
+    var amounts = new List<decimal>();
+    foreach (DataRow row in dt.Rows)
+    {
+        labels.Add(Val(row, "Month & Year"));
+        decimal amt = 0;
+        decimal.TryParse(Val(row, "Amount"), out amt);
+        amounts.Add(amt);
+    }
+    var chartLabels = JsonSerializer.Serialize(labels);
+    var chartAmounts = JsonSerializer.Serialize(amounts);
+}
+<div class="row g-0" style="display:flex; flex-wrap:nowrap;">
+    <!-- LEFT TABLE -->
+    <div class="col-5 pe-2"
+         style="overflow-y:auto; max-height:820px;">
+        <table id="monthlysalessummaryTable"
+               class="table table-bordered table-sm table-hover mb-0">
+            <thead style="
+                    position:sticky;
+                    top:0;
+                    z-index:10;
+                    background:#3d4656;
+                    color:white;
+                ">
+                <tr>
+                    <th style="width:50px;">#</th>
+                    <th>Month & Year</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    int sNo = 1;
+                }
+                @foreach (DataRow row in dt.Rows)
+                {
+                    <tr>
+                        <td class="text-center">
+                            @(sNo++)
+                        </td>
+                        <td>
+                            @Val(row, "Month & Year")
+                        </td>
+                        <td class="text-end">
+                            @Num(row, "Amount")
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <!-- RIGHT CHART -->
+    <div class="col-7 ps-2">
+        <div class="card" style="height:820px;">
+            <div class="card-body d-flex flex-column p-2">
+                <div id="groupBarChart" style="flex:1; min-height:0; width:100%;"></div>
+            </div>
+        </div>
+    </div>
+</div>  <!-- end of your row div -->
+
+    <script>
+        var options = {
+            series: [{
+                name: 'Sales Amount',
+                data: @Html.Raw(chartAmounts)
+            }],
+            chart: {
+                type: 'bar',
+                height: 600,
+                toolbar: { show: true }
+            },
+            plotOptions: {
+                bar: {
+                    borderRadius: 3,
+                    columnWidth: '55%',
+                }
+            },
+            dataLabels: { enabled: false },
+            legend: {
+                show: true,
+                position: 'top',
+                horizontalAlign: 'right',
+                markers: {
+                    width: 12,
+                    height: 12,
+                    radius: 2
+                }
+            },
+            xaxis: {
+                categories: @Html.Raw(chartLabels),
+                labels: {
+                    rotate: -60,
+                    rotateAlways: true,
+                    style: {
+                        fontSize: '10px'
+                    },
+                    offsetY: 5
+                },
+                tickPlacement: 'on'
+            },
+            yaxis: {
+                labels: {
+                    formatter: function (val) {
+                        if (val >= 1000000) return (val / 1000000).toFixed(2) + 'M';
+                        if (val >= 1000) return (val / 1000).toFixed(1) + 'K';
+                        return val.toFixed(0);
+                    }
+                }
+            },
+            colors: ['#4472C4'],
+            grid: {
+                borderColor: '#e5e5e5',
+                padding: {
+                    bottom: 30
+                }
+            },
+            tooltip: {
+                y: {
+                    formatter: function (val) {
+                        return val.toLocaleString('en-US', {
+                            minimumFractionDigits: 3,
+                            maximumFractionDigits: 3
+                        });
+                    }
+                }
+            }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#groupBarChart"), options);
+        chart.render();
+</script>

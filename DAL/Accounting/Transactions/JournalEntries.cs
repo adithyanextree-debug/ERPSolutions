@@ -61,9 +61,9 @@ namespace ERPSample.DAL.Accounting.Transactions
             SqlConnection Con = new SqlConnection(ConnectionString);
             try
             {
-                SqlCommand Cmd = new SqlCommand("VoucherSP", new SqlConnection(ConnectionString));
+                SqlCommand Cmd = new SqlCommand("VoucherSaveSP", new SqlConnection(ConnectionString));
                 Cmd.CommandType = CommandType.StoredProcedure;
-                Cmd.Parameters.AddWithValue("@Criteria", "DeleteTransactionEntries");
+                Cmd.Parameters.AddWithValue("@Mode", 2);
                 Cmd.Parameters.AddWithValue("@ID", ID);
                 Cmd.Connection.Open();
                 Cmd.ExecuteNonQuery();

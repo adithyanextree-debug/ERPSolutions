@@ -5,13 +5,18 @@
 }
 
 <style>
-    #Itemtable input.form-control, select {
-        border: none !important;
-        padding: 0 !important;
+    #Itemtable input.form-control {
+        border: 0.5px solid #ccc;
+        padding: 6px !important;
         box-shadow: none !important;
-        background-color: transparent !important; /* Optional: make background transparent */
+        background-color: #fff !important; /* Optional: make background transparent */
     }
 
+    .col-form-label {
+        font-size: 13px;
+        padding-top: 6px;
+        font-weight: 500;
+    }
 </style>
 
 
@@ -74,7 +79,6 @@
                                     <th class="col">SNo.</th>
                                     <th>TRANSACTION NO.</th>
                                     <th>DATE</th>
-                                    <th>CANCELLED</th>
                                     <th>Action</th>
                                 </tr>
                             </thead>
@@ -92,13 +96,34 @@
                                 <div class="card-body basic-form">
                                     <form class="theme-form row g-3">
                                         <input type="text" class="text-center transparent_text" id="JournalTransactionID" style="display:none" />
+                                        <input type="text" class="text-center transparent_text" id="MenuID" style="display:none" value="@ViewBag.MenuID" />
+                                        <input type="text" class="text-center transparent_text" id="RowType" style="display:none" value="@ViewBag.RowType" />
+                                        <input type="text" class="text-center transparent_text" id="VoucherID" style="display:none" value="@ViewBag.VoucherID" />
 
-                                        <div class="col-md-4" id="vouchernodiv" style="display:none">
+@*                                         <div class="col-md-4" id="vouchernodiv" style="display:none">
                                             <div class="row">
                                                 @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "VoucherNo", DisplayText = "Voucher No.", IsMandatory = true }))
                                                 <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
                                             </div>
                                         </div>
+ *@                                     
+                                         <div class="col-md-4" id="vouchernodiv" style="display:none">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Voucher No.<span class="text-danger">*</span></span>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <input type="text" id="VoucherCode" class="form-control" name="VoucherCode" disabled value="@ViewBag.VoucherCode">
+                                                    </div>
+                                                    <div class="col-md-6 pl-0">
+                                                        <input type="text" id="VoucherNo" class="form-control " name="VoucherNo" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
+                                            </div>
+                                        </div>
+
                                         <div class="col-md-4">
                                             <div class="row">
                                                 @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "VoucherDate", DisplayText = "Voucher Date", IsMandatory = true }))
@@ -113,11 +138,13 @@
 
                                         <div class="col-md-8">
                                             <div class="row">
-                                                <div class="col-md-2 pr-0">
-                                                    <span class="grpspn">Description</span>
-                                                </div>
-                                                <div class="col-md-10 pl-0">
-                                                    <input type="text" id="Description" class="form-control salesInvoiceDescription" data-ismandatory="false">
+                                                <div class="row">
+                                                    <div class="col-md-2 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Narration</span>
+                                                    </div>
+                                                    <div class="col-md-10 pl-0">
+                                                        <input type="text" id="Description" class="form-control JournalVoucherDescription" data-ismandatory="false">
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -128,28 +155,31 @@
                         <!-- DEtails Ends  -->
                         <!--Table Starts  -->
                         <div class="col-sm-12">
-                            <div class="card overflow-hidden">
-                                <div class="card-header card-no-border" style="background-color:#C0CAC9">
-                                    <h3>Journal Entries</h3>
-                                </div>
+                            <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5 text-customtitle-primary" style="font-weight: 600;">
+                                JOURNAL ENTRIES
+                            </h6>
+                            <div class="card rounded-custom overflow-hidden">
+
                                 <div class="table-responsive">
-                                    <table class="table" id="Itemtable">
+                                    <table class="table table-light" id="Itemtable">
                                         <thead>
                                             <tr>
-                                                <th>Account Name</th>
+                                                <th>#</th>
+                                                <th>Account</th>
                                                 <th>Description</th>
                                                 <th>Due Date</th>
                                                 <th>Debit</th>
                                                 <th>Credit</th>
                                                 <th>Add</th>
                                                 <th>Delete</th>
-
+                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                         </tbody>
                                         <tfoot>
                                             <tr>
+                                                <td><p id=""></p></td>
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
@@ -157,6 +187,7 @@
                                                 <td><p id='CAmtSum'></p></td>
                                                 <td></td>
                                                 <td></td>
+                                                <td><p id=""></p></td>
                                             </tr>
                                         </tfoot>
                                     </table>

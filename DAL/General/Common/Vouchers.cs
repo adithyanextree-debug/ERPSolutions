@@ -6438,11 +6438,11 @@ namespace ERPSample.DAL.General.Common
                 // Use 'using' to ensure the connection and command are disposed of properly
                 using (SqlConnection Con = new SqlConnection(ConnectionString))
                 {
-                    using (SqlCommand Cmd = new SqlCommand("VoucherAdditionalsSP", Con))
+                    using (SqlCommand Cmd = new SqlCommand("VoucherSaveSP", Con))
                     {
                         // Set command type and parameters
                         Cmd.CommandType = CommandType.StoredProcedure;
-                        Cmd.Parameters.AddWithValue("@Criteria", "DeleteInvTransItems");
+                        Cmd.Parameters.AddWithValue("@Mode", 3);
                         Cmd.Parameters.AddWithValue("@ID", ID);
 
                         // Open connection and execute the query
@@ -8394,82 +8394,174 @@ namespace ERPSample.DAL.General.Common
         //    }
         //    catch (Exception) { throw; }
         //}
+        //public string InsertTransaction(SaveTransactionEntryRequest request)
+        //{
+        //    // 1️ Build DataTables using helpers
+        //    // ----- 1. Validate Mandatory Objects -----
+        //    if (request?.FiTransactions == null)
+        //        return "Transaction header (FiTransactions) is required";
+
+        //if (request?.InvTransItems == null || !request.InvTransItems.Any())
+        //    return "At least one transaction item is required";
+
+        //    // ----- 2. Convert Mandatory -----
+        //    DataTable transactionDT =
+        //        FiTransactionsHelper.ToDataTable(new[] { request.FiTransactions });
+
+        //    DataTable itemsDT =
+        //        InvTransItemsHelper.ToDataTable(request.InvTransItems);
+
+        //    // ----- 3. Convert Optional Safely -----
+        //    DataTable additionalsDT =
+        //        request?.FiTransactionAdditionals != null
+        //            ? FiTransactionAdditionalsHelper.ToDataTable(new[] { request.FiTransactionAdditionals })
+        //            : new DataTable();
+
+        //    DataTable entriesDT =
+        //        request?.FiTransactionEntries != null
+        //            ? FiTransactionEntriesHelper.ToDataTable(request.FiTransactionEntries)
+        //            : new DataTable();
+
+        //    // Execute Stored Procedure
+        //    using (SqlConnection con = new SqlConnection(ConnectionString))
+        //    using (SqlCommand cmd = new SqlCommand("VoucherSaveSP", con))
+        //    {
+        //        cmd.CommandType = CommandType.StoredProcedure;
+
+        //        cmd.Parameters.Add(new SqlParameter
+        //        {
+        //            ParameterName = "@FiTransactions",
+        //            SqlDbType = SqlDbType.Structured,
+        //            TypeName = "udtFiTransactions",
+        //            Value = transactionDT
+        //        });
+
+        //        cmd.Parameters.Add(new SqlParameter
+        //        {
+        //            ParameterName = "@FiTransactionAdditionals",
+        //            SqlDbType = SqlDbType.Structured,
+        //            TypeName = "udtFiTransactionAdditionals",
+        //            Value = additionalsDT
+        //        });
+
+        //        cmd.Parameters.Add(new SqlParameter
+        //        {
+        //            ParameterName = "@FiTransactionEntries",
+        //            SqlDbType = SqlDbType.Structured,
+        //            TypeName = "udtFiTransactionEntries",
+        //            Value = entriesDT
+        //        });
+
+        //        cmd.Parameters.Add(new SqlParameter
+        //        {
+        //            ParameterName = "@InvTransItems",
+        //            SqlDbType = SqlDbType.Structured,
+        //            TypeName = "udtInvTransItems",
+        //            Value = itemsDT
+        //        });
+        //        //cmd.Parameters.AddWithValue("@Cash", request.FiTransactions.Cash);
+        //        //cmd.Parameters.AddWithValue("@Card", request.FiTransactions.Card);
+        //        //cmd.Parameters.AddWithValue("@IsCredit", request.FiTransactions.Credit);
+        //        //cmd.Parameters.AddWithValue("@Discount", request.FiTransactions.Discount);
+        //        //cmd.Parameters.AddWithValue("@Tax", request.FiTransactions.Tax);
+
+        //        con.Open();
+        //        cmd.ExecuteNonQuery();
+        //    }
+
+        //    return "true";
+        //}
+
         public string InsertTransaction(SaveTransactionEntryRequest request)
         {
-            // 1️ Build DataTables using helpers
             // ----- 1. Validate Mandatory Objects -----
             if (request?.FiTransactions == null)
                 return "Transaction header (FiTransactions) is required";
 
-            if (request?.InvTransItems == null || !request.InvTransItems.Any())
-                return "At least one transaction item is required";
+            //if (request?.InvTransItems == null || !request.InvTransItems.Any())
+            //    return "At least one transaction item is required";
 
             // ----- 2. Convert Mandatory -----
             DataTable transactionDT =
                 FiTransactionsHelper.ToDataTable(new[] { request.FiTransactions });
 
             DataTable itemsDT =
-                InvTransItemsHelper.ToDataTable(request.InvTransItems);
-
-            // ----- 3. Convert Optional Safely -----
+                request?.InvTransItems != null && request.InvTransItems.Any()
+                    ? InvTransItemsHelper.ToDataTable(request.InvTransItems)
+                    : InvTransItemsHelper.ToDataTable(new List<InvTransItems>());
             DataTable additionalsDT =
                 request?.FiTransactionAdditionals != null
                     ? FiTransactionAdditionalsHelper.ToDataTable(new[] { request.FiTransactionAdditionals })
-                    : new DataTable();
-
+                    : FiTransactionAdditionalsHelper.ToDataTable(new List<FiTransactionAdditionals>());
             DataTable entriesDT =
                 request?.FiTransactionEntries != null
                     ? FiTransactionEntriesHelper.ToDataTable(request.FiTransactionEntries)
-                    : new DataTable();
-
-            // Execute Stored Procedure
-            using (SqlConnection con = new SqlConnection(ConnectionString))
-            using (SqlCommand cmd = new SqlCommand("VoucherSaveSP", con))
+                    : FiTransactionEntriesHelper.ToDataTable(new List<FiTransactionEntries>());
+            // ----- 4. Execute Stored Procedure -----
+            try
             {
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                cmd.Parameters.Add(new SqlParameter
+                using (SqlConnection con = new SqlConnection(ConnectionString))
+                using (SqlCommand cmd = new SqlCommand("VoucherSaveSP", con))
                 {
-                    ParameterName = "@FiTransactions",
-                    SqlDbType = SqlDbType.Structured,
-                    TypeName = "udtFiTransactions",
-                    Value = transactionDT
-                });
+                    cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.Add(new SqlParameter
-                {
-                    ParameterName = "@FiTransactionAdditionals",
-                    SqlDbType = SqlDbType.Structured,
-                    TypeName = "udtFiTransactionAdditionals",
-                    Value = additionalsDT
-                });
+                    cmd.Parameters.Add(new SqlParameter
+                    {
+                        ParameterName = "@FiTransactions",
+                        SqlDbType = SqlDbType.Structured,
+                        TypeName = "udtFiTransactions",
+                        Value = transactionDT
+                    });
 
-                cmd.Parameters.Add(new SqlParameter
-                {
-                    ParameterName = "@FiTransactionEntries",
-                    SqlDbType = SqlDbType.Structured,
-                    TypeName = "udtFiTransactionEntries",
-                    Value = entriesDT
-                });
+                    cmd.Parameters.Add(new SqlParameter
+                    {
+                        ParameterName = "@FiTransactionAdditionals",
+                        SqlDbType = SqlDbType.Structured,
+                        TypeName = "udtFiTransactionAdditionals",
+                        Value = additionalsDT
+                        // FIX: TVP cannot accept DBNull.Value — pass empty DataTable instead
+                    });
 
-                cmd.Parameters.Add(new SqlParameter
-                {
-                    ParameterName = "@InvTransItems",
-                    SqlDbType = SqlDbType.Structured,
-                    TypeName = "udtInvTransItems",
-                    Value = itemsDT
-                });
-                //cmd.Parameters.AddWithValue("@Cash", request.FiTransactions.Cash);
-                //cmd.Parameters.AddWithValue("@Card", request.FiTransactions.Card);
-                //cmd.Parameters.AddWithValue("@IsCredit", request.FiTransactions.Credit);
-                //cmd.Parameters.AddWithValue("@Discount", request.FiTransactions.Discount);
-                //cmd.Parameters.AddWithValue("@Tax", request.FiTransactions.Tax);
+                    cmd.Parameters.Add(new SqlParameter
+                    {
+                        ParameterName = "@FiTransactionEntries",
+                        SqlDbType = SqlDbType.Structured,
+                        TypeName = "udtFiTransactionEntries",
+                        Value = entriesDT
+                        // FIX: always pass DataTable even if empty
+                    });
 
-                con.Open();
-                cmd.ExecuteNonQuery();
+                    cmd.Parameters.Add(new SqlParameter
+                    {
+                        ParameterName = "@InvTransItems",
+                        SqlDbType = SqlDbType.Structured,
+                        TypeName = "udtInvTransItems",
+                        Value = itemsDT
+                        // FIX: always pass DataTable even if empty
+                    });
+                    cmd.Parameters.AddWithValue("@Mode",1);
+
+                    //cmd.Parameters.AddWithValue("@Cash",     request.FiTransactions.Cash);
+                    //cmd.Parameters.AddWithValue("@Card",     request.FiTransactions.Card);
+                    //cmd.Parameters.AddWithValue("@IsCredit", request.FiTransactions.Credit);
+                    //cmd.Parameters.AddWithValue("@Discount", request.FiTransactions.Discount);
+                    //cmd.Parameters.AddWithValue("@Tax",      request.FiTransactions.Tax);
+
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+
+                return "true";
             }
-             
-            return "true";
+            catch (SqlException ex)
+            {
+                // FIX: catch SQL errors and return message instead of crashing
+                return "SQL Error: " + ex.Message;
+            }
+            catch (Exception ex)
+            {
+                return "Error: " + ex.Message;
+            }
         }
 
         //For getting Sales man lookup on 23-02-2026

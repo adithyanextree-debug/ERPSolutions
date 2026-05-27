@@ -125,7 +125,7 @@ function loadReport() {
         processing: true,
         serverSide: true,
         pageLength: 10,
-        order: [[2, 'asc']],
+        //order: [[2, 'asc']],
         columns: columns,
         ajax: {
             url: '/StockItemRegister/GetData',

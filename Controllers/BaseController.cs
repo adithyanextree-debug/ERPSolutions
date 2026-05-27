@@ -759,7 +759,8 @@ namespace ERPSample.Controllers
             Salary = 129,
             Leave = 161,
             OpeningStock = 135,
-            StockAdjustment = 24
+            StockAdjustment = 24,
+            JournalVoucher = 68,
         }
 
         //ImagePath for  Company header and footer on 27-09-2023
