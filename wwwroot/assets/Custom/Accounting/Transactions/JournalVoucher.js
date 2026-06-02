@@ -6,24 +6,23 @@ function NewEntry() {
     $("#JournalVoucherList").hide();
     $("#JournalVoucherForm").show();
 
-    // FIX 1: removed async:false (deprecated, blocks browser UI thread)
     $.ajax({
         url: webUrl + "NewEntryDetails",
         method: "POST",
         dataType: "JSON",
         success: function (data) {
-            if (data.success === true) {                          // FIX 2: check success before using data
+            if (data.success === true) {
                 $("#VoucherNo").prop("disabled", true);
 
                 var now = new Date();
                 var date = now.getFullYear() + '-'
                     + ("0" + (now.getMonth() + 1)).slice(-2) + '-'
-                    + ("0" + now.getDate()).slice(-2);      // FIX 3: reuse one Date instance
+                    + ("0" + now.getDate()).slice(-2);
                 $("#VoucherDate").val(date);
 
                 $("#Itemtable tbody").append(data.innerHTML);
                 $("#VoucherDate").focus();
-                ReindexRows();                                    // FIX 4: set serial no on first row
+                ReindexRows();
             } else {
                 Swal.fire({
                     icon: 'error', title: 'Oops!',
@@ -67,6 +66,7 @@ $(document).on("click", ".addrow", function (event) {
             if (data.success === true) {
                 $("#Itemtable tbody").append(data.newrow);
                 ReindexRows();
+                autoFillLastRowBalance(); // Auto-calculate balance on new row
             }
         },
         error: function () {
@@ -117,7 +117,6 @@ $(document).on("click", ".action_delete", function () {
         if (!result.isConfirmed) return;
 
         if (itemid != null && itemid !== "") {
-            // Saved row — delete via API
             $.ajax({
                 url: CommonUrl + "DeleteTransactionEntries?ID=" + id,
                 method: "DELETE",
@@ -127,24 +126,14 @@ $(document).on("click", ".action_delete", function () {
                         $row.remove();
                         ReindexRows();
                         formatAndRecalculate();
-
-                        //var totals = getJournalTotals();
-                        //if (Math.abs(totals.debit - totals.credit) > 0.001) {  // FIX 5: numeric comparison
-                        //    Swal.fire({
-                        //        icon: 'warning', title: 'Warning!',
-                        //        text: 'Debit and Credit totals do not match. Please ensure the totals are equal.',
-                        //        confirmButtonText: 'Okay', confirmButtonColor: '#d33'
-                        //    });
-                        //}
-                        //else {
-                            Swal.fire({
-                                toast: true, position: 'top-end',
-                                icon: 'success',
-                                title: data.message || 'Entry deleted successfully!',
-                                showConfirmButton: false,
-                                timer: 3000, timerProgressBar: true
-                            });
-                        //}
+                        autoFillLastRowBalance(); // Recalculate after delete
+                        Swal.fire({
+                            toast: true, position: 'top-end',
+                            icon: 'success',
+                            title: data.message || 'Entry deleted successfully!',
+                            showConfirmButton: false,
+                            timer: 3000, timerProgressBar: true
+                        });
                     } else {
                         Swal.fire({
                             icon: 'error', title: 'Oops!',
@@ -162,10 +151,10 @@ $(document).on("click", ".action_delete", function () {
                 }
             });
         } else {
-            // Unsaved row — remove from DOM only
             $row.remove();
             ReindexRows();
             formatAndRecalculate();
+            autoFillLastRowBalance(); // Recalculate after delete
             Swal.fire({
                 toast: true, position: 'top-end',
                 icon: 'success', title: "Entry Deleted Successfully!",
@@ -191,12 +180,71 @@ $(document).on("keyup", ".AccountCode", function (event) {
 
     formatAndRecalculate();
 });
-
+// ─── Format to 2 decimals on blur (when user leaves the field) ───────────────
+$(document).on("blur", ".Debit, .Credit", function () {
+    var val = parseFloat($(this).val());
+    if (!isNaN(val) && val > 0) {
+        $(this).val(val.toFixed(2)).css('text-align', 'right');
+    } else {
+        $(this).val(''); // clear zero or invalid
+    }
+});
 // ─── Real-time Debit/Credit update ───────────────────────────────────────────
 $(document).on("keyup change paste", ".Debit, .Credit", function () {
-    validateMutualExclusion(this);
+    // CHANGED: removed validateMutualExclusion, only update totals and auto-fill last row
     updateJournalTotals();
+    autoFillLastRowBalance();
 });
+
+// ─── Auto-fill last row balance ───────────────────────────────────────────────
+// Calculates the difference of all rows EXCEPT the last row,
+// and fills the last row's opposite field automatically.
+function autoFillLastRowBalance() {
+    var $rows = $('#Itemtable tbody tr');
+    var totalRows = $rows.length;
+
+    if (totalRows < 2) return; // Need at least 2 rows
+
+    var $lastRow = $rows.last();
+    var lastRowId = $lastRow.find('.Debit').attr('id')
+        ? $lastRow.find('.Debit').attr('id').replace('Debit', '')
+        : null;
+
+    if (!lastRowId) return;
+
+    var debitSum = 0, creditSum = 0;
+
+    // Sum all rows EXCEPT the last row
+    $rows.not(':last').each(function () {
+        var rowId = $(this).find('.Debit').attr('id')
+            ? $(this).find('.Debit').attr('id').replace('Debit', '')
+            : null;
+        if (!rowId) return;
+
+        var d = parseFloat($("#Debit" + rowId).val()) || 0;
+        var c = parseFloat($("#Credit" + rowId).val()) || 0;
+        debitSum += d;
+        creditSum += c;
+    });
+
+    var diff = debitSum - creditSum;
+
+    if (diff > 0) {
+        // Debit side is more — last row needs Credit
+        $("#Credit" + lastRowId).val(diff.toFixed(2)).css('text-align', 'right');
+        $("#Debit" + lastRowId).val('').css('text-align', 'right');
+    } else if (diff < 0) {
+        // Credit side is more — last row needs Debit
+        $("#Debit" + lastRowId).val(Math.abs(diff).toFixed(2)).css('text-align', 'right');
+        $("#Credit" + lastRowId).val('').css('text-align', 'right');
+    } else {
+        // Already balanced — clear last row's auto-filled values
+        $("#Debit" + lastRowId).val('').css('text-align', 'right');
+        $("#Credit" + lastRowId).val('').css('text-align', 'right');
+    }
+
+    updateJournalTotals();
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -235,26 +283,11 @@ function formatAndRecalculate() {
     updateJournalTotals();
 }
 
-function validateMutualExclusion(currentElement) {
-    var $input = $(currentElement);
-    var id = $input.attr("id").replace(/\D/g, '');
-    var isDebit = $input.hasClass("Debit");
-    var $other = isDebit ? $("#Credit" + id) : $("#Debit" + id);
-    var val = parseFloat($input.val()) || 0;
-
-    $input.css("text-align", "right");
-
-    if (val > 0) {
-        $other.val('').prop("readonly", true).css("background-color", "#f0f0f0");
-    } else {
-        $other.prop("readonly", false).css("background-color", "");
-    }
-}
+// CHANGED: validateMutualExclusion removed entirely — no more disabling of opposite field
 
 // ─── Save Entry ──────────────────────────────────────────────────────────────
 function SaveEntry() {
 
-    // VoucherNo required only in Edit mode
     if ($("#JournalTransactionID").val() != null && $("#JournalTransactionID").val() !== "") {
         if ($("#VoucherNo").val().trim() === '') {
             $("#VoucherNo").focus();
@@ -303,9 +336,9 @@ function SaveEntry() {
         ? parseInt($("#JournalTransactionID").val())
         : null;
 
-    var flag1 = true; // amount missing or invalid
-    var flag2 = true; // AccountID invalid
-    var flag3 = true; // both Debit & Credit filled
+    var flag1 = true;
+    var flag2 = true;
+    var flag3 = true;
 
     var entries = [];
 
@@ -359,7 +392,6 @@ function SaveEntry() {
             'ExchRate': null,
             'TaxPerc': null,
             'RowState': (InTransItemId === null || InTransItemId === 0 || InTransItemId === undefined) ? 1 : 2,
-
         });
     });
 
@@ -397,21 +429,14 @@ function SaveEntry() {
     }
 
     var now = new Date();
-    //var addedDate = now.getFullYear()
-    //    + '-' + ("0" + (now.getMonth() + 1)).slice(-2)
-    //    + '-' + ("0" + now.getDate()).slice(-2)
-    //    + 'T' + ("0" + now.getHours()).slice(-2)      // ← T not space
-    //    + ':' + ("0" + now.getMinutes()).slice(-2)
-    //    + ':' + ("0" + now.getSeconds()).slice(-2)
-    //    + '.' + ("00" + now.getMilliseconds()).slice(-3); // ← pad to 3 digits
 
     var headerModel = {
         'ID': idValue,
-        'Date': $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null, // Nullable DateTime
-        'EffectiveDate': $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null, // Nullable DateTime
+        'Date': $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null,
+        'EffectiveDate': $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null,
         'VoucherID': parseInt($("#VoucherType").attr("data-value")) || null,
         'TransactionNo': $("#VoucherNo").val() || null,
-        'SerialNo': $("#VoucherNo").val() ? parseInt($("#VoucherNo").val()) : null, // Nullable long
+        'SerialNo': $("#VoucherNo").val() ? parseInt($("#VoucherNo").val()) : null,
         'IsPostDated': false,
         'ExchangeRate': 1.00,
         'RefPageTypeID': null,
@@ -423,25 +448,22 @@ function SaveEntry() {
         'InstrumentBank': null,
         'CommonNarration': null,
         'ApprovedBy': null,
-        'AddedDate': new Date().toISOString(), // DateTime
+        'AddedDate': new Date().toISOString(),
         'ApprovedDate': null,
         'ApproveNote': null,
         'AccountID': null,
         'Description': $("#Description").val() || null,
         'RowState': (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
-
     };
 
     var payload = {
         'FiTransactions': headerModel,
         'FiTransactionEntries': entries
     };
-    console.log("Payload to be sent:", JSON.stringify(payload)); // Debug log
+
+    console.log("Payload to be sent:", JSON.stringify(payload));
+
     $.ajax({
-        //url: webUrl + "InsertTransaction",
-        //method: "POST",
-        //dataType: "JSON",
-        //data: payload,
         url: webUrl + "InsertTransaction",
         method: "POST",
         contentType: "application/json; charset=utf-8",
@@ -499,7 +521,6 @@ function RowClick(RowID) {
                 $("#JournalTransactionID").val(header.ID)
                 $("#VoucherNo").val(header.TransactionNo).prop("disabled", true);
 
-                // FIX 6: VoucherCode field populated if present
                 if (header.Code) $("#VoucherCode").val(header.Code);
 
                 if (header.Date != null) {
@@ -515,7 +536,7 @@ function RowClick(RowID) {
                 $("#Reference").val(header.ReferenceNo);
 
                 $("#Itemtable tbody").append(data.innerHTML);
-                ReindexRows();             // FIX 7: reindex rows after load
+                ReindexRows();
 
                 $("#ListFinanceJournalDiv").hide();
                 $("#InputFinanceJournalDiv").show();
@@ -543,7 +564,6 @@ function RowClick(RowID) {
 function DeleteEntry() {
     var transID = $("#JournalTransactionID").val();
 
-    // FIX 8: also check for empty string, not just null
     if (!transID || transID.trim() === '') {
         Swal.fire({
             icon: 'warning', title: 'Nothing to Delete',
@@ -553,7 +573,6 @@ function DeleteEntry() {
         return false;
     }
 
-    // FIX 9: added confirmation before deleting entire transaction
     Swal.fire({
         title: "Are you sure?",
         text: "This will permanently delete the entire voucher.",

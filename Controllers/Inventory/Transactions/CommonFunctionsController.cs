@@ -276,7 +276,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
                     sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul></td>");
 
                     // 14. Hidden ItemID
-                    sb.Append("<td >");
+                    sb.Append("<td style='display:none;'>");
                     sb.Append("<input type='hidden' class='itemid excelCells numbersOnly form-control' id='itemid" + Sn + "' value='"+ Sn + "' element-id='" + Sn + "' autocomplete='off'></td>");
 
                     sb.Append("</tr>");
@@ -400,7 +400,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
             sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
             sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
             sb.Append("</td>");
-            sb.Append("<td style=''>");
+            sb.Append("<td style='display:none;'>");
             sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
             sb.Append("</td>");
             sb.Append("</tr>");
@@ -542,7 +542,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
             sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
             sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
             sb.Append("</td>");
-            sb.Append("<td style=''>");
+            sb.Append("<td style='display:none;'>");
             sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
             sb.Append("</td>");
             sb.Append("</tr>");
@@ -681,7 +681,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
             sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
             sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
             sb.Append("</td>");
-            sb.Append("<td style=''>");
+            sb.Append("<td style='display:none;'>");
             sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
             sb.Append("</td>");
             sb.Append("</tr>");
@@ -762,7 +762,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
             sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
             sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
             sb.Append("</td>");
-            sb.Append("<td style=''>");
+            sb.Append("<td style='display:none;'>");
             sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
             sb.Append("</td>");
             sb.Append("</tr>");
@@ -848,7 +848,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
             sb.Append("<td class='col' id='deleteaction" + Sn + "' style=''>");
             sb.Append("<ul class='action'><li class='delete ms-3 action_delete' id='deleteunit" + Sn + "' element-id='" + Sn + "'><a href='#'><i class='icon-trash'></i></a></li></ul>");
             sb.Append("</td>");
-            sb.Append("<td style=''>");
+            sb.Append("<td style='display:none;'>");
             sb.Append("<input type='hidden' class='itemid excelCells numbersOnly  form-control' id='itemid" + Sn + "' value='' element-id='" + Sn + "' autocomplete='off'>");
             sb.Append("</td>");
             sb.Append("</tr>");

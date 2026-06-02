@@ -569,26 +569,33 @@ function updateAllSums() {
     calculateGrandTotal();
 }
 
-$(document).on("input", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+// *** FIX: Removed val === "" from early return so clearing a field triggers recalculation ***
+$(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
 
     const id = $(this).attr('element-id');
     const changedField = $(this).attr("id").replace(id, '');
 
     let val = $(this).val();
 
-    // Allow natural typing
-    if (val === "" || val === "." || val.endsWith(".")) {
+    // Allow natural typing of decimals
+    if (val === "." || val.endsWith(".")) {
         return;
     }
 
-    // Reject bad values
-    if (val.includes('-') || isNaN(val) || Number(val) < 0) {
+    // Reject only truly bad values (but allow empty string to fall through)
+    if (val !== "" && (val.includes('-') || isNaN(val) || Number(val) < 0)) {
         return;
+    }
+
+    // Treat empty as 0 for calculation purposes
+    if (val === "") {
+        $(this).val(""); // keep it visually empty
     }
 
     calculateRow(id, changedField);
     updateAllSums();
 });
+
 
 $(document).on("blur", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
     const val = parseFloat($(this).val());

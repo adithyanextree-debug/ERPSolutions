@@ -343,6 +343,7 @@ namespace ERPSample.Controllers.Accounting.Transactions
             catch (Exception ex) { throw; }
 
         }
+
         [HttpPost]
         public async Task<IActionResult> SaveVoucherJournalEntries(FiTransactions FiTransactions, List<FiTransactionEntries> FiTransactionEntries)
         {

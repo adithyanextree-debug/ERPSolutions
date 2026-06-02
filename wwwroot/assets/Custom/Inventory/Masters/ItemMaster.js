@@ -481,24 +481,24 @@ $(document).on("change", "input[type='file'][id^='FileUpload_FormFile']", functi
         var fileSizeKB = file.size / 1024; // size in KB
 
         //  BLOCK files > 50 KB
-        if (fileSizeKB > 50) {
-            Swal.fire({
-                icon: 'error',
-                title: 'File Too Large!',
-                text: 'Please upload an image of size 50 KB or less.',
-                confirmButtonText: 'Okay',
-                confirmButtonColor: '#d33',
-            });
+        //if (fileSizeKB > 50) {
+        //    Swal.fire({
+        //        icon: 'error',
+        //        title: 'File Too Large!',
+        //        text: 'Please upload an image of size 50 KB or less.',
+        //        confirmButtonText: 'Okay',
+        //        confirmButtonColor: '#d33',
+        //    });
 
-            // Reset file input
-            input.value = "";
+        //    // Reset file input
+        //    input.value = "";
 
-            // Remove preview if any
-            //$("#productimagepreview" + elementId).attr("src", "");
-            //$("#productimagepreview" + elementId).removeClass('avatar avatar-lg');
+        //    // Remove preview if any
+        //    //$("#productimagepreview" + elementId).attr("src", "");
+        //    //$("#productimagepreview" + elementId).removeClass('avatar avatar-lg');
 
-            return false;
-        }
+        //    return false;
+        //}
 
         //  File is allowed — preview it
         var src = URL.createObjectURL(file);
@@ -802,9 +802,10 @@ function SaveEntry() {
         'Weight': $("#ItemWeight").val(),
         'ExpiryPeriod': $("#ExpiryDate").val(),
         'Remarks': $("#remarks").val(),
-        'LongDescription': window.editor7.getText().trim(),
-        'ArabicLongDescription': window.editor8.getText().trim(),
-
+        //'LongDescription': window.editor7.getText().trim(),
+        //'ArabicLongDescription': window.editor8.getText().trim(),
+        'LongDescription': window.editor7.root.innerHTML.trim(),
+        'ArabicLongDescription': window.editor8.root.innerHTML.trim(),
         //'LongDescription': "",
         //'ArabicLongDescription': "",
         'SellOnEcommerce': SellOnEcommerce,
