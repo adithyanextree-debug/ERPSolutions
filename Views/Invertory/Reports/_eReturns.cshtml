@@ -1,0 +1,72 @@
+﻿@model ERPSample.Models.Inventory.Reports.eReturnsModel
+@using System.Data
+@{
+    var dt = ViewBag.ReportData as DataTable;
+}
+
+@if (dt == null || dt.Rows.Count == 0)
+{
+    <div class="alert alert-warning">No records found for the selected filters.</div>
+    return;
+}
+@{
+    string Val(DataRow r, string col)
+        => r.Table.Columns.Contains(col) && r[col] != DBNull.Value ? r[col].ToString() : "";
+    string Num(DataRow r, string col)
+        => r.Table.Columns.Contains(col) && r[col] != DBNull.Value ? string.Format("{0:N3}", r[col]) : "";
+    string Dt(DataRow r, string col)
+        => r.Table.Columns.Contains(col) && r[col] != DBNull.Value ? Convert.ToDateTime(r[col]).ToString("dd-MM-yyyy") : "";
+    var ignoreColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "ID"
+    };
+}
+<div class="table-responsive" style="overflow-x: auto;">
+    <table id="eReturnsTable" class="table table-bordered table-sm table-hover">
+        <thead>
+            <tr>
+                @foreach (DataColumn col in dt.Columns)
+                {
+                    if (ignoreColumns.Contains(col.ColumnName))
+                    {
+                        continue;
+                    }
+                    <th>@col.ColumnName</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (DataRow row in dt.Rows)
+            {
+                <tr style="">
+
+                    @foreach (DataColumn col in dt.Columns)
+                    {
+                        if (ignoreColumns.Contains(col.ColumnName))
+                        {
+                            continue;
+                        }
+                        if (col.DataType == typeof(DateTime))
+                        {
+                            <td>@Dt(row, col.ColumnName)</td>
+                        }
+                        else if (col.DataType == typeof(decimal)
+                        || col.DataType == typeof(double)
+                        || col.DataType == typeof(float)
+                        || col.DataType == typeof(int)
+                        || col.DataType == typeof(long)
+                        || col.DataType == typeof(short))
+                        {
+                            <td class="text-end">@Num(row, col.ColumnName)</td>
+                        }
+                        else
+                        {
+                            <td>@Val(row, col.ColumnName)</td>
+                        }
+                    }
+
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

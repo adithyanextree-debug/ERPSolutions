@@ -295,23 +295,23 @@
                                                             <td colspan="11" style="height:80px;width:100%;"></td>
                                                         </tr>
                                                         <tr>
-                                                            <td style="background-color:white; font-weight:bold;text-align:center;" colspan="6">BillWise Report</td>
-                                                            <td colspan="5" class="no-border" style="background-color:white; font-weight:bold;text-align:end;">
+                                                            <td style="background-color:white; font-weight:bold; text-align:end;border-left:none; border-right:none;" colspan="5">BillWise Report</td>
+                                                            <td colspan="6" style="background-color:white; font-weight:bold; text-align:end; border-left:none; border-right:none;">
                                                                 Period: @Model.StartDate.ToString("dd/MM/yyyy") to @Model.EndDate.ToString("dd/MM/yyyy")
                                                             </td>
                                                         </tr>
                                                         <tr>
                                                             <th>VNo</th>
                                                             <th>VDate</th>
-                                                            <th>AccountName</th>
-                                                            <th>Description</th>
+                                                            <th style="text-align:center">AccountName</th>
+                                                            <th style="text-align:center">Description</th>
                                                             <th>DueDate</th>
                                                             <th>Duedays</th>
-                                                            <th>Debit</th>
-                                                            <th>Credit</th>
-                                                            <th>Allocated</th>
-                                                            <th>Balance</th>
-                                                            <th>RBalance</th>
+                                                            <th style="text-align:right">Debit</th>
+                                                            <th style="text-align:right">Credit</th>
+                                                            <th style="text-align:center">Allocated</th>
+                                                            <th style="text-align:center">Balance</th>
+                                                            <th style="text-align:center">RBalance</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody id="">

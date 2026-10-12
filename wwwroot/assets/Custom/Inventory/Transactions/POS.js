@@ -1,6 +1,9 @@
 ﻿var webUrl = '/POS/';
 var CommonUrl = '/CommonFunctions/';
 
+//$(document).ready(function () {
+//    EntryEnable('New')
+//});
 // ENTER KEY GLOBAL HANDLER (Tab + ProductCode logic)
 $(document).on('keydown', function (e) {
 
@@ -210,9 +213,10 @@ $(document).on('keydown', function (e) {
 function NewEntry() {
     location.reload();
 }
-
+function CloseEntry() {
+    location.reload();
+}
 // For getting item price details while changing unit
-
 $(document).on("change", ".ItemUnit", function () {
     const id = $(this).attr('element-id');
     const selectedUnit = $(this).val();
@@ -329,7 +333,6 @@ $(document).on("change", ".ItemUnit", function () {
         }
     });
 });
-
 
 $(document).on("click", ".addrow", function (event) {
     event.preventDefault();
@@ -461,7 +464,6 @@ $(document).on("click", ".action_delete", function (event) {
         }
     });
 });
-
 function toFixedNoRound(num, decimals) {
     num = Number(num);
     console.log(num + " num")
@@ -483,16 +485,9 @@ function updateSum(selector, targetSelector, align = 'right') {
     });
     $(targetSelector).html(toTwoDecimal(sum)).css('text-align', align);
 }
-
 function calculateRow(id, changedField = '') {
 
-    let rawQty = $("#ItemQty" + id).val();
-
-    if (rawQty === "") return;
-
-    const qty = parseFloat(rawQty);
-    if (isNaN(qty)) return;
-
+    const qty = parseFloat($("#ItemQty" + id).val()) || 0;
     const rate = parseFloat($("#ItemRate" + id).val()) || 0;
     const grossAmt = qty * rate;
 
@@ -506,9 +501,8 @@ function calculateRow(id, changedField = '') {
     } else if (changedField === 'ItemDiscPer') {
         discAmt = (grossAmt * discPer) / 100;
         $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
-    }
-    else {
-        // On qty/rate change or fresh load: recalculate discAmt from discPer
+    } else {
+        // Qty/Rate change or fresh load: % is the source of truth when set, else keep the flat amount
         if (discPer > 0) {
             discAmt = (grossAmt * discPer) / 100;
             $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
@@ -531,24 +525,22 @@ function calculateRow(id, changedField = '') {
         taxAmt = (amt * taxPer) / 100;
         $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
     } else {
-        // On qty/rate/disc change or fresh load: always recalculate taxAmt from taxPer
+        // Qty/Rate/Disc change or fresh load: % is the source of truth when set, else keep the flat amount
         if (taxPer > 0) {
             taxAmt = (amt * taxPer) / 100;
             $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+        } else if (taxAmt > 0) {
+            taxPer = amt ? (taxAmt / amt) * 100 : 0;
+            $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
         }
     }
 
     const total = amt + taxAmt;
 
-    // Set system-calculated fields
-    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt));
-    $("#ItemGrossAmt" + id).css('text-align', 'right');
-    $("#ItemAmt" + id).val(toTwoDecimal(amt));
-    $("#ItemAmt" + id).css('text-align', 'right');
-    $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
-    $("#ItemTaxAmt" + id).css('text-align', 'right');
-    $("#ItemTotal" + id).val(toTwoDecimal(total));
-    $("#ItemTotal" + id).css('text-align', 'right');
+    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt)).css('text-align', 'right');
+    $("#ItemAmt" + id).val(toTwoDecimal(amt)).css('text-align', 'right');
+    $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt)).css('text-align', 'right');
+    $("#ItemTotal" + id).val(toTwoDecimal(total)).css('text-align', 'right');
 }
 
 function updateAllSums() {
@@ -569,11 +561,10 @@ function updateAllSums() {
     calculateGrandTotal();
 }
 
-// *** FIX: Removed val === "" from early return so clearing a field triggers recalculation ***
-$(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("input", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
 
     const id = $(this).attr('element-id');
-    const changedField = $(this).attr("id").replace(id, '');
+    const changedField = $(this).attr("id").replace(/\d+$/, '');
 
     let val = $(this).val();
 
@@ -587,15 +578,9 @@ $(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .Ite
         return;
     }
 
-    // Treat empty as 0 for calculation purposes
-    if (val === "") {
-        $(this).val(""); // keep it visually empty
-    }
-
     calculateRow(id, changedField);
     updateAllSums();
 });
-
 
 $(document).on("blur", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
     const val = parseFloat($(this).val());
@@ -674,7 +659,6 @@ $(document).on("blur", ".moneyField", function () {
 function toNumber(val) {
     return parseFloat(val) || 0;
 }
-
 function calculatePayment() {
     let itemTotal = 0;
 
@@ -704,12 +688,31 @@ $('#CashPaid, #CardPaid').on('input', function () {
 
     calculatePayment();
 });
+
 $('#CashPaid, #CardPaid').on('blur', function () {
     let val = parseFloat($(this).val());
     if (!isNaN(val)) {
         $(this).val(toTwoDecimal(val));
     }
 });
+
+function ToggleCreditOption() {
+    var partyName = ($("#Party").val() || "").trim();
+
+    if (partyName.toUpperCase() === "POS SALES-CASH") {
+        $("#Credit")
+            .prop("checked", false)
+            .prop("disabled", true);
+    }
+    else {
+        $("#Credit").prop("disabled", false);
+    }
+}
+
+$("#Party").on("change", function () {
+    ToggleCreditOption();
+});
+
 // For saving entry
 function SaveEntry() {
     if ($("#ID").val() != null && $("#ID").val() != "") {
@@ -745,6 +748,19 @@ function SaveEntry() {
             confirmButtonText: 'Okay',
             confirmButtonColor: '#d33',
         });
+        return false;
+    }
+    var partyName = ($("#Party").val() || "").trim();
+
+    if (partyName.toUpperCase() === "POS SALES-CASH" && $("#Credit").is(":checked")) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: 'Credit sale is not allowed for POS Sales-Cash.',
+            confirmButtonText: 'Okay',
+            confirmButtonColor: '#d33'
+        });
+
         return false;
     }
 
@@ -820,6 +836,8 @@ function SaveEntry() {
 
     var rawProject = $("#Project").attr('data-idvalue');
     var rawParty = $("#Party").attr('data-idvalue');
+    var bank = $("#BankID").attr("data-value");
+    var cash = $("#CashID").attr("data-value");
 
     var transaction = {
         ID: idValue,
@@ -833,18 +851,16 @@ function SaveEntry() {
         AccountID: (rawParty !== undefined && rawParty !== null && rawParty.trim() !== "" && !isNaN(rawParty) && parseInt(rawParty) > 0)
             ? parseInt(rawParty) : null,
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2,
-        Cash: $("#CashPaid").val(),
-        Card: $("#CardPaid").val(),
-        Credit: null,
+        CashAmount: $("#CashPaid").val(),
+        CardAmount: $("#CardPaid").val(),
+        CreditAmount: null,
         IsCredit: $("#Credit").is(':checked'),
-        Tax: $("#TaxSummary").val(),
+        TaxAmount: $("#TaxSummary").val(),
         Discount: $("#OtherDiscount").val(),
         PaymentTypeID: cash ? cash : bank,
 
     };
-
-    var bank = $("#BankID").attr("data-value");
-    var cash = $("#CashID").attr("data-value");
+    
     var rawSalesman = $("#Salesman").attr('data-idvalue');
     var additionals = {
         TransactionID: idValue,
@@ -855,18 +871,18 @@ function SaveEntry() {
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
     };
 
-    var entriesarray = {
-       
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
-    };
-    entries.push(entriesarray);
+    //var entriesarray = {
+        
+    //    RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
+    //};
+   // entries.push(entriesarray);
 
     if (flag4 && flag1 && flag2 && flag3) {
         var model = {
             'InvTransItems': items,
             'FiTransactions': transaction,
             'FiTransactionAdditionals': additionals,
-            'FiTransactionEntries': entries
+            'FiTransactionEntries': null
         };
     } else {
         if (flag4 == false) {
@@ -903,6 +919,7 @@ function SaveEntry() {
                 $(this).hide();
             });
             if (data.success) {
+                $("#ID").val(data.transactionNo);
                 Swal.fire({
                     toast: true,
                     position: 'top-end',
@@ -912,10 +929,14 @@ function SaveEntry() {
                     timer: 3000,
                     timerProgressBar: true
                 }).then(() => {
-                    var menuId = $("#MenuID").val();
-                    window.location.href = "/POS/Index?MenuID=" + menuId;
+                    $("#Print").show();
+                    $("#Save").css("pointer-events", "none");
+                    $("#Save").css("opacity", "0.5"); // Optional: make it look disabled
+
+                    //Enable save button
+                    //$("#liSave").css("pointer-events", "auto");
+                    //$("#liSave").css("opacity", "1");
                 });
-                $("#ID").val(data.transactionNo);
             } else {
                 Swal.fire({
                     icon: 'error',
@@ -940,6 +961,107 @@ function SaveEntry() {
         }
     });
 }
+
+function PrintTable() {
+    var id = $("#ID").val();
+
+    // Open the window immediately, on the actual click gesture — not after AJAX
+    var printWindow = window.open('', '_blank', 'width=800,height=600,left=100,top=100');
+    printWindow.document.write('<html><head></head><body>Loading...</body></html>');
+
+    printOnlyTable(id, printWindow);
+}
+
+function printOnlyTable(id, printWindow) {
+    $.ajax({
+        url: webUrl + "PrintInvoice?ID=" + id,
+        method: "GET",
+        dataType: 'JSON',
+        success: function (data) {
+            if (data['success'] == true) {
+                $("#reportContainer").html(data.table);
+                var printContent = $("#reportContainer").html();
+
+                printWindow.document.open();
+                printWindow.document.write('<html><head></head><body>' + printContent + '</body></html>');
+                printWindow.document.close();
+
+                var images = printWindow.document.getElementsByTagName('img');
+                var loadedImagesCount = 0;
+
+                function checkImagesLoaded() {
+                    for (var i = 0; i < images.length; i++) {
+                        if (images[i].complete) {
+                            loadedImagesCount++;
+                        }
+                    }
+                    if (loadedImagesCount === images.length) {
+                        printWindow.focus();   // bring it to front before printing
+                        printWindow.print();
+                    } else {
+                        setTimeout(checkImagesLoaded, 100);
+                    }
+                }
+                checkImagesLoaded();
+            }
+        }
+    });
+}
+//function PrintTable() {
+//    var id = $("#ID").val()
+//    $.ajax({
+//        url: webUrl + "PrintInvoice?ID=" + id,
+//        method: "GET",
+//        dataType: 'JSON',
+//        success: function (data) {
+//            if (data['success'] == true) {
+//                $("#reportContainer").html(data.table);
+//                printOnlyTable(id);
+//            }
+//        }
+//    })
+//}
+
+//function printOnlyTable(id) {
+//    $.ajax({
+//        url: webUrl + "PrintInvoice?ID=" + id,
+//        method: "GET",
+//        dataType: 'JSON',
+//        success: function (data) {
+//            if (data['success'] == true) {
+//                alert("A")
+//                $("#reportContainer").html(data.table);
+//                var printContent = $("#reportContainer").html();
+//                var printWindow = window.open('', '_blank', 'width=800,height=600');
+//                printWindow.document.write(printContent);
+//                // Ensure images are loaded before calling the print method
+//                var images = printWindow.document.getElementsByTagName('img');
+//                var loadedImagesCount = 0;
+
+//                function checkImagesLoaded() {
+//                    for (var i = 0; i < images.length; i++) {
+//                        if (images[i].complete) {
+//                            loadedImagesCount++;
+//                        }
+//                    }
+
+//                    // Once all images are loaded, trigger the print
+//                    if (loadedImagesCount === images.length) {
+//                        printWindow.document.close();  // Necessary for IE <= 9
+//                        printWindow.print();
+//                    } else {
+//                        // Wait for a while before checking again
+//                        setTimeout(checkImagesLoaded, 100);
+//                    }
+//                }
+
+//                // Start checking if the images are loaded
+//                checkImagesLoaded();
+//            }
+//        }
+
+//    })
+//}
 
 // For getting item lookup and units (Not using now in POS)
 $(document).on("keyup", ".productCode1", function (event) {

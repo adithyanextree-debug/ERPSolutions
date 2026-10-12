@@ -287,14 +287,315 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 List<Models.FiTransactionEntries> FiTransactionEntries = request.FiTransactionEntries;
                 Models.FiTransactions FiTransactions = request.FiTransactions;
                 Models.FiTransactionAdditionals FiTransactionAdditionals = request.FiTransactionAdditionals;
-                DALVouchers.InsertTransaction(request);
-                //additional 
+                string resultID = DALVouchers.InsertTransaction(request);
 
-                return Json(new { success = true });
+                if (int.TryParse(resultID, out int transactionId))
+                {
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Transaction inserted successfully.",
+                        transactionNo = transactionId
+                    });
+                }
+
+                return Json(new
+                {
+                    success = false,
+                    message = "failed to insert transaction.",
+                    transactionNo = resultID
+                });
 
             }
             catch (Exception ex) { throw; }
 
+        }
+
+        public async Task<IActionResult> PrintInvoice(int ID)
+        {
+            // 1. Header details
+            //var invoiceNo = DALVouchers.GetTransactionNo(VoucherTypeRow["ID"], BranchID);
+
+            DataTable dt1 = DALVouchers.DataTableFillTransactions(ID);
+            DataRow dr1 = dt1.Rows[0];
+            //Helper: safely read a column that may or may not exist in a DataRow
+            string GetSafe(DataRow row, string col, string fallback = "")
+            {
+                return row.Table.Columns.Contains(col) ? (row[col]?.ToString() ?? fallback) : fallback;
+            }
+
+            decimal GetSafeDecimal(DataRow row, string col)
+            {
+                return row.Table.Columns.Contains(col) && decimal.TryParse(row[col]?.ToString(), out var v) ? v : 0m;
+            }
+
+            // TODO: confirm these column names against your POS header table
+            decimal paidAmount = GetSafeDecimal(dr1, "PaidAmount");
+            decimal balanceAmount = GetSafeDecimal(dr1, "BalanceAmount");
+            decimal headerDiscount = GetSafeDecimal(dr1, "Discount");
+            string  invoiceNo = dr1["TransactionNo"].ToString();
+            DateTime billDateTime = DateTime.Now;
+            string billDate = billDateTime.ToString("dd/MM/yyyy");
+            string billTime = billDateTime.ToString("h:mm:sstt").ToUpper(); // e.g. 1:24:46PM
+
+            // 2. Line items
+            DataTable dt4 = DALVouchers.DataTableFillTransactionEntries(ID);
+           
+            // TODO: Replace these with your actual company info (from config/session/DB)
+            string companyName = "AL SAQER HOUSEHOLD TRADING";
+            string companyAddressLine1 = "AL RUMAILA-1";
+            string companyAddressLine2 = "AJMAN,U.A.E";
+            string companyMob = "MOB : 050-7044566";
+            string companyTRN = "TRN :100392636500003";
+            string companyWeb = "www.go2camps.com";
+
+            // TODO: Replace with the actual static QR code image path you use
+            var qrImgPath = Url.Content("~/CompanyLogo/SalesInvoice.png");
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"
+<style type='text/css' media='print'>
+    @@page {
+        size: A4 portrait;
+        margin: 12mm 12mm 22mm 12mm;
+    }
+    #posinvoicetable {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 11px;
+        color:#000;
+        margin: 0 auto;
+        width: 76mm;
+    }
+    .receipt-wrapper { width:100%; padding: 4px 6px; }
+    .center { text-align:center; }
+    .bold { font-weight:bold; }
+    .company-name { font-weight:bold; font-size:13px; }
+    .company-line { font-size:10.5px; }
+    .tax-invoice-title { font-weight:bold; font-size:12px; margin-top:4px; }
+    .dotted-line { border:none; border-top:1px dotted #000; margin:4px 0; height:0; }
+    .meta-table { width:100%; border-collapse:collapse; font-size:10.5px; margin:4px 0; }
+    .meta-table td { padding:0; vertical-align:top; }
+    .items-table { width:100%; border-collapse:collapse; margin-top:2px; table-layout:fixed; }
+    .items-table th, .items-table td { padding:1px 2px; font-size:10px; vertical-align:top; word-wrap:break-word; }
+    .items-table th { text-align:left; font-weight:bold; border-bottom:1px dotted #000; }
+    .items-table td.num, .items-table th.num { text-align:right; }
+    .items-table td.desc { text-align:left; }
+    .totals-table { width:100%; border-collapse:collapse; margin-top:4px; font-size:10.5px; }
+    .totals-table td { padding:1px 0; }
+    .totals-table td.label { text-align:left; }
+    .totals-table td.value { text-align:right; }
+    .footer-block { margin-top:6px; font-size:10.5px; }
+    .footer-block img { display:block; margin:4px auto; max-width:90px; }
+    .thank-you { font-weight:bold; margin-top:2px; }
+</style>
+<style type='text/css' media='screen'>
+    #posinvoicetable {
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size:11px;
+        color:#000;
+        width:76mm;
+        margin: 0 auto;
+    }
+    .receipt-wrapper { width:100%; padding:4px 6px; }
+    .center { text-align:center; }
+    .bold { font-weight:bold; }
+    .company-name { font-weight:bold; font-size:13px; }
+    .tax-invoice-title { font-weight:bold; font-size:12px; margin-top:4px; }
+    .dotted-line { border:none; border-top:1px dotted #000; margin:4px 0; height:0; }
+    .meta-table { width:100%; border-collapse:collapse; font-size:10.5px; margin:4px 0; }
+    .items-table { width:100%; border-collapse:collapse; margin-top:2px; }
+    .items-table th, .items-table td { padding:1px 2px; font-size:10px; }
+    .items-table td.num, .items-table th.num { text-align:right; }
+    .totals-table { width:100%; border-collapse:collapse; margin-top:4px; font-size:10.5px; }
+    .totals-table td.value { text-align:right; }
+    .footer-block { margin-top:6px; font-size:10.5px; text-align:center; }
+    .footer-block img { display:block; margin:4px auto; max-width:90px; }
+</style>
+
+            <div class='receipt-wrapper' id='posinvoicetable'>
+
+                <div class='center company-name'>" + companyName + @"</div>
+                <div class='center company-line'>" + companyAddressLine1 + @"</div>
+                <div class='center company-line'>" + companyAddressLine2 + @"</div>
+                <div class='center company-line'>" + companyMob + @"</div>
+                <div class='center company-line'>" + companyTRN + @"</div>
+                <div class='center tax-invoice-title'>TAX INVOICE</div>
+
+                <hr class='dotted-line' />
+
+                <table class='meta-table'>
+                    <tr>
+                        <td style='width:33%;'><span class='bold'>BILL NO:#</span> " + invoiceNo + @"</td>
+                        <td style='width:34%;' class='center'>" + billDate + @"</td>
+                        <td style='width:33%;' class='center'>" + billTime + @"</td>
+                    </tr>
+                </table>
+
+                <hr class='dotted-line' />
+
+                <table class='items-table'>
+                    <colgroup>
+                        <col style='width:46%;'>
+                        <col style='width:12%;'>
+                        <col style='width:16%;'>
+                        <col style='width:12%;'>
+                        <col style='width:14%;'>
+                    </colgroup>
+                    <thead>
+                        <tr>
+                            <th>DESCRIPTION</th>
+                            <th class='num'>QTY</th>
+                            <th class='num'>RATE</th>
+                            <th class='num'>VAT</th>
+                            <th class='num'>AMOUNT</th>
+                        </tr>
+                    </thead>
+            <tbody>");
+
+            decimal grandGross = 0;
+            decimal grandVat = 0;
+            decimal grandTotal = 0;
+            decimal RateTotal = 0;
+
+            foreach (DataRow dr4 in dt4.Rows)
+            {
+                string itemName = dr4["ItemName"].ToString();
+                int qty = Convert.ToInt32(dr4["Qty"]);
+                decimal rate = Convert.ToDecimal(dr4["Rate"]);
+                decimal tax = Convert.ToDecimal(dr4["TaxValue"]);
+                decimal discount = Convert.ToDecimal(dr4["Discount"]);
+
+                decimal lineTotal = qty * rate;
+                decimal amount = lineTotal - discount + tax;
+
+                RateTotal += rate;
+                grandGross += lineTotal;
+                grandVat += tax;
+                grandTotal += amount;
+
+                sb.Append(@"
+            <tr>
+                <td class='desc'>" + itemName + @"</td>
+                <td class='num'>" + qty + @"</td>
+                <td class='num'>" + rate.ToString("0.00") + @"</td>
+                <td class='num'>" + tax.ToString("0.00") + @"</td>
+                <td class='num'>" + amount.ToString("0.00") + @"</td>
+            </tr>");
+            }
+
+            decimal vatPercent = grandGross > 0 ? Math.Round((grandVat / grandGross) * 100, 0) : 0;
+
+            sb.Append(@"
+                </tbody>
+            </table>
+
+                <hr class='dotted-line' />
+
+                <table class='totals-table'>
+                    <tr>
+                        <td class='label'>TOTAL</td>
+                        <td class='value'>" + RateTotal.ToString("0.00") + @" AED</td>
+                    </tr>
+                    <tr>
+                        <td class='label'>DISCOUNT</td>
+                        <td class='value'>" + headerDiscount.ToString("0.00") + @" AED</td>
+                    </tr>
+                    <tr>
+                        <td class='label'>VAT " + vatPercent.ToString("0") + @"%</td>
+                        <td class='value'>" + grandVat.ToString("0.00") + @" AED</td>
+                    </tr>
+                    <tr>
+                        <td class='label bold'>TOTAL AMOUNT</td>
+                        <td class='value bold'>" + grandTotal.ToString("0.00") + @" AED</td>
+                    </tr>
+                </table>
+
+                <hr class='dotted-line' />
+
+                <table class='totals-table'>
+                    <tr>
+                        <td class='label'>PAID AMOUNT</td>
+                        <td class='value'>" + paidAmount.ToString("0.00") + @" AED</td>
+                    </tr>
+                    <tr>
+                        <td class='label'>BALANCE</td>
+                        <td class='value'>" + balanceAmount.ToString("0.00") + @" AED</td>
+                    </tr>
+                </table>
+
+                <hr class='dotted-line' />
+
+                <div class='footer-block'>
+                    <img src='" + qrImgPath + @"' />
+                    <div class='bold center'>SCAN ME</div>
+                    <div class='bold center'>" + companyWeb + @"</div>
+                    <div class='center thank-you'>*** THANK YOU FOR SHOPPING ***</div>
+                </div>
+
+                <hr class='dotted-line' />
+
+            </div>");
+
+            return Json(new { table = sb.ToString(), success = true });
+        }
+        private string NumberToWords(decimal amount)
+        {
+            int rupees = (int)Math.Floor(amount);
+            int fils = (int)Math.Round((amount - rupees) * 100);
+
+            string rupeeWords = ConvertWholeNumberToWords(rupees).ToUpper();
+            string filsWords = fils > 0 ? ConvertWholeNumberToWords(fils).ToUpper() + " FILS" : "";
+
+            string result = rupeeWords + " DIRHAMS";
+            if (fils > 0) result += " AND " + filsWords;
+            return result;
+        }
+
+        private string ConvertWholeNumberToWords(int number)
+        {
+            if (number == 0) return "ZERO";
+
+            string[] ones = { "", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE",
+        "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN",
+        "SEVENTEEN", "EIGHTEEN", "NINETEEN" };
+            string[] tens = { "", "", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY" };
+
+            string ConvertGroup(int n)
+            {
+                string s = "";
+                if (n >= 100)
+                {
+                    s += ones[n / 100] + " HUNDRED ";
+                    n %= 100;
+                }
+                if (n >= 20)
+                {
+                    s += tens[n / 10] + " ";
+                    n %= 10;
+                    if (n > 0) s += ones[n] + " ";
+                }
+                else if (n > 0)
+                {
+                    s += ones[n] + " ";
+                }
+                return s.Trim();
+            }
+
+            string result = "";
+            int crore = number / 10000000;
+            number %= 10000000;
+            int lakh = number / 100000;
+            number %= 100000;
+            int thousand = number / 1000;
+            number %= 1000;
+            int rest = number;
+
+            if (crore > 0) result += ConvertGroup(crore) + " CRORE ";
+            if (lakh > 0) result += ConvertGroup(lakh) + " LAKH ";
+            if (thousand > 0) result += ConvertGroup(thousand) + " THOUSAND ";
+            if (rest > 0) result += ConvertGroup(rest);
+
+            return result.Trim();
         }
     }
 }

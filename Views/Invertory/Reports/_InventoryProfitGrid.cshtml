@@ -1,16 +1,13 @@
 ﻿@model ERPSample.Models.Inventory.Reports.InventoryProfitModel
 @using System.Data
-
 @{
     var dt = ViewBag.ReportData as DataTable;
 }
-
 @if (dt == null || dt.Rows.Count == 0)
 {
     <div class="alert alert-warning">No records found for the selected filters.</div>
     return;
 }
-
 @{
     string Val(DataRow r, string col)
         => r[col] == DBNull.Value ? "" : r[col].ToString();
@@ -20,202 +17,296 @@
 
     string Dt(DataRow r, string col)
         => r[col] == DBNull.Value ? "" : Convert.ToDateTime(r[col]).ToString("dd-MM-yyyy");
+    var ignoreColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "ItemID",
+        "ID",
+        "AccountID",
+    };
 }
-
 <div class="table-responsive" style="overflow-x: auto;">
     <table id="inventoryprofitTable" class="table table-bordered table-sm table-hover">
-
         @* ==================== THEAD ==================== *@
         <thead>
-
             @* ---------- ITEM ---------- *@
             @if (Model.Criteria == "Item")
             {
                 <tr>
                     <th>#</th>
-                    <th>Item Code</th>
-                    <th>Item Name</th>
-                    <th>Barcode</th>
-                    <th>Sales Qty</th>
-                    <th>Sales Rate</th>
-                    <th>Sales Amount</th>
-                    <th>Stock Qty</th>
-                    <th>Stock Rate</th>
-                    <th>Stock Amount</th>
-                    <th>Gross Profit</th>
-                    <th>GP (%)</th>
-                    <th>% of Total GP</th>
+                    @foreach (DataColumn col in dt.Columns)
+                    {
+                        if (ignoreColumns.Contains(col.ColumnName))
+                        {
+                            continue;
+                        }
+                        <th>@col.ColumnName</th>
+                    }
                 </tr>
             }
-
             @* ---------- VOUCHER ---------- *@
             else if (Model.Criteria == "Voucher")
             {
                 <tr>
-                    <th rowspan="2">#</th>
-                    <th rowspan="2">VNo</th>
-                    <th rowspan="2">VDate</th>
-                    <th rowspan="2">VType</th>
-                    <th rowspan="2">Party Code</th>
-                    <th rowspan="2">Party Name</th>
-                    <th rowspan="2">Reference No</th>
-                    @if (Model.IsDetailed == true)
+                    <th>#</th>
+
+                    @foreach (DataColumn col in dt.Columns)
                     {
-                        <th rowspan="2">Item Code</th>
-                        <th rowspan="2">Item Name</th>
-                    }
-                    <th colspan="3" class="text-center">Sales</th>
-                    <th colspan="3" class="text-center">Stock</th>
-                    <th colspan="3" class="text-center">Gross Profit</th>
-                    @if (Model.IsDetailed == false)
-                    {
-                        <th rowspan="2">Due Amount</th>
+                        if (ignoreColumns.Contains(col.ColumnName))
+                        {
+                            continue;
+                        }
+
+                        if (col.ColumnName == "SalesQty")
+                        {
+                            <th class="text-center" colspan="3">Sales</th>
+                        }
+
+                        if (col.ColumnName == "StockQty")
+                        {
+                            <th class="text-center" colspan="3">Stock</th>
+                        }
+
+                        if (col.ColumnName == "GrossProfit")
+                        {
+                            <th class="text-center" colspan="3">Gross Profit</th>
+                        }
+
+                        // Don't print the grouped columns in first row
+                        if (col.ColumnName == "SalesQty" ||
+                        col.ColumnName == "SalesRate" ||
+                        col.ColumnName == "SalesAmount" ||
+                        col.ColumnName == "StockQty" ||
+                        col.ColumnName == "StockRate" ||
+                        col.ColumnName == "StockAmount" ||
+                        col.ColumnName == "GrossProfit" ||
+                        col.ColumnName == "GP(%)" ||
+                        col.ColumnName == "%OfTotalGP")
+                        {
+                            continue;
+                        }
+                        <th>@col.ColumnName</th>
                     }
                 </tr>
                 <tr>
-                    <th>Qty</th>
-                    <th>Rate</th>
-                    <th>Amount</th>
+                    <th></th>
 
-                    <th>Qty</th>
-                    <th>Rate</th>
-                    <th>Amount</th>
+                    @foreach (DataColumn col in dt.Columns)
+                    {
+                        if (ignoreColumns.Contains(col.ColumnName))
+                        {
+                            continue;
+                        }
 
-                    <th>Gross Profit</th>
-                    <th>GP (%)</th>
-                    <th>Total GP</th>
+                        // Only print the grouped columns in second row
+                        if (col.ColumnName == "SalesQty" ||
+                        col.ColumnName == "SalesRate" ||
+                        col.ColumnName == "SalesAmount" ||
+                        col.ColumnName == "StockQty" ||
+                        col.ColumnName == "StockRate" ||
+                        col.ColumnName == "StockAmount" ||
+                        col.ColumnName == "GrossProfit" ||
+                        col.ColumnName == "GP(%)" ||
+                        col.ColumnName == "%OfTotalGP")
+                        {
+                            <th>@col.ColumnName</th>
+                        }
+                        else
+                        {
+                            <th></th>
+                        }
+                    }
                 </tr>
             }
-
             @* ---------- PARTY ---------- *@
             else if (Model.Criteria == "Party")
             {
                 <tr>
-                    <th rowspan="2">#</th>
-                    <th rowspan="2">Party Code</th>
-                    <th rowspan="2">Party Name</th>
-                    @if (Model.IsDetailed == true)
+                    <th>#</th>
+
+                    @foreach (DataColumn col in dt.Columns)
                     {
-                        <th rowspan="2">Item Code</th>
-                        <th rowspan="2">Item Name</th>
-                        <th rowspan="2">Barcode</th>
-                    }
-                    <th colspan="3" class="text-center">Sales</th>
-                    <th colspan="3" class="text-center">Stock</th>
-                    <th colspan="3" class="text-center">Gross Profit</th>
-                    @if (Model.IsDetailed == false)
-                    {
-                        <th rowspan="2">A/C Balance</th>
+                        if (ignoreColumns.Contains(col.ColumnName))
+                        {
+                            continue;
+                        }
+
+                        if (col.ColumnName == "SalesQty")
+                        {
+                            <th class="text-center" colspan="3">Sales</th>
+                        }
+
+                        if (col.ColumnName == "StockQty")
+                        {
+                            <th class="text-center" colspan="3">Stock</th>
+                        }
+
+                        if (col.ColumnName == "GrossProfit")
+                        {
+                            <th class="text-center" colspan="3">Gross Profit</th>
+                        }
+
+                        // Don't print the grouped columns in first row
+                        if (col.ColumnName == "SalesQty" ||
+                        col.ColumnName == "SalesRate" ||
+                        col.ColumnName == "SalesAmount" ||
+                        col.ColumnName == "StockQty" ||
+                        col.ColumnName == "StockRate" ||
+                        col.ColumnName == "StockAmount" ||
+                        col.ColumnName == "GrossProfit" ||
+                        col.ColumnName == "GP(%)" ||
+                        col.ColumnName == "%OfTotalGP")
+                        {
+                            continue;
+                        }
+                        <th>@col.ColumnName</th>
+
                     }
                 </tr>
                 <tr>
-                    <th>Qty</th>
-                    <th>Rate</th>
-                    <th>Amount</th>
+                    <th></th>
 
-                    <th>Qty</th>
-                    <th>Rate</th>
-                    <th>Amount</th>
+                    @foreach (DataColumn col in dt.Columns)
+                    {
+                        if (ignoreColumns.Contains(col.ColumnName))
+                        {
+                            continue;
+                        }
 
-                    <th>Gross Profit</th>
-                    <th>GP (%)</th>
-                    <th>Total GP</th>
+                        // Only print the grouped columns in second row
+                        if (col.ColumnName == "SalesQty" ||
+                        col.ColumnName == "SalesRate" ||
+                        col.ColumnName == "SalesAmount" ||
+                        col.ColumnName == "StockQty" ||
+                        col.ColumnName == "StockRate" ||
+                        col.ColumnName == "StockAmount" ||
+                        col.ColumnName == "GrossProfit" ||
+                        col.ColumnName == "GP(%)" ||
+                        col.ColumnName == "%OfTotalGP")
+                        {
+                            <th>@col.ColumnName</th>
+                        }
+                        else
+                        {
+                            <th></th>
+                        }
+                    }
                 </tr>
             }
-
         </thead>
-
         @* ==================== TBODY ==================== *@
         <tbody>
-            @{
-                int sNo = 1;
-            }
-
-            @foreach (DataRow row in dt.Rows)
+            @if (Model.Criteria == "Item")
             {
-                <tr>
-                    <td class="text-center">@(sNo++)</td>
-
-                    @* ---------- ITEM ROW ---------- *@
-                    @if (Model.Criteria == "Item")
-                    {
-                        <td>@Val(row, "ItemCode")</td>
-                        <td>@Val(row, "ItemName")</td>
-                        <td>@Num(row, "BarCode")</td>
-                        <td>@Num(row, "SalesQty")</td>
-                        <td>@Num(row, "SalesRate")</td>
-                        <td>@Num(row, "SalesAmount")</td>
-                        <td>@Num(row, "StockQty")</td>
-                        <td>@Num(row, "StockRate")</td>
-                        <td>@Num(row, "StockAmount")</td>
-                        <td>@Num(row, "GrossProfit")</td>
-                        <td>@Num(row, "GP(%)")</td>
-                        <td>@Num(row, "%OfTotalGP")</td>
-                    }
-
-                    @* ---------- VOUCHER ROW ---------- *@
-                    else if (Model.Criteria == "Voucher")
-                    {
-                        <td>@Val(row, "VNo")</td>
-                        <td>@Dt(row, "VDate")</td>
-                        <td>@Val(row, "VType")</td>
-                        <td>@Val(row, "AccountCode")</td>
-                        <td>@Val(row, "AccountName")</td>
-                        <td>@Val(row, "ReferenceNo")</td>
-                        @if (Model.IsDetailed == true)
+                int Sn = 0;
+                @foreach (DataRow row in dt.Rows)
+                {
+                    Sn++;
+                    <tr>
+                        <td>@Sn</td>
+                        @foreach (DataColumn col in dt.Columns)
                         {
-                            <td>@Val(row, "ItemCode")</td>
-                            <td>@Val(row, "ItemName")</td>
+                            if (ignoreColumns.Contains(col.ColumnName))
+                            {
+                                continue;
+                            }
+
+                            if (col.DataType == typeof(DateTime))
+                            {
+                                <td>@Dt(row, col.ColumnName)</td>
+                            }
+                            else if (col.DataType == typeof(decimal)
+                            || col.DataType == typeof(double)
+                            || col.DataType == typeof(float)
+                            || col.DataType == typeof(int)
+                            || col.DataType == typeof(long)
+                            || col.DataType == typeof(short))
+                            {
+                                <td class="text-end">@Num(row, col.ColumnName)</td>
+                            }
+                            else
+                            {
+                                <td>@Val(row, col.ColumnName)</td>
+                            }
                         }
-                        <td>@Num(row, "SalesQty")</td>
-                        <td>@Num(row, "SalesRate")</td>
-                        <td>@Num(row, "SalesAmount")</td>
+                    </tr>
+                }
 
-                        <td>@Num(row, "StockQty")</td>
-                        <td>@Num(row, "StockRate")</td>
-                        <td>@Num(row, "StockAmount")</td>
-
-                        <td>@Num(row, "GrossProfit")</td>
-                        <td>@Num(row, "GP(%)")</td>
-                        <td>@Num(row, "%OfTotalGP")</td>
-                        @if (Model.IsDetailed == false)
-                        {
-                        <td>@Num(row, "DueAmount")</td>
-                        }
-                    }
-
-                    @* ---------- PARTY ROW ---------- *@
-                    else if (Model.Criteria == "Party")
-                    {
-                        <td>@Val(row, "AccountCode")</td>
-                        <td>@Val(row, "AccountName")</td>
-                        @if (Model.IsDetailed == true)
-                        {
-                            <td>@Val(row, "ItemCode")</td>
-                            <td>@Val(row, "ItemName")</td>
-                            <td>@Num(row, "BarCode")</td>
-                        }
-                        <td>@Num(row, "SalesQty")</td>
-                        <td>@Num(row, "SalesRate")</td>
-                        <td>@Num(row, "SalesAmount")</td>
-
-                        <td>@Num(row, "StockQty")</td>
-                        <td>@Num(row, "StockRate")</td>
-                        <td>@Num(row, "StockAmount")</td>
-
-                        <td>@Num(row, "GrossProfit")</td>
-                        <td>@Num(row, "GP(%)")</td>
-                        <td>@Num(row, "%OfTotalGP")</td>
-                        @if (Model.IsDetailed == false)
-                        {
-                            <td>@Num(row, "A/C Balance")</td>
-                        }
-                    }
-
-                </tr>
             }
+  
+            @if (Model.Criteria == "Voucher")
+            {
+                int Sn = 0;
+                @foreach (DataRow row in dt.Rows)
+                {
+                    Sn++;
+                    <tr>
+                        <td>@Sn</td>
+                        @foreach (DataColumn col in dt.Columns)
+                        {
+                            if (ignoreColumns.Contains(col.ColumnName))
+                            {
+                                continue;
+                            }
 
+                            if (col.DataType == typeof(DateTime))
+                            {
+                                <td>@Dt(row, col.ColumnName)</td>
+                            }
+                            else if (col.DataType == typeof(decimal)
+                            || col.DataType == typeof(double)
+                            || col.DataType == typeof(float)
+                            || col.DataType == typeof(int)
+                            || col.DataType == typeof(long)
+                            || col.DataType == typeof(short))
+                            {
+                                <td class="text-end">@Num(row, col.ColumnName)</td>
+                            }
+                            else
+                            {
+                                <td>@Val(row, col.ColumnName)</td>
+                            }
+                        }
+                    </tr>
+                }
+            }
+ 
+            @if (Model.Criteria == "Party")
+            {
+                int Sn = 0;
+                @foreach (DataRow row in dt.Rows)
+                {
+                    Sn++;
+                    <tr>
+                        <td>@Sn</td>
+                        @foreach (DataColumn col in dt.Columns)
+                        {
+                            if (ignoreColumns.Contains(col.ColumnName))
+                            {
+                                continue;
+                            }
+
+                            if (col.DataType == typeof(DateTime))
+                            {
+                                <td>@Dt(row, col.ColumnName)</td>
+                            }
+                            else if (col.DataType == typeof(decimal)
+                            || col.DataType == typeof(double)
+                            || col.DataType == typeof(float)
+                            || col.DataType == typeof(int)
+                            || col.DataType == typeof(long)
+                            || col.DataType == typeof(short))
+                            {
+                                <td class="text-end">@Num(row, col.ColumnName)</td>
+                            }
+                            else
+                            {
+                                <td>@Val(row, col.ColumnName)</td>
+                            }
+                        }
+                    </tr>
+                }
+            }
+  
         </tbody>
-
     </table>
 </div>

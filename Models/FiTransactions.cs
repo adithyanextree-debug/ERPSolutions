@@ -29,7 +29,7 @@ namespace ERPSample.Models
         public int? CompanyID { get; set; }
         public int? FinYearID { get; set; }
 
-        public char? InstrumentType { get; set; }
+        public string? InstrumentType { get; set; }
         public string? InstrumentNo { get; set; }
         public DateTime? InstrumentDate { get; set; }
         public string? InstrumentBank { get; set; }
@@ -45,7 +45,7 @@ namespace ERPSample.Models
         public char? ApprovalStatus { get; set; }
         public string? ApproveNote { get; set; }
 
-        public char? Action { get; set; }
+        public string? Action { get; set; }
         public int? StatusID { get; set; }
 
         public bool? IsAutoEntry { get; set; }
@@ -90,11 +90,11 @@ namespace ERPSample.Models
         public decimal? Discount { get; set; }
         public bool? FinanceUpdate { get; set; }
         public bool? CostUpdate { get; set; }
-        public decimal? Cash { get; set; }
-        public decimal? Card { get; set; }
-        public decimal? Tax { get; set; }
+        public decimal? CashAmount { get; set; }
+        public decimal? CardAmount { get; set; }
+        public decimal? TaxAmount { get; set; }
         public bool? IsCredit { get; set; }
-        public decimal? Credit { get; set; }
+        public decimal? CreditAmount { get; set; }
        
     }
 
@@ -135,7 +135,7 @@ namespace ERPSample.Models
             Columns.Add("AddedDate", typeof(DateTime));
             Columns.Add("ApprovedDate", typeof(DateTime));
 
-            Columns.Add("ApprovalStatus", typeof(string));
+            Columns.Add("ApprovalStatus", typeof(char));
             Columns.Add("ApproveNote", typeof(string));
 
             Columns.Add("Action", typeof(string));
@@ -173,11 +173,11 @@ namespace ERPSample.Models
             Columns.Add("DeliveryTimeSlotID", typeof(int));
             Columns.Add("FinanceUpdate", typeof(bool));
             Columns.Add("CostUpdate", typeof(bool));
-            Columns.Add("Cash", typeof(decimal));
-            Columns.Add("Card", typeof(decimal));
-            Columns.Add("Tax", typeof(decimal));
+            Columns.Add("CashAmount", typeof(decimal));
+            Columns.Add("CardAmount", typeof(decimal));
+            Columns.Add("TaxAmount", typeof(decimal));
             Columns.Add("IsCredit", typeof(bool));
-            Columns.Add("Credit", typeof(decimal));
+            Columns.Add("CreditAmount", typeof(decimal));
             
             Columns.Add("RowState", typeof(int));
         }

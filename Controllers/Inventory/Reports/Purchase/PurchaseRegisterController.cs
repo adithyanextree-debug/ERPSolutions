@@ -29,8 +29,8 @@ namespace ERPSample.Controllers.Inventory.Reports.Purchase
 
             _DALVouchers = new Lazy<DAL.General.Common.Vouchers>(() => new(conn));
             _DALMenu = new Lazy<DAL.General.Common.Menu>(() => new(conn));
-            _MenuRow = new Lazy<DataRow>(() => DALMenu.LoadWindowsForm(15).Rows[0]);
-            _VoucherTypeRow = new Lazy<DataRow>(() => DALVouchers.FillVoucherRow(15, MenuRow["ID"]));
+            _MenuRow = new Lazy<DataRow>(() => DALMenu.LoadWindowsForm(200).Rows[0]);
+            _VoucherTypeRow = new Lazy<DataRow>(() => DALVouchers.FillVoucherRow(200, MenuRow["ID"]));
 
             // Re-create DAL with the connection string from BaseController
             _purchaseDAL = new PurchaseRegisterDAL(conn);

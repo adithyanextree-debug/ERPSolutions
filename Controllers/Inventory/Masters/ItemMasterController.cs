@@ -830,7 +830,7 @@ namespace ERPSample.Controllers.Inventory.Masters
                 sb.Append("<td>");
                 sb.Append("<div class='form-check form-switch form-check-reverse'>");
                 sb.Append("<input id = 'productISDefault" + dr["ID"] + "' name = 'productISDefault" + dr["ID"] + "' type = 'checkbox'   element-id='" + dr["ID"] + "'");
-                if (Convert.ToBoolean(dr["IsDefault"]))
+                if (dr["IsDefault"] != DBNull.Value && Convert.ToBoolean(dr["IsDefault"]))
                 {
                     sb.Append(" checked ");
                 }
@@ -841,7 +841,7 @@ namespace ERPSample.Controllers.Inventory.Masters
                 sb.Append("<td>");
                 sb.Append("<div class='form-check form-switch form-check-reverse'>");
                 sb.Append("<input id = 'productunitActive" + dr["ID"] + "' name = 'productunitActive" + dr["ID"] + "' type = 'checkbox'  element-id='" + dr["ID"] + "'");
-                if (Convert.ToBoolean(dr["Active"]))
+                if (dr["Active"] != DBNull.Value && Convert.ToBoolean(dr["Active"]))
                 {
                     sb.Append(" checked ");
                 }
@@ -914,7 +914,7 @@ namespace ERPSample.Controllers.Inventory.Masters
                 sb.Append("<td>");
                 sb.Append("<div class='form-check form-switch form-check-reverse d-flex justify-content-center align-items-center'>");
                 sb.Append("<input id = 'productbarcodeActive" + dr["ID"] + "' name = 'productbarcodeActive" + dr["ID"] + "' type = 'checkbox'  element-id='" + dr["ID"] + "'");
-                if (Convert.ToBoolean(dr["Active"]))
+                if (dr["Active"] != DBNull.Value && Convert.ToBoolean(dr["Active"]))
                 {
                     sb.Append(" checked ");
                 }
@@ -972,7 +972,7 @@ namespace ERPSample.Controllers.Inventory.Masters
                 sb.Append("    <td><input class='form-control productimageTitle' type='text'  id='productimageTitle" + dr["ID"] + "' value='" + dr["Title"].ToString() + "' element-id='" + dr["ID"] + "' disabled></td>");
                 sb.Append("    <td><input class='form-control productimageArabicTitle' type='text'  id='productimageArabicTitle" + dr["ID"] + "' value='" + dr["ArabicTitle"].ToString() + "' element-id='" + dr["ID"] + "'></td>");
                 sb.Append("    <td><input class='form-control productimageSize' type='text' style='width:2cm;' id='productimageSize" + dr["ID"] + "' value='" + dr["ImageSize"].ToString() + "' element-id='" + dr["ID"] + "' disabled></td>");
-                if (Convert.ToBoolean(dr["IsDefault"]))
+                if (dr["IsDefault"] != DBNull.Value && Convert.ToBoolean(dr["IsDefault"]))
                 {
                     sb.Append("    <td id='tdproductimageSetPrimary" + dr["ID"] + "' class='col isDefault'><button type='button' id='productimageSetPrimary" + dr["ID"] + "'  class='btn btn-success rounded-1 productimageSetPrimary'  " +
                    "element-id='" + dr["ID"] + "' imageid='true' style=''>Primary</button></td>");
@@ -985,7 +985,7 @@ namespace ERPSample.Controllers.Inventory.Masters
                 sb.Append("    <td>");
                 sb.Append("        <div class='form-check form-switch form-check-reverse'>");
                 sb.Append("            <input class='form-check-input' id='productimageActive" + dr["ID"] + "' type='checkbox' role='switch'");
-                if (Convert.ToBoolean(dr["Active"]))
+                if (dr["Active"] != DBNull.Value && Convert.ToBoolean(dr["Active"]))
                 {
                     sb.Append(" checked >");
                 }

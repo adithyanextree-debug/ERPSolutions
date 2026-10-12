@@ -86,6 +86,350 @@ namespace ERPSample.Controllers.Inventory.Transactions
             return View("~/Views/Invertory/Transactions/PurchaseForm.cshtml");
         }
 
+        public async Task<IActionResult> GetCashDetails()
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = 1;
+            sb.Append("<tr id='CashRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm CashAccountCode excelCells' id='CashAccountCode" + Sn + "' name='CashAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'CashAccountCode" + Sn + "','lookupDIVCashAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('CashAccountCode" + Sn + "','lookupDIVCashAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='CashAccount' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVCashAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdCashAccountDescription" + Sn + "' style='width:10cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='CashAccountDescription excelCells form-control form-control-sm' type='text' id='CashAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdCashAmount" + Sn + "' style='width:3cm; '>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells CashAmount form-control form-control-sm' id='CashAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCash' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Cashdeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCash' id='Cashdeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='cashitemid excelCells form-control' id='cashitemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            string htmlString = sb.ToString();
+            return Json(new { cashTable = htmlString });
+        }
+
+        public async Task<IActionResult> GetCardDetails()
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = 1;
+            sb.Append("<tr id='CardRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm CardAccountCode excelCells' id='CardAccountCode" + Sn + "' name='CardAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'CardAccountCode" + Sn + "','lookupDIVCardAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('CardAccountCode" + Sn + "','lookupDIVCardAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='CardAccount' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVCardAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdCardAccountDescription" + Sn + "' style='width:10cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='CardAccountDescription excelCells form-control form-control-sm' type='text' id='CardAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdCardAmount" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells CardAmount form-control form-control-sm' id='CardAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCard' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Carddeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCard' id='Carddeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='carditemid excelCells form-control' id='carditemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            string htmlString = sb.ToString();
+            return Json(new { cardTable = htmlString });
+        }
+
+        public async Task<IActionResult> GetChequeDetails()
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = 1;
+            sb.Append("<tr id='ChequeRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm ChequeAccountCode excelCells' id='ChequeAccountCode" + Sn + "' name='ChequeAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'ChequeAccountCode" + Sn + "','lookupDIVChequeAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('ChequeAccountCode" + Sn + "','lookupDIVChequeAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='BankorCheque' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVChequeAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // ChequeNo
+            sb.Append("<td class='p-1' id='TdChequeNo" + Sn + "' style='width:3cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='ChequeNo excelCells form-control form-control-sm' type='text' id='ChequeNo" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Cheque Date
+            sb.Append("<td class='p-1' id='TdChequeDate" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' oninput='formatDateInput(this)' class='ChequeDate form-control form-control-sm excelCells' type='text' id='ChequeDate" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Bank Name
+            sb.Append("<td class='p-1' style='width:5cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm BankAccountCode excelCells' id='BankAccountCode" + Sn + "' name='BankAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'BankAccountCode" + Sn + "','lookupDIVBankAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('BankAccountCode" + Sn + "','lookupDIVBankAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='BankName' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVBankAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Clearing Days
+            sb.Append("<td class='p-1' id='TdChequeClearingDays" + Sn + "' style='width:3cm; '>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells ChequeClearingDays form-control form-control-sm' id='ChequeClearingDays" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdChequeAccountDescription" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='ChequeAccountDescription excelCells form-control form-control-sm' type='text' id='ChequeAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdChequeAmount" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells ChequeAmount form-control form-control-sm' id='ChequeAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCheque' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Chequedeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCheque' id='Chequedeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            sb.Append("<td style='display:none;' chequeitemid=''>");
+            sb.Append("</td>");
+
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='chequeitemid excelCells form-control' id='chequeitemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            string htmlString = sb.ToString();
+            return Json(new { chequeTable = htmlString });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> NewRowCash(int? no)
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = (no ?? 0) + 1;
+
+            sb.Append("<tr id='CashRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm CashAccountCode excelCells' id='CashAccountCode" + Sn + "' name='CashAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'CashAccountCode" + Sn + "','lookupDIVCashAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('CashAccountCode" + Sn + "','lookupDIVCashAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='CashAccount' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVCashAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdCashAccountDescription" + Sn + "' style='width:10cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='CashAccountDescription excelCells form-control form-control-sm' type='text' id='CashAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdCashAmount" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells CashAmount form-control form-control-sm' id='CashAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCash' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Cashdeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCash' id='Cashdeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='cashitemid excelCells form-control' id='cashitemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            return Json(new { success = true, newrow = sb.ToString() });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> NewRowCard(int? no)
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = (no ?? 0) + 1;
+
+            sb.Append("<tr id='CardRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm CardAccountCode excelCells' id='CardAccountCode" + Sn + "' name='CardAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'CardAccountCode" + Sn + "','lookupDIVCardAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('CardAccountCode" + Sn + "','lookupDIVCardAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='CardAccount' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVCardAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdCardAccountDescription" + Sn + "' style='width:10cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='CardAccountDescription excelCells form-control form-control-sm' type='text' id='CardAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdCardAmount" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells CardAmount form-control form-control-sm' id='CardAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCard' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Carddeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCard' id='Carddeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='carditemid excelCells form-control' id='carditemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            return Json(new { success = true, newrow = sb.ToString() });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> NewRowCheque(int? no)
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = (no ?? 0) + 1;
+
+            sb.Append("<tr id='ChequeRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm ChequeAccountCode excelCells' id='ChequeAccountCode" + Sn + "' name='ChequeAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'ChequeAccountCode" + Sn + "','lookupDIVChequeAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('ChequeAccountCode" + Sn + "','lookupDIVChequeAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='BankorCheque' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVChequeAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // ChequeNo
+            sb.Append("<td class='p-1' id='TdChequeNo" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='ChequeNo excelCells form-control form-control-sm' type='text' id='ChequeNo" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Cheque Date
+            sb.Append("<td class='p-1' id='TdChequeDate" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' oninput='formatDateInput(this)' class='ChequeDate form-control form-control-sm excelCells' type='text' id='ChequeDate" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Bank Name
+            sb.Append("<td class='p-1' style='width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm BankAccountCode excelCells' id='BankAccountCode" + Sn + "' name='BankAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'BankAccountCode" + Sn + "','lookupDIVBankAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('BankAccountCode" + Sn + "','lookupDIVBankAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='BankName' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVBankAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Clearing Days
+            sb.Append("<td class='p-1' id='TdChequeClearingDays" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells ChequeClearingDays form-control form-control-sm' id='ChequeClearingDays" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdChequeAccountDescription" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='ChequeAccountDescription excelCells form-control form-control-sm' type='text' id='ChequeAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdChequeAmount" + Sn + "' style='width:3cm; min-width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells ChequeAmount form-control form-control-sm' id='ChequeAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCheque' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Chequedeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCheque' id='Chequedeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            sb.Append("<td style='display:none;' chequeitemid=''>");
+            sb.Append("</td>");
+
+
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='chequeitemid excelCells form-control' id='chequeitemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            return Json(new { success = true, newrow = sb.ToString() });
+        }
+
         [HttpPost]
         public async Task<IActionResult> InsertTransaction([FromBody] SaveTransactionEntryRequest request)
         {
@@ -120,9 +464,14 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 List<Models.FiTransactionEntries> FiTransactionEntries = request.FiTransactionEntries;
                 Models.FiTransactions FiTransactions = request.FiTransactions;
                 Models.FiTransactionAdditionals FiTransactionAdditionals = request.FiTransactionAdditionals;
-                DALVouchers.InsertTransaction(request);
-                //additional 
-                return Json(new { success = true });
+                string result = DALVouchers.InsertTransaction(request);
+                int transactionId;
+                if (int.TryParse(result, out transactionId))
+                {
+                    return Json(new { success = true, transactionNo = transactionId });
+                }
+
+                return Json(new { success = false, message = result });
             }
             catch (Exception ex)
             {
@@ -138,11 +487,14 @@ namespace ERPSample.Controllers.Inventory.Transactions
             try
             {
                 DataTable Transaction = DALVouchers.DataTableFillTransactions(ID);
-                DataTable Entries = DALVouchers.DataTableFillTransactionEntries(ID);
+                DataTable Items = DALVouchers.DataTableFillTransactionEntries(ID);
                 DataTable Additional = DALVouchers.DataTableFillTransactionAdditionals(ID);
+                DataTable Entries = DALVouchers.FillTransactionEntries(ID);
+
                 StringBuilder sb = new StringBuilder();
-                string ListWarehouse = "";
                 string paymentmode = "";
+                string SalesArea = "";
+                string ListWarehouse = "";
 
                 if (Additional.Rows.Count > 0)
                 {
@@ -181,7 +533,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 int No = 1;
 
 
-                foreach (DataRow dr in Entries.Rows)
+                foreach (DataRow dr in Items.Rows)
                 {
                     DataSet Details = DALVouchers.ProductAvailableUnits(Convert.ToInt64(dr["ItemID"]));
                     DataTable dataTable = Details.Tables[0];
@@ -216,27 +568,27 @@ namespace ERPSample.Controllers.Inventory.Transactions
 
                     // 3. Qty
                     sb.Append("<td id='qtyTd" + Sn + "'>");
-                    sb.Append("<input type='text' style='width: 2cm;text-align:center;' class='form-control ItemQty excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Qty"]), 2) + "' element-id='" + Sn + "' id='ItemQty" + Sn + "' /></td>");
+                    sb.Append("<input type='text' style=' text-align:center;' class='form-control ItemQty excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Qty"]), 2) + "' element-id='" + Sn + "' id='ItemQty" + Sn + "' /></td>");
 
                     // 4. Rate
                     sb.Append("<td id='rateTd" + Sn + "' >");
-                    sb.Append("<input type='text' style='width: 2cm;text-align:right;' class='form-control ItemRate excelCells' element-factor='" + ToFixedNoRound(Convert.ToDecimal(dr["Factor"]), 2) + "' element-id='" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Rate"]), 2) + "' id='ItemRate" + Sn + "' disabled/></td>");
+                    sb.Append("<input type='text' style=' text-align:right;' class='form-control ItemRate excelCells' element-factor='" + ToFixedNoRound(Convert.ToDecimal(dr["Factor"]), 2) + "' element-id='" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Rate"]), 2) + "' id='ItemRate" + Sn + "' disabled/></td>");
 
                     // 5. Gross Amount
                     sb.Append("<td class='ItemGrossAmtTd' >");
-                    sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells'style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["GrossAmount"]), 2) + "' disabled/></td>");
+                    sb.Append("<input type='text' class='form-control ItemGrossAmt excelCells'style=' text-align:right;' element-id='" + Sn + "' id='ItemGrossAmt" + Sn + "' value='" + ToFixedNoRound(Convert.ToDecimal(dr["GrossAmount"]), 2) + "' disabled/></td>");
 
                     // 6. Discount %
                     sb.Append("<td class='discsTd' id='dicsTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' style='width: 2cm;text-align:center;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["DiscountPerc"]), 2) + "' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemDiscPer excelCells' style=' text-align:center;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["DiscountPerc"]), 2) + "' element-id='" + Sn + "' id='ItemDiscPer" + Sn + "' /></td>");
 
                     // 7. Discount Amt
                     sb.Append("<td class='dicsAmtTd' id='dicsAmtTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' style='width: 2cm;text-align:right;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Discount"]), 2) + "' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemDiscAmt excelCells' style=' text-align:right;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Discount"]), 2) + "' element-id='" + Sn + "' id='ItemDiscAmt" + Sn + "' /></td>");
 
                     // 8. Amount
                     sb.Append("<td class='amtTd' id='amtTd" + Sn + "'>");
-                    sb.Append("<input type='text' class='form-control ItemAmt excelCells' style='width: 2cm;text-align:right;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Amount"]), 2) + "' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/></td>");
+                    sb.Append("<input type='text' class='form-control ItemAmt excelCells' style=' text-align:right;' value='" + ToFixedNoRound(Convert.ToDecimal(dr["Amount"]), 2) + "' element-id='" + Sn + "' id='ItemAmt" + Sn + "' disabled/></td>");
 
                     // 9. Tax %
                     sb.Append("<td class='taxPerTd' id='taxPerTd" + Sn + "' >");
@@ -248,27 +600,27 @@ namespace ERPSample.Controllers.Inventory.Transactions
                         {
                             DataTable TaxDetails = DALVouchers.ProductTaxDetails(Convert.ToInt64(taxTypeValue));
                             // Always display two decimal places (50.00 instead of 50.0)
-                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;text-align:center;'  value='" + String.Format("{0:F2}", TaxDetails.Rows[0]["SalesPerc"]) + "' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' taxaccountid='" + TaxDetails.Rows[0]["TaxAccountID"] + "' />");
+                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style=' text-align:center;'  value='" + String.Format("{0:F2}", TaxDetails.Rows[0]["SalesPerc"]) + "' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' taxaccountid='" + TaxDetails.Rows[0]["TaxAccountID"] + "' />");
                         }
                         else
                         {
                             // Always display two decimal places (50.00 instead of 50.0)
-                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style='width: 2cm;text-align: center;'  value='' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
+                            sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' taxTypeID='" + dr["TaxTypeID"] + "' style=' text-align: center;'  value='' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' />");
                         }
                     }
                     else
                     {
-                        sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' style='width: 2cm;text-align: center;' />");
+                        sb.Append("<input type='text' class='form-control ItemTaxPer excelCells' element-id='" + Sn + "' id='ItemTaxPer" + Sn + "' style=' text-align: center;' />");
                     }
                     sb.Append("</td>");
 
                     // 10. Tax Amount
                     sb.Append("<td class='taxAmtTd' id='taxAmtTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TaxValue"]), 2) + "' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' /></td>");
+                    sb.Append("<input type='text' class='form-control ItemTaxAmt excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TaxValue"]), 2) + "' style=' text-align:right;' element-id='" + Sn + "' id='ItemTaxAmt" + Sn + "' /></td>");
 
                     // 11. Total
                     sb.Append("<td class='itemTotalTd' id='itemTotalTd" + Sn + "' >");
-                    sb.Append("<input type='text' class='form-control ItemTotal excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TotalAmount"]), 2) + "' style='width: 2cm;text-align:right;' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled/></td>");
+                    sb.Append("<input type='text' class='form-control ItemTotal excelCells' value='" + ToFixedNoRound(Convert.ToDecimal(dr["TotalAmount"]), 2) + "' style=' text-align:right;' element-id='" + Sn + "' id='ItemTotal" + Sn + "' disabled/></td>");
 
                     // 12. Add Row Button
                     sb.Append("<td class='col'><button type='button' class='btn btn-outline-primary rounded-1 addrow' element-id='" + Sn + "' serialno='" + Sn + "'><i class='fa-solid fa-plus'></i></button></td>");
@@ -288,6 +640,44 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 string Entities = sb.ToString();
                 sb.Clear();
 
+                decimal TotalPaid = 0;
+                decimal cash = 0;
+                decimal card = 0;
+                decimal cheque = 0;
+                int EntryID = 0;
+                DateTime DueDate = DateTime.MinValue;
+                foreach (DataRow dr in Entries.Rows)
+                {
+                    string tranType = Convert.ToString(dr["TranType"]);
+
+                    decimal amount = dr["Amount"] != DBNull.Value
+                        ? Convert.ToDecimal(dr["Amount"])
+                        : 0;
+
+                    if (tranType == "Party" || tranType == "Normal")
+                    {
+                        TotalPaid = amount;
+                        DueDate = dr["DueDate"] != DBNull.Value
+                            ? Convert.ToDateTime(dr["DueDate"])
+                            : DateTime.MinValue;
+                        EntryID = dr["ID"] != DBNull.Value
+                            ? Convert.ToInt32(dr["ID"])
+                            : 0;
+                    }
+                    else if (tranType == "Cash")
+                    {
+                        cash = amount;
+                    }
+                    else if (tranType == "Card")
+                    {
+                        card = amount;
+                    }
+                    else if (tranType == "Cheque")
+                    {
+                        cheque = amount;
+                    }
+                }
+
                 // Serialize once each — no duplicate loop
                 string Trans = SerializeDataTable(Transaction);
                 string Additionalentries = SerializeDataTable(Additional);
@@ -303,7 +693,14 @@ namespace ERPSample.Controllers.Inventory.Transactions
                     account = "",
                     warehouses = ListWarehouse,
                     message = "Success",
-                    mode = paymentmode
+                    mode = paymentmode,
+                    card = card,
+                    cash = cash,
+                    cheque = cheque,
+                    totalpaid = TotalPaid,
+                    entryid = EntryID,
+                    duedate = DueDate
+
                 });
 
             }

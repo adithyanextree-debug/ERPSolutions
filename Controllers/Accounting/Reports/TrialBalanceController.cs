@@ -43,8 +43,6 @@ namespace ERPSample.Controllers.Accounting.Reports
                 return PartialView("~/Views/Accounting/Reports/_TrialBalance.cshtml", trialBalanceModel);
             }
 
-
-
             //======upto here=====//
             return View("~/Views/Accounting/Reports/TrialBalance.cshtml", trialBalanceModel);
         }

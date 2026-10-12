@@ -190,20 +190,33 @@ $(document).on("blur", ".Debit, .Credit", function () {
     }
 });
 // ─── Real-time Debit/Credit update ───────────────────────────────────────────
+// ─── Real-time Debit/Credit update ───────────────────────────────────────────
 $(document).on("keyup change paste", ".Debit, .Credit", function () {
-    // CHANGED: removed validateMutualExclusion, only update totals and auto-fill last row
     updateJournalTotals();
-    autoFillLastRowBalance();
+
+    var id = $(this).attr('element-id');
+    var $rows = $('#Itemtable tbody tr');
+    var $lastRow = $rows.last();
+    var lastRowId = $lastRow.find('.Debit').attr('id')
+        ? $lastRow.find('.Debit').attr('id').replace('Debit', '')
+        : null;
+
+    // Only auto-fill the last row when a DIFFERENT row changed.
+    // If the user is typing directly into the last row, leave it alone.
+    if (id !== lastRowId) {
+        autoFillLastRowBalance();
+    }
 });
 
 // ─── Auto-fill last row balance ───────────────────────────────────────────────
 // Calculates the difference of all rows EXCEPT the last row,
 // and fills the last row's opposite field automatically.
+
 function autoFillLastRowBalance() {
     var $rows = $('#Itemtable tbody tr');
     var totalRows = $rows.length;
 
-    if (totalRows < 2) return; // Need at least 2 rows
+    if (totalRows < 2) return;
 
     var $lastRow = $rows.last();
     var lastRowId = $lastRow.find('.Debit').attr('id')
@@ -214,7 +227,6 @@ function autoFillLastRowBalance() {
 
     var debitSum = 0, creditSum = 0;
 
-    // Sum all rows EXCEPT the last row
     $rows.not(':last').each(function () {
         var rowId = $(this).find('.Debit').attr('id')
             ? $(this).find('.Debit').attr('id').replace('Debit', '')
@@ -230,21 +242,65 @@ function autoFillLastRowBalance() {
     var diff = debitSum - creditSum;
 
     if (diff > 0) {
-        // Debit side is more — last row needs Credit
         $("#Credit" + lastRowId).val(diff.toFixed(2)).css('text-align', 'right');
         $("#Debit" + lastRowId).val('').css('text-align', 'right');
     } else if (diff < 0) {
-        // Credit side is more — last row needs Debit
         $("#Debit" + lastRowId).val(Math.abs(diff).toFixed(2)).css('text-align', 'right');
         $("#Credit" + lastRowId).val('').css('text-align', 'right');
     } else {
-        // Already balanced — clear last row's auto-filled values
         $("#Debit" + lastRowId).val('').css('text-align', 'right');
         $("#Credit" + lastRowId).val('').css('text-align', 'right');
     }
 
     updateJournalTotals();
 }
+
+//function autoFillLastRowBalance() {
+//    var $rows = $('#Itemtable tbody tr');
+//    var totalRows = $rows.length;
+
+//    if (totalRows < 2) return; // Need at least 2 rows
+
+//    var $lastRow = $rows.last();
+//    var lastRowId = $lastRow.find('.Debit').attr('id')
+//        ? $lastRow.find('.Debit').attr('id').replace('Debit', '')
+//        : null;
+
+//    if (!lastRowId) return;
+
+//    var debitSum = 0, creditSum = 0;
+
+//    // Sum all rows EXCEPT the last row
+//    $rows.not(':last').each(function () {
+//        var rowId = $(this).find('.Debit').attr('id')
+//            ? $(this).find('.Debit').attr('id').replace('Debit', '')
+//            : null;
+//        if (!rowId) return;
+
+//        var d = parseFloat($("#Debit" + rowId).val()) || 0;
+//        var c = parseFloat($("#Credit" + rowId).val()) || 0;
+//        debitSum += d;
+//        creditSum += c;
+//    });
+
+//    var diff = debitSum - creditSum;
+
+//    if (diff > 0) {
+//        // Debit side is more — last row needs Credit
+//        $("#Credit" + lastRowId).val(diff.toFixed(2)).css('text-align', 'right');
+//        $("#Debit" + lastRowId).val('').css('text-align', 'right');
+//    } else if (diff < 0) {
+//        // Credit side is more — last row needs Debit
+//        $("#Debit" + lastRowId).val(Math.abs(diff).toFixed(2)).css('text-align', 'right');
+//        $("#Credit" + lastRowId).val('').css('text-align', 'right');
+//    } else {
+//        // Already balanced — clear last row's auto-filled values
+//        $("#Debit" + lastRowId).val('').css('text-align', 'right');
+//        $("#Credit" + lastRowId).val('').css('text-align', 'right');
+//    }
+
+//    updateJournalTotals();
+//}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -283,6 +339,59 @@ function formatAndRecalculate() {
     updateJournalTotals();
 }
 
+//Date formatting fucntion for DueDate fields in entries table
+//function formatDateInput(input) {
+//    let value = input.value.replace(/\D/g, '');
+
+//    if (value.length > 2 && value.length <= 4) {
+//        value = value.substring(0, 2) + '/' + value.substring(2);
+//    } else if (value.length > 4) {
+//        value = value.substring(0, 2) + '/' + value.substring(2, 4) + '/' + value.substring(4, 8);
+//    }
+
+//    input.value = value;
+//}
+
+function formatDateInput(input) {
+    let value = input.value.replace(/\D/g, '');
+
+    if (value.length >= 2) {
+        value = value.substring(0, 2) + '-' + value.substring(2);
+    }
+    if (value.length >= 5) {
+        value = value.substring(0, 5) + '-' + value.substring(5, 9);
+    }
+
+    input.value = value;
+}
+//to avoide the date and month mismatch issue while saving  
+function convertToISODate(dateStr) {
+    if (!dateStr) return null;
+
+    // expecting dd-mm-yyyy or dd/mm/yyyy
+    var parts = dateStr.split(/[-\/]/);
+
+    if (parts.length !== 3) return null;
+
+    var day = parseInt(parts[0], 10);
+    var month = parseInt(parts[1], 10);
+    var year = parseInt(parts[2], 10);
+
+    if (!day || !month || !year) return null;
+
+    var date = new Date(year, month - 1, day);
+
+    // validation (VERY IMPORTANT)
+    if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+    ) {
+        return null;
+    }
+
+    return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
 // CHANGED: validateMutualExclusion removed entirely — no more disabling of opposite field
 
 // ─── Save Entry ──────────────────────────────────────────────────────────────
@@ -384,7 +493,7 @@ function SaveEntry() {
             'Description': $("#AccountDescription" + i).val() || null,
             'CommonNarration': $("#AccountDescription" + i).val() || null,
             'TranType': null,
-            'DueDate': (dueDate && dueDate.trim() !== '') ? dueDate : null,
+            'DueDate': convertToISODate(dueDate),
             'RefTransID': null,
             'CurrencyID': 17,
             'ExchangeRate': 1.0,
@@ -446,13 +555,13 @@ function SaveEntry() {
         'InstrumentNo': null,
         'InstrumentDate': null,
         'InstrumentBank': null,
-        'CommonNarration': null,
+        'CommonNarration': $("#Description").val() || null,
         'ApprovedBy': null,
         'AddedDate': new Date().toISOString(),
         'ApprovedDate': null,
         'ApproveNote': null,
         'AccountID': null,
-        'Description': $("#Description").val() || null,
+        'Description': null,
         'RowState': (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
     };
 

@@ -25,7 +25,7 @@ namespace ERPSample.Controllers.Inventory.Reports
 
             _DALVouchers = new Lazy<DAL.General.Common.Vouchers>(() => new(conn));
             _DALMenu = new Lazy<DAL.General.Common.Menu>(() => new(conn));
-            _MenuRow = new Lazy<DataRow>(() => DALMenu.LoadWindowsForm(278).Rows[0]);
+            _MenuRow = new Lazy<DataRow>(() => DALMenu.LoadWindowsForm(307).Rows[0]);
 
             // Re-create DAL with the connection string from BaseController
             _monthlysalessummaryDAL = new MonthlySalesSummaryDAL(conn);

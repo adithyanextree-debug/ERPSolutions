@@ -53340,3 +53340,30 @@ label {
 .text-customtitle-primary {
     color: black !important
 }
+/* 04-06-2026 for lookup div scrollbar width increase*/
+#globalLookupContainer::-webkit-scrollbar {
+    width: 12px;
+}
+
+#globalLookupContainer::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+#globalLookupContainer::-webkit-scrollbar-thumb {
+    background-color: #5aa6d8;
+    border-radius: 8px;
+    border: 2px solid #f1f1f1;
+}
+
+    #globalLookupContainer::-webkit-scrollbar-thumb:hover {
+        background-color: #337ab7;
+    }
+.lookup tbody tr.lookup-active-row,
+.lookup tbody tr.lookup-active-row td {
+    background-color: #cfe2ff !important;
+    color: #000000 !important;
+}
+
+.lookup tbody tr {
+    cursor: pointer;
+}

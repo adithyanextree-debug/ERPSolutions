@@ -452,7 +452,33 @@ namespace ERPSample.DAL.General.Common
             }
         }
 
-        public void FillTransactionEntries(DataTable dtTransactionEntries, Object TransactionID)
+        public DataTable FillTransactionEntries(long transactionID)
+        {
+            try
+            {
+                using (SqlConnection con = new SqlConnection(ConnectionString))
+                using (SqlCommand cmd = new SqlCommand("VoucherSP", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Criteria", "FillTransactionEntries");
+                    cmd.Parameters.AddWithValue("@TransactionID", transactionID);
+
+                    using (SqlDataAdapter adp = new SqlDataAdapter(cmd))
+                    {
+                        DataTable dtTransactions = new DataTable();
+                        adp.Fill(dtTransactions);
+                        return dtTransactions;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+        }
+
+
+        public void FillTransactionItemEntries(DataTable dtTransactionEntries, Object TransactionID)
         {
             try
             {
@@ -6466,27 +6492,39 @@ namespace ERPSample.DAL.General.Common
                 // Use 'using' to ensure connection and command are disposed of properly
                 using (SqlConnection Con = new SqlConnection(ConnectionString))
                 {
-                    using (SqlCommand Cmd = new SqlCommand("VoucherSP", Con))
+                    using (SqlCommand Cmd = new SqlCommand("VoucherSaveSP", Con))
                     {
                         // Set command type and parameters
                         Cmd.CommandType = CommandType.StoredProcedure;
-                        Cmd.Parameters.AddWithValue("@Criteria", "DeleteTransactions");
+                        Cmd.Parameters.AddWithValue("@Mode", 4);
                         Cmd.Parameters.AddWithValue("@ID", ID);
 
-                        // Open connection and execute the command
+                        // Open connection and execute the query
                         Con.Open();
-                        int Result = Cmd.ExecuteNonQuery();
-
-                        // Check if the operation was successful
-                        if (Result != 0)
-                        {
-                            return "true";
-                        }
-                        else
-                        {
-                            return "Unable to delete Transaction";
-                        }
+                        Cmd.ExecuteNonQuery();
+                        return "true";
                     }
+                    //using (SqlCommand Cmd = new SqlCommand("VoucherSP", Con))
+                    //{
+                    //    // Set command type and parameters
+                    //    Cmd.CommandType = CommandType.StoredProcedure;
+                    //    Cmd.Parameters.AddWithValue("@Criteria", "DeleteTransactions");
+                    //    Cmd.Parameters.AddWithValue("@ID", ID);
+
+                    //    // Open connection and execute the command
+                    //    Con.Open();
+                    //    int Result = Cmd.ExecuteNonQuery();
+
+                    //    // Check if the operation was successful
+                    //    if (Result != 0)
+                    //    {
+                    //        return "true";
+                    //    }
+                    //    else
+                    //    {
+                    //        return "Unable to delete Transaction";
+                    //    }
+                    //}
                 }
             }
             catch (Exception Ex)
@@ -8382,94 +8420,96 @@ namespace ERPSample.DAL.General.Common
             }
         }
 
-        //public DataTable NewBarcode(string barcode)
-        //{
-        //      try
-        //    {
-        //        SqlDataAdapter da = new SqlDataAdapter("Select InvItemMaster.ItemName,InvItemBarcodes.Barcode from InvItemMaster inner join InvItemBarcodes on InvItemMaster.ID = InvItemBarcodes.ItemId WHERE InvItemBarcodes.Barcode=@Barcode;", new SqlConnection(ConnectionString));
-        //        da.SelectCommand.Parameters.AddWithValue("@Barcode", barcode);
-        //        DataTable dt = new DataTable();
-        //        da.Fill(dt);
-        //        return dt;
-        //    }
-        //    catch (Exception) { throw; }
-        //}
         //public string InsertTransaction(SaveTransactionEntryRequest request)
         //{
-        //    // 1️ Build DataTables using helpers
         //    // ----- 1. Validate Mandatory Objects -----
         //    if (request?.FiTransactions == null)
         //        return "Transaction header (FiTransactions) is required";
 
-        //if (request?.InvTransItems == null || !request.InvTransItems.Any())
-        //    return "At least one transaction item is required";
+        //    //if (request?.InvTransItems == null || !request.InvTransItems.Any())
+        //    //    return "At least one transaction item is required";
 
         //    // ----- 2. Convert Mandatory -----
         //    DataTable transactionDT =
         //        FiTransactionsHelper.ToDataTable(new[] { request.FiTransactions });
 
         //    DataTable itemsDT =
-        //        InvTransItemsHelper.ToDataTable(request.InvTransItems);
-
-        //    // ----- 3. Convert Optional Safely -----
+        //        request?.InvTransItems != null && request.InvTransItems.Any()
+        //            ? InvTransItemsHelper.ToDataTable(request.InvTransItems)
+        //            : InvTransItemsHelper.ToDataTable(new List<InvTransItems>());
         //    DataTable additionalsDT =
         //        request?.FiTransactionAdditionals != null
         //            ? FiTransactionAdditionalsHelper.ToDataTable(new[] { request.FiTransactionAdditionals })
-        //            : new DataTable();
-
+        //            : FiTransactionAdditionalsHelper.ToDataTable(new List<FiTransactionAdditionals>());
         //    DataTable entriesDT =
         //        request?.FiTransactionEntries != null
         //            ? FiTransactionEntriesHelper.ToDataTable(request.FiTransactionEntries)
-        //            : new DataTable();
-
-        //    // Execute Stored Procedure
-        //    using (SqlConnection con = new SqlConnection(ConnectionString))
-        //    using (SqlCommand cmd = new SqlCommand("VoucherSaveSP", con))
+        //            : FiTransactionEntriesHelper.ToDataTable(new List<FiTransactionEntries>());
+        //    // ----- 4. Execute Stored Procedure -----
+        //    try
         //    {
-        //        cmd.CommandType = CommandType.StoredProcedure;
-
-        //        cmd.Parameters.Add(new SqlParameter
+        //        using (SqlConnection con = new SqlConnection(ConnectionString))
+        //        using (SqlCommand cmd = new SqlCommand("VoucherSaveSP", con))
         //        {
-        //            ParameterName = "@FiTransactions",
-        //            SqlDbType = SqlDbType.Structured,
-        //            TypeName = "udtFiTransactions",
-        //            Value = transactionDT
-        //        });
+        //            cmd.CommandType = CommandType.StoredProcedure;
 
-        //        cmd.Parameters.Add(new SqlParameter
-        //        {
-        //            ParameterName = "@FiTransactionAdditionals",
-        //            SqlDbType = SqlDbType.Structured,
-        //            TypeName = "udtFiTransactionAdditionals",
-        //            Value = additionalsDT
-        //        });
+        //            cmd.Parameters.Add(new SqlParameter
+        //            {
+        //                ParameterName = "@FiTransactions",
+        //                SqlDbType = SqlDbType.Structured,
+        //                TypeName = "udtFiTransactions",
+        //                Value = transactionDT
+        //            });
 
-        //        cmd.Parameters.Add(new SqlParameter
-        //        {
-        //            ParameterName = "@FiTransactionEntries",
-        //            SqlDbType = SqlDbType.Structured,
-        //            TypeName = "udtFiTransactionEntries",
-        //            Value = entriesDT
-        //        });
+        //            cmd.Parameters.Add(new SqlParameter
+        //            {
+        //                ParameterName = "@FiTransactionAdditionals",
+        //                SqlDbType = SqlDbType.Structured,
+        //                TypeName = "udtFiTransactionAdditionals",
+        //                Value = additionalsDT
+        //                // FIX: TVP cannot accept DBNull.Value — pass empty DataTable instead
+        //            });
 
-        //        cmd.Parameters.Add(new SqlParameter
-        //        {
-        //            ParameterName = "@InvTransItems",
-        //            SqlDbType = SqlDbType.Structured,
-        //            TypeName = "udtInvTransItems",
-        //            Value = itemsDT
-        //        });
-        //        //cmd.Parameters.AddWithValue("@Cash", request.FiTransactions.Cash);
-        //        //cmd.Parameters.AddWithValue("@Card", request.FiTransactions.Card);
-        //        //cmd.Parameters.AddWithValue("@IsCredit", request.FiTransactions.Credit);
-        //        //cmd.Parameters.AddWithValue("@Discount", request.FiTransactions.Discount);
-        //        //cmd.Parameters.AddWithValue("@Tax", request.FiTransactions.Tax);
+        //            cmd.Parameters.Add(new SqlParameter
+        //            {
+        //                ParameterName = "@FiTransactionEntries",
+        //                SqlDbType = SqlDbType.Structured,
+        //                TypeName = "udtFiTransactionEntries",
+        //                Value = entriesDT
+        //                // FIX: always pass DataTable even if empty
+        //            });
 
-        //        con.Open();
-        //        cmd.ExecuteNonQuery();
+        //            cmd.Parameters.Add(new SqlParameter
+        //            {
+        //                ParameterName = "@InvTransItems",
+        //                SqlDbType = SqlDbType.Structured,
+        //                TypeName = "udtInvTransItems",
+        //                Value = itemsDT
+        //                // FIX: always pass DataTable even if empty
+        //            });
+        //            cmd.Parameters.AddWithValue("@Mode",1);
+
+        //            //cmd.Parameters.AddWithValue("@Cash",     request.FiTransactions.Cash);
+        //            //cmd.Parameters.AddWithValue("@Card",     request.FiTransactions.Card);
+        //            //cmd.Parameters.AddWithValue("@IsCredit", request.FiTransactions.Credit);
+        //            //cmd.Parameters.AddWithValue("@Discount", request.FiTransactions.Discount);
+        //            //cmd.Parameters.AddWithValue("@Tax",      request.FiTransactions.Tax);
+
+        //            con.Open();
+        //            cmd.ExecuteNonQuery();
+        //        }
+
+        //        return "true";
         //    }
-
-        //    return "true";
+        //    catch (SqlException ex)
+        //    {
+        //        // FIX: catch SQL errors and return message instead of crashing
+        //        return "SQL Error: " + ex.Message;
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return "Error: " + ex.Message;
+        //    }
         //}
 
         public string InsertTransaction(SaveTransactionEntryRequest request)
@@ -8497,12 +8537,23 @@ namespace ERPSample.DAL.General.Common
                 request?.FiTransactionEntries != null
                     ? FiTransactionEntriesHelper.ToDataTable(request.FiTransactionEntries)
                     : FiTransactionEntriesHelper.ToDataTable(new List<FiTransactionEntries>());
+            //For FiCheques table 
+            DataTable chequeDT =
+                request?.FiChequeEntry != null
+                    ? FiChequeEntryHelper.ToDataTable(request.FiChequeEntry)
+                    : FiChequeEntryHelper.ToDataTable(new List<FiChequeEntry>());
             // ----- 4. Execute Stored Procedure -----
+            SqlTransaction transaction = null;
+            int transactionId = 0;
             try
             {
                 using (SqlConnection con = new SqlConnection(ConnectionString))
                 using (SqlCommand cmd = new SqlCommand("VoucherSaveSP", con))
                 {
+                    con.Open();
+                    transaction = con.BeginTransaction();
+
+                    cmd.Transaction = transaction;
                     cmd.CommandType = CommandType.StoredProcedure;
 
                     cmd.Parameters.Add(new SqlParameter
@@ -8539,7 +8590,21 @@ namespace ERPSample.DAL.General.Common
                         Value = itemsDT
                         // FIX: always pass DataTable even if empty
                     });
-                    cmd.Parameters.AddWithValue("@Mode",1);
+
+                    cmd.Parameters.Add(new SqlParameter
+                    {
+                        ParameterName = "@FiChequeEntries",
+                        SqlDbType = SqlDbType.Structured,
+                        TypeName = "FiChequeEntries",
+                        Value = chequeDT
+                        // FIX: always pass DataTable even if empty
+                    });
+
+                    cmd.Parameters.AddWithValue("@Mode", 1);
+
+                    SqlParameter transactionIdParam = new SqlParameter("@TransactionID", SqlDbType.Int);
+                    transactionIdParam.Direction = ParameterDirection.Output;
+                    cmd.Parameters.Add(transactionIdParam);
 
                     //cmd.Parameters.AddWithValue("@Cash",     request.FiTransactions.Cash);
                     //cmd.Parameters.AddWithValue("@Card",     request.FiTransactions.Card);
@@ -8547,19 +8612,31 @@ namespace ERPSample.DAL.General.Common
                     //cmd.Parameters.AddWithValue("@Discount", request.FiTransactions.Discount);
                     //cmd.Parameters.AddWithValue("@Tax",      request.FiTransactions.Tax);
 
-                    con.Open();
-                    cmd.ExecuteNonQuery();
+                    int i = cmd.ExecuteNonQuery();
+                    transactionId = Convert.ToInt32(transactionIdParam.Value);
+                    transaction.Commit();
                 }
-
-                return "true";
+                return transactionId.ToString();
             }
             catch (SqlException ex)
             {
+                try
+                {
+                    transaction?.Rollback();
+                }
+                catch { }
+
                 // FIX: catch SQL errors and return message instead of crashing
                 return "SQL Error: " + ex.Message;
             }
             catch (Exception ex)
             {
+                try
+                {
+                    transaction?.Rollback();
+                }
+                catch { }
+
                 return "Error: " + ex.Message;
             }
         }
@@ -8724,6 +8801,28 @@ namespace ERPSample.DAL.General.Common
             }
         }
 
-        
+        public DataTable GetEmirates()
+        {
+            try
+            {
+                DataTable dt = new DataTable();
+
+                // Use 'using' to ensure connection is properly disposed of after the operation
+                using (SqlConnection Con = new SqlConnection(ConnectionString))
+                {
+                    SqlDataAdapter da = new SqlDataAdapter(
+                        "select * from MaMisc where [Key] = 'State'", Con);
+
+                    da.Fill(dt);
+                }
+
+                return dt;
+            }
+            catch (Exception Ex)
+            {
+                throw Ex;
+            }
+        }
+
     }
 }

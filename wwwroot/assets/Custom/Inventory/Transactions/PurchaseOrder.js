@@ -453,9 +453,6 @@ function SaveEntry() {
     var flag3 = true;
     var flag4 = true;
     var items = [];
-    var entries = [];
-
-    var items = [];
     $('.productCode').each(function () {
         if ($(this).val() != '') {
             var i = $(this).attr('element-id');
@@ -494,7 +491,7 @@ function SaveEntry() {
                 'Discount': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
                 'Factor': factor,
                 'StockQty': factor * qty,
-                'InLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
+                'InLocID': null, // Nullable int
                 'DiscountPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxPerc': $("#ItemTaxPer" + i).val() ? parseFloat($("#ItemTaxPer" + i).val()) : 0, // Nullable float (default to 0)
                 'TaxValue': $("#ItemTaxAmt" + i).val() ? parseFloat($("#ItemTaxAmt" + i).val()) : 0, // Nullable float (default to 0)
@@ -542,7 +539,9 @@ function SaveEntry() {
         CostCentreID: (rawProject !== undefined && rawProject !== null && rawProject.trim() !== "" && !isNaN(rawProject) && parseInt(rawProject) > 0)
             ? parseInt(rawProject)
             : null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
+        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2,
+        TaxAmount: $("#Tax").val(),
+
     };
 
     var rawWarehouse = $("#Warehouse").val();
@@ -572,17 +571,13 @@ function SaveEntry() {
         AccountID: null,
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
     };
-    var entriesarray = {
-        DueDate: null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
-    }
-    entries.push(entriesarray)
+    
     if (flag4 && flag1 && flag2 && flag3) {
         var model = {
             'InvTransItems': items,
             'FiTransactions': transaction,
             'FiTransactionAdditionals': additionals,
-            'FiTransactionEntries': entries
+            'FiTransactionEntries': null
         }
     }
     else {
@@ -745,6 +740,7 @@ function RowClick(RowID) {
                 $("#Attention").val(additionals.BankAddress);
                 $("#Terms").val(additionals.Terms); 
 
+                
                 // -------- SUM CALCULATIONS WITH NO ROUNDING --------
                 var qtysum = 0;
                 $('.ItemQty').each(function () {
@@ -788,6 +784,10 @@ function RowClick(RowID) {
                 $(".ItemDiscPer").css('text-align', 'center');
                 updateAllSums();        //  Replaces all repeated sum blocks
                 calculateGrandTotal();  //  Recalculate grand total
+                $("#Tax").prop("disabled", true);
+                $("#TotalDiscount").prop("disabled", true);
+                $("#NetAmount").prop("disabled", true);
+                $("#GrandTotal").prop("disabled", true);
                 $("#Party").focus();
             }
             else {
@@ -871,53 +871,59 @@ function updateSum(selector, targetSelector, align = 'right') {
 
 function calculateRow(id, changedField = '') {
 
-    let rawQty = $("#ItemQty" + id).val();
-
-    // USER IS CLEARING → DON’T INTERFERE
-    if (rawQty === "") return;
-
-    const qty = parseFloat(rawQty);
-    if (isNaN(qty)) return;
-
+    const qty = parseFloat($("#ItemQty" + id).val()) || 0;
     const rate = parseFloat($("#ItemRate" + id).val()) || 0;
-
     const grossAmt = qty * rate;
 
+    // --- Discount ---
     let discAmt = parseFloat($("#ItemDiscAmt" + id).val()) || 0;
     let discPer = parseFloat($("#ItemDiscPer" + id).val()) || 0;
 
-    // Only sync opposite field
     if (changedField === 'ItemDiscAmt') {
         discPer = grossAmt ? (discAmt / grossAmt) * 100 : 0;
         $("#ItemDiscPer" + id).val(toTwoDecimal(discPer));
-    }
-    else if (changedField === 'ItemDiscPer') {
+    } else if (changedField === 'ItemDiscPer') {
         discAmt = (grossAmt * discPer) / 100;
         $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
+    } else {
+        if (discPer > 0) {
+            discAmt = (grossAmt * discPer) / 100;
+            $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
+        } else if (discAmt > 0) {
+            discPer = grossAmt ? (discAmt / grossAmt) * 100 : 0;
+            $("#ItemDiscPer" + id).val(toTwoDecimal(discPer));
+        }
     }
 
     const amt = grossAmt - discAmt;
 
+    // --- Tax ---
     let taxAmt = parseFloat($("#ItemTaxAmt" + id).val()) || 0;
     let taxPer = parseFloat($("#ItemTaxPer" + id).val()) || 0;
 
     if (changedField === 'ItemTaxAmt') {
         taxPer = amt ? (taxAmt / amt) * 100 : 0;
         $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
-    }
-    else if (changedField === 'ItemTaxPer') {
+    } else if (changedField === 'ItemTaxPer') {
         taxAmt = (amt * taxPer) / 100;
         $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+    } else {
+        if (taxPer > 0) {
+            taxAmt = (amt * taxPer) / 100;
+            $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+        } else if (taxAmt > 0) {
+            taxPer = amt ? (taxAmt / amt) * 100 : 0;
+            $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
+        }
     }
 
     const total = amt + taxAmt;
 
-    // ONLY SYSTEM FIELDS ARE FORMATTED
-    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt));
-    $("#ItemAmt" + id).val(toTwoDecimal(amt));
-    $("#ItemTotal" + id).val(toTwoDecimal(total));
+    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt)).css('text-align', 'right');
+    $("#ItemAmt" + id).val(toTwoDecimal(amt)).css('text-align', 'right');
+    $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt)).css('text-align', 'right');
+    $("#ItemTotal" + id).val(toTwoDecimal(total)).css('text-align', 'right');
 }
-
 function updateAllSums() {
     updateSum('.ItemQty', '#qtySum', 'center');
     updateSum('.ItemGrossAmt', '#ItemGrossAmtSum');
@@ -940,48 +946,53 @@ function updateAllSums() {
     calculateGrandTotal();
 }
 
-// *** FIX: Removed val === "" from early return so clearing a field triggers recalculation ***
-$(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("input", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
 
     const id = $(this).attr('element-id');
-    const changedField = $(this).attr("id").replace(id, '');
+    const changedField = $(this).attr("id").replace(/\d+$/, '');
 
     let val = $(this).val();
 
-    // Allow natural typing of decimals
     if (val === "." || val.endsWith(".")) {
         return;
     }
 
-    // Reject only truly bad values (but allow empty string to fall through)
     if (val !== "" && (val.includes('-') || isNaN(val) || Number(val) < 0)) {
         return;
-    }
-
-    // Treat empty as 0 for calculation purposes
-    if (val === "") {
-        $(this).val(""); // keep it visually empty
     }
 
     calculateRow(id, changedField);
     updateAllSums();
 });
 
-
-$(document).on("blur", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("blur", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
     const val = parseFloat($(this).val());
     if (!isNaN(val)) {
         $(this).val(toTwoDecimal(val));
     }
+    const id = $(this).attr('element-id');
+    if (id) {
+        calculateRow(id);
+        updateAllSums();
+    }
 });
-
 //03-03-2026
 function getColumnSum(selector) {
     let sum = 0;
+
     $(selector).each(function () {
-        const val = parseFloat($(this).val());
-        if (!isNaN(val)) sum += val;
+        const value =
+            $(this).val() ||
+            $(this).text() ||
+            $(this).html();
+
+        const num = parseFloat(value);
+
+        if (!isNaN(num)) {
+            sum += num;
+        }
     });
+
     return sum;
 }
 
@@ -997,296 +1008,3 @@ function calculateGrandTotal() {
 $(document).on("input", "#AdditionalCharges", function () {
     calculateGrandTotal();
 });
-
-function SaveEntry1() {
-    if ($("#PurchaseTransactionID").val() != null && $("#PurchaseTransactionID").val() != "") {
-        if ($("#VoucherNo").val() == '') {
-            $("#VoucherNo").focus();
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: "Voucher No is mandatory",
-                confirmButtonText: 'Okay',
-                confirmButtonColor: '#d33',
-            });
-            return false
-        }
-    }
-    if ($("#VoucherDate").val() == '') {
-        $("#VoucherDate").focus();
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops!',
-            text: "Voucher Date is mandatory",
-            confirmButtonText: 'Okay',
-            confirmButtonColor: '#d33',
-        });
-        return false
-    }
-    if ($("#Party").val() == '' || $("#Party").val() == null) {
-        $("#Party").focus();
-        Swal.fire({
-            icon: 'error',
-            title: 'Oops!',
-            text: "Party is mandatory",
-            confirmButtonText: 'Okay',
-            confirmButtonColor: '#d33',
-        });
-        return false;
-    }
-    var flag1 = true;
-    var flag2 = true;
-    var flag3 = true;
-    var flag4 = true;
-
-    var items = [];
-    $('.productCode').each(function () {
-        if ($(this).val() != '') {
-            var i = $(this).attr('element-id');
-            if ($("#ItemUnit" + i).val() == '' || $("#ItemUnit" + i).val() == null) {
-                flag1 = false;
-                return false;
-
-            }
-            if ($("#ItemQty" + i).val() == '' || $("#ItemQty" + i).val() == null || parseInt($("#ItemQty" + i).val()) == 0) {
-                flag2 = false;
-                return false;
-
-            }
-            if ($("#ItemRate" + i).val() == '' || $("#ItemRate" + i).val() == null) {
-                flag3 = false;
-                return false;
-            }
-            var InTransItemId = $("#itemid" + i).val();
-
-            var itemAry = {
-                'ItemID': $("#productCode" + i).attr('data-idvalue') ? parseInt($("#productCode" + i).attr('data-idvalue')) : null, // Nullable int
-                'ID': InTransItemId, // Nullable int (assuming InTransItemId can be null)
-                'Unit': $("#ItemUnit" + i).val() || '', // Nullable string
-                'Qty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : null, // Nullable float
-                'Rate': $("#ItemRate" + i).val() ? parseFloat($("#ItemRate" + i).val()) : null, // Nullable float
-                'BasicQty': ($("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1) * ($("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0), // Nullable float
-                'TaxPerc': $("#ItemTaxPer" + i).val() ? parseFloat($("#ItemTaxPer" + i).val()) : 0, // Nullable float (default to 0)
-                'TaxValue': $("#ItemTaxAmt" + i).val() ? parseFloat($("#ItemTaxAmt" + i).val()) : 0, // Nullable float (default to 0)
-                'RateDiscPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
-                'RateDisc': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
-                'DiscountPerc': $("#ItemDiscPer" + i).val() ? parseFloat($("#ItemDiscPer" + i).val()) : 0, // Nullable float (default to 0)
-                'TaxTypeID': $("#ItemTaxPer" + i).attr('taxTypeID') ? parseInt($("#ItemTaxPer" + i).attr('taxTypeID')) : 0, // Nullable int (default to 0)
-                'TempQty': $("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0, // Nullable float (default to 0)
-                'Discount': $("#ItemDiscAmt" + i).val() ? parseFloat($("#ItemDiscAmt" + i).val()) : 0, // Nullable float (default to 0)
-                'Factor': $("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1, // Nullable float (default to 1)
-                'StockQty': ($("#ItemRate" + i).attr('element-factor') ? parseFloat($("#ItemRate" + i).attr('element-factor')) : 1) * ($("#ItemQty" + i).val() ? parseFloat($("#ItemQty" + i).val()) : 0), // Nullable float
-                'InLocID': $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
-                'Description': $("#Description").val() || '' // Nullable string
-            }
-            if ($(this).val() != '' && $("#ItemUnit" + i).val() != '' && $("#ItemQty" + i).val() != '' && $("#ItemRate" + i).val() != '') {
-                items.push(itemAry);
-            }
-
-        }
-        else {
-            flag4 = false;
-            return false;
-        }
-    });
-    var transaction = {
-        ID: $("#PurchaseTransactionID").val() ? parseInt($("#PurchaseTransactionID").val()) : null, // Nullable int
-        Date: $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null, // Nullable DateTime
-        EffectiveDate: $("#VoucherDate").val() ? new Date($("#VoucherDate").val()) : null, // Nullable DateTime
-        VoucherID: $("#VoucherType").attr("data-value") ? parseInt($("#VoucherType").attr("data-value")) : null, // Nullable int
-        TransactionNo: $("#VoucherNo").val() || '', // Nullable string
-        SerialNo: $("#VoucherNo").val() ? parseInt($("#VoucherNo").val()) : null, // Nullable long
-        ExchangeRate: 1.0, // Decimal, assuming default of 1.0
-        AddedDate: new Date().toISOString(), // DateTime
-        AccountID: $("#Party").attr('data-idvalue') ? parseInt($("#Party").attr('data-idvalue')) : null, // Nullable int
-        CommonNarration: $("#Description").val() || '', // Nullable string
-        ReferenceNo: $("#Reference").val() || '', // Nullable string
-        CostCentreID: $("#Project").attr('data-idvalue') ? parseInt($("#Project").attr('data-idvalue')) : null // Nullable int
-    };
-
-
-    var additionals = {
-        TransactionID: $("#PurchaseTransactionID").val() ? parseInt($("#PurchaseTransactionID").val()) : null, // Nullable int
-        TypeID: null,
-        ModeID: $("#Mode").val() ? parseInt($("#Mode").val()) : null, // Nullable int
-        ToLocationID: $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
-        InLocID: $("#Warehouse").val() ? parseInt($("#Warehouse").val()) : null, // Nullable int
-        Name: $("#PartyNameAddress").val() || '', // Nullable string
-        DocumentNo: $("#DispatchNo").val() || '', // Nullable string
-        DocumentDate: $("#DispatchDate").val() ? new Date($("#DispatchDate").val()) : null, // Nullable DateTime
-        EntryDate: $("#PartyInvoiceDate").val() ? new Date($("#PartyInvoiceDate").val()) : null, // Nullable DateTime
-        EntryNo: $("#PartyInvoiceNo").val() || '', // Nullable string
-        BankAddress: $("#Attention").val() || '', // Nullable string
-        ExpiryDate: $("#ExpiryDate").val() ? new Date($("#ExpiryDate").val()) : null, // Nullable DateTime
-        PassNo: $("#DeliveryNoteNo").val() || '', // Nullable string
-        ReferenceDate: $("#OrderDate").val() ? new Date($("#OrderDate").val()) : null, // Nullable DateTime
-        ReferenceNo: $("#OrderNo").val() || '', // Nullable string
-        AreaID: null, // Explicitly set as null
-        SubmitDate: $("#DeliveryNoteDate").val() ? new Date($("#DeliveryNoteDate").val()) : null, // Nullable DateTime
-        InterestAmt: $("#StaffIncentive").val() ? parseFloat($("#StaffIncentive").val()) : null, // Nullable decimal
-        InterestPerc: $("#StaffIncentivePerc").val() ? parseFloat($("#StaffIncentivePerc").val()) : null, // Nullable decimal
-        Address: $("#TermsofDelivery").val() || '', // Nullable string
-        Terms: $("#Terms").val() || '' // Nullable string
-    }
-    if (flag4 && flag1 && flag2 && flag3 == true) {
-        var model = {
-            'InvTransItems': items,
-            'FiTransactions': transaction,
-            'FiTransactionAdditionals': additionals
-        }
-
-    }
-    else {
-        if (flag4 == false) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: "Please enter the Item details",
-                confirmButtonText: 'Okay',
-                confirmButtonColor: '#d33',
-            });
-            return false;
-        }
-        if (flag1 == false) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: "Item Unit is mandatory",
-                confirmButtonText: 'Okay',
-                confirmButtonColor: '#d33',
-            });
-            return false;
-        }
-        if (flag2 == false) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: "Item Quantity is mandatory",
-                confirmButtonText: 'Okay',
-                confirmButtonColor: '#d33',
-            });
-            return false;
-        }
-        if (flag3 == false) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops!',
-                text: "Item Rate is mandatory",
-                confirmButtonText: 'Okay',
-                confirmButtonColor: '#d33',
-            });
-            return false;
-        }
-    }
-
-    $.ajax({
-        url: webUrl + "SaveTransactionEntry",
-        method: "POST",
-        contentType: "application/json; charset=utf-8",
-        data: JSON.stringify(model),
-        dataType: 'json',
-
-        beforeSend: function () {
-            $(".loader-wrapper").fadeIn("fast"); // will work if it's not removed
-        },
-
-        success: function (data) {
-            $(".loader-wrapper").fadeOut("slow", function () {
-                $(this).hide(); // keep it for reuse
-            });
-
-            if (data.success) {
-                Swal.fire({
-                    toast: true,
-                    position: 'top-end',
-                    icon: 'success',
-                    title: "Saved successfully!",
-                    showConfirmButton: false,
-                    timer: 3000,
-                    timerProgressBar: true
-                }).then(() => {
-                    var menuId = $("#MenuID").val();
-                    window.location.href = "/PurchaseOrder/Index?MenuID=" + menuId;
-                });
-
-                $("#ID").val(data.transactionNo);
-
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops!',
-                    text: data.message,
-                    confirmButtonText: 'Okay',
-                    confirmButtonColor: '#d33',
-                });
-            }
-        },
-
-        error: function () {
-            $(".loader-wrapper").fadeOut("slow", function () {
-                $(this).hide();
-            });
-
-            Swal.fire({
-                icon: 'error',
-                title: 'Error!',
-                text: 'Something went wrong while saving.',
-                confirmButtonText: 'Okay',
-                confirmButtonColor: '#d33',
-            });
-        }
-    });
-
-    //$.ajax({
-    //    url: webUrl + "SaveTransactionEntry",
-    //    method: "POST",
-    //    data: model,
-    //    dataType: 'JSON',
-    //    beforeSend: function () {
-    //        $(".loader-wrapper").fadeIn("fast"); // will work if it's not removed
-    //    },
-    //    success: function (data) {
-    //        $(".loader-wrapper").fadeOut("slow", function () {
-    //            $(this).hide(); // keep it for reuse
-    //        });
-
-    //        if (data.success) {
-    //            Swal.fire({
-    //                toast: true,
-    //                position: 'top-end',
-    //                icon: 'success',
-    //                title: "Saved successfully!",
-    //                showConfirmButton: false,
-    //                timer: 3000,
-    //                timerProgressBar: true
-    //            }).then(() => {
-    //                location.reload();
-    //            });
-
-    //            $("#PurchaseTransactionID").val(data.transactionNo);
-
-    //        } else {
-    //            Swal.fire({
-    //                icon: 'error',
-    //                title: 'Oops!',
-    //                text: data.message,
-    //                confirmButtonText: 'Okay',
-    //                confirmButtonColor: '#d33',
-    //            });
-    //        }
-    //    },
-    //    error: function () {
-    //        $(".loader-wrapper").fadeOut("slow", function () {
-    //            $(this).hide();
-    //        });
-
-    //        Swal.fire({
-    //            icon: 'error',
-    //            title: 'Error!',
-    //            text: 'Something went wrong while saving.',
-    //            confirmButtonText: 'Okay',
-    //            confirmButtonColor: '#d33',
-    //        });
-    //    }
-    //});
-}

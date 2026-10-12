@@ -22,6 +22,7 @@ namespace ERPSample.DAL.Accounting.Transactions
             new SqlDataAdapter(Cmd).Fill(ds);
             return ds;
         }
+        
         public DataTable FillTransactionEntries(Int64 TransactionID)
         {
             SqlCommand Cmd = new SqlCommand("VoucherSP", new SqlConnection(ConnectionString));

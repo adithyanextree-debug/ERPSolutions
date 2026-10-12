@@ -91,6 +91,30 @@
         padding-top: 6px;
         font-weight: 500;
     }
+    /* ─── Input + "..." button stay on the SAME row, same col ───────────── */
+    .input-with-btn {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch;
+        width: 100%;
+    }
+
+        .input-with-btn input.form-control {
+            flex: 1 1 auto;
+            min-width: 0; /* prevents input from forcing button to wrap */
+            border-radius: 4px 0 0 4px;
+        }
+
+        .input-with-btn button {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            border-radius: 0 4px 4px 0;
+            margin-left: -1px; /* avoids double border gap between input and button */
+        }
+
+    #reportContainer {
+        visibility: hidden;
+    }
 </style>
 
 <div class="container-fluid">
@@ -233,11 +257,11 @@
                                                 @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Reference", DisplayText = "Reference" }))
                                             </div>
                                         </div>
-                                       @*  <div class="col-md-4">
+                                        <div class="col-md-4">
                                             <div class="row">
                                                 @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Account", DisplayText = "Account" }))
                                             </div>
-                                        </div> *@
+                                        </div>
                                         <div class="col-md-4">
                                             <div class="row">
                                                 @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "Warehouse", DisplayText = "Warehouse" }))
@@ -368,17 +392,17 @@
                                                 <div class="col-md-4">
                                                     <div class="row">
                                                         @(await Component.InvokeAsync("TextBox",
-                                                            new
-                                                            {
-                                                                Type = "Lookup",
-                                                                ID = "Salesman",
-                                                                DisplayText = "Salesman",
-                                                                IDColumn = "ID",
-                                                                LookupCriteria = "SalesPerson",
-                                                                IDValue = 0,
-                                                                AssignColumn = "AccountName",
-                                                            })
-                                                        )
+                                                                                                                new
+                                                                                                                {
+                                                                                                                    Type = "Lookup",
+                                                                                                                    ID = "Salesman",
+                                                                                                                    DisplayText = "Salesman",
+                                                                                                                    IDColumn = "ID",
+                                                                                                                    LookupCriteria = "Staff",
+                                                                                                                    IDValue = 0,
+                                                                                                                    AssignColumn = "AccountName",
+                                                                                                                })
+                                                                )
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
@@ -560,17 +584,8 @@
                                         <div class="col-md-4">
                                         </div>
                                         <div class="col-md-4">
-                                            <div class="row">
-                                                <div class="row">
-                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
-                                                        <span class="grpspn">Tax </span>
-                                                    </div>
-                                                    <div class="col-md-8 pl-0">
-                                                        <input class="form-control " id="Tax" type="text" name="Tax" data-ismandatory="true" disabled>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
+                                        
                                         <div class="col-md-4">
                                             <div class="row">
                                                 <div class="row">
@@ -596,6 +611,16 @@
                                             </div>
                                         </div>
                                         <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Tax </span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input class="form-control " id="Tax" type="text" name="Tax" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="row">

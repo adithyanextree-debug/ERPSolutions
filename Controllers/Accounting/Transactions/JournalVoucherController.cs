@@ -184,9 +184,9 @@ namespace ERPSample.Controllers.Accounting.Transactions
             // Serial No
             sb.Append("<td class='serial-no text-center align-middle' style='width:40px;'>" + Sn + "</td>");
 
-            // Account Name — widest column
-            sb.Append("<td class='p-1' style='min-width:220px;'>");
-            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm AccountCode excelCells' id='AccountCode" + Sn + "' name='AccountCode" + Sn + "' placeholder='Account Name'");
+            // Account Name
+            sb.Append("<td class='p-1' style='width:10cm; min-width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm AccountCode excelCells' id='AccountCode" + Sn + "' name='AccountCode" + Sn + "' ");
             sb.Append(" onkeydown=\"ShowLookup(event,'AccountCode" + Sn + "','lookupDIVAccountCode" + Sn + "')\"");
             sb.Append(" oninput=\"LookupTextChanged('AccountCode" + Sn + "','lookupDIVAccountCode" + Sn + "')\"");
             sb.Append(" data-lookupcriteria='Accounts' data-idcolumn='ID' data-idvalue='" + Sn + "' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
@@ -194,24 +194,24 @@ namespace ERPSample.Controllers.Accounting.Transactions
             sb.Append("<div id='lookupDIVAccountCode" + Sn + "'></div>");
             sb.Append("</td>");
 
-            // Description — second widest
-            sb.Append("<td class='p-1' id='TdAccountDescription" + Sn + "' style='min-width:180px;'>");
-            sb.Append("<input style='width:100%; border-radius:6px;' class='AccountDescription excelCells form-control form-control-sm' type='text' id='AccountDescription" + Sn + "' placeholder='Description' value='' element-id='" + Sn + "'>");
+            // Description
+            sb.Append("<td class='p-1' id='TdAccountDescription" + Sn + "' style='width:20cm; min-width:20cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='AccountDescription excelCells form-control form-control-sm' type='text' id='AccountDescription" + Sn + "'  value='' element-id='" + Sn + "'>");
             sb.Append("</td>");
 
-            // Due Date — narrow
-            sb.Append("<td class='p-1' id='TdDueDate" + Sn + "' style='min-width:140px;'>");
-            sb.Append("<input style='width:100%; border-radius:6px;' class='DueDate form-control form-control-sm excelCells' type='date' id='DueDate" + Sn + "' element-id='" + Sn + "'>");
+            // Due Date
+            sb.Append("<td class='p-1' id='TdDueDate" + Sn + "' style='width:3cm; min-width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' oninput='formatDateInput(this)' class='DueDate form-control form-control-sm excelCells' type='text' id='DueDate" + Sn + "' element-id='" + Sn + "'>");
             sb.Append("</td>");
 
             // Debit
-            sb.Append("<td class='p-1' id='TdDebit" + Sn + "' style='min-width:120px;'>");
-            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Debit form-control form-control-sm' id='Debit" + Sn + "' placeholder='0.00' element-id='" + Sn + "'>");
+            sb.Append("<td class='p-1' id='TdDebit" + Sn + "' style='width:3cm; min-width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Debit form-control form-control-sm' id='Debit" + Sn + "'  element-id='" + Sn + "'>");
             sb.Append("</td>");
 
             // Credit
-            sb.Append("<td class='p-1' id='TdCredit" + Sn + "' style='min-width:120px;'>");
-            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Credit form-control form-control-sm' id='Credit" + Sn + "' placeholder='0.00' value='' element-id='" + Sn + "'>");
+            sb.Append("<td class='p-1' id='TdCredit" + Sn + "' style='width:3cm; min-width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Credit form-control form-control-sm' id='Credit" + Sn + "'  value='' element-id='" + Sn + "'>");
             sb.Append("</td>");
 
             // Add button
@@ -248,8 +248,8 @@ namespace ERPSample.Controllers.Accounting.Transactions
             sb.Append("<td class='serial-no text-center align-middle' style='width:40px;'></td>");
 
             // Account Name — widest column
-            sb.Append("<td class='p-1' style='min-width:220px;'>");
-            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm AccountCode excelCells' id='AccountCode" + Sn + "' name='AccountCode" + Sn + "' placeholder='Account Name'");
+            sb.Append("<td class='p-1' style='width:10cm; min-width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm AccountCode excelCells' id='AccountCode" + Sn + "' name='AccountCode" + Sn + "'");
             sb.Append(" onkeydown=\"ShowLookup(event,'AccountCode" + Sn + "','lookupDIVAccountCode" + Sn + "')\"");
             sb.Append(" oninput=\"LookupTextChanged('AccountCode" + Sn + "','lookupDIVAccountCode" + Sn + "')\"");
             sb.Append(" data-lookupcriteria='Accounts' data-idcolumn='ID' data-idvalue='" + Sn + "' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
@@ -263,23 +263,23 @@ namespace ERPSample.Controllers.Accounting.Transactions
             sb.Append("</td>");
 
             // Description — second widest
-            sb.Append("<td class='p-1' id='TdAccountDescription" + Sn + "' style='min-width:180px;'>");
-            sb.Append("<input style='width:100%; border-radius:6px;' class='AccountDescription excelCells form-control form-control-sm' type='text' id='AccountDescription" + Sn + "' placeholder='Description' value='' element-id='" + Sn + "'>");
+            sb.Append("<td class='p-1' id='TdAccountDescription" + Sn + "' style='width:20cm; min-width:20cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='AccountDescription excelCells form-control form-control-sm' type='text' id='AccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
             sb.Append("</td>");
 
             // Due Date — narrow
-            sb.Append("<td class='p-1' id='TdDueDate" + Sn + "' style='min-width:140px;'>");
-            sb.Append("<input style='width:100%; border-radius:6px;' class='DueDate form-control form-control-sm excelCells' type='date' id='DueDate" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<td class='p-1' id='TdDueDate" + Sn + "' style='width:3cm; min-width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' oninput='formatDateInput(this)' class='DueDate form-control form-control-sm excelCells' type='text' id='DueDate" + Sn + "' element-id='" + Sn + "'>");
             sb.Append("</td>");
 
             // Debit
-            sb.Append("<td class='p-1' id='TdDebit" + Sn + "' style='min-width:120px;'>");
-            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Debit form-control form-control-sm' id='Debit" + Sn + "' placeholder='0.00' element-id='" + Sn + "'>");
+            sb.Append("<td class='p-1' id='TdDebit" + Sn + "' style='width:3cm; min-width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Debit form-control form-control-sm' id='Debit" + Sn + "'  element-id='" + Sn + "'>");
             sb.Append("</td>");
 
             // Credit
-            sb.Append("<td class='p-1' id='TdCredit" + Sn + "' style='min-width:120px;'>");
-            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Credit form-control form-control-sm' id='Credit" + Sn + "' placeholder='0.00' value='' element-id='" + Sn + "'>");
+            sb.Append("<td class='p-1' id='TdCredit" + Sn + "' style='width:3cm; min-width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells Credit form-control form-control-sm' id='Credit" + Sn + "'  value='' element-id='" + Sn + "'>");
             sb.Append("</td>");
 
             // Add button
@@ -337,8 +337,14 @@ namespace ERPSample.Controllers.Accounting.Transactions
                 List<Models.FiTransactionEntries> FiTransactionEntries = request.FiTransactionEntries;
                 Models.FiTransactions FiTransactions = request.FiTransactions;
                 Models.FiTransactionAdditionals FiTransactionAdditionals = null;
-                DALVouchers.InsertTransaction(request);
-                return Json(new { success = true });
+                string result = DALVouchers.InsertTransaction(request);
+                int transactionId;
+                if (int.TryParse(result, out transactionId))
+                {
+                    return Json(new { success = true, transactionNo = transactionId });
+                }
+
+                return Json(new { success = false, message = result });
             }
             catch (Exception ex) { throw; }
 
@@ -453,11 +459,11 @@ namespace ERPSample.Controllers.Accounting.Transactions
                     sb.Append("<tr id='Row" + id + "'>");
 
                     // Serial No
-                    sb.Append("<td class='serial-no text-center align-middle' style='width:40px;'>"+No+"</td>");
+                    sb.Append("<td class='serial-no text-center align-middle' style='width:40px;'>" + No + "</td>");
 
                     // Account Name — widest column
-                    sb.Append("<td class='p-1' id='TdAccountCode" + id + "' style='min-width:220px;'>");
-                    sb.Append("<input type='text' style='width:100%; border-radius:6px;' class='form-control form-control-sm AccountCode excelCells' placeholder='Account Name'");
+                    sb.Append("<td class='p-1' id='TdAccountCode" + id + "' style='width:10cm; min-width:5cm;'>");
+                    sb.Append("<input type='text' style='width:100%; border-radius:6px;' class='form-control form-control-sm AccountCode excelCells' ");
                     sb.Append(" value='" + dr["Name"] + "'");
                     sb.Append(" data-id='" + dr["AccountID"] + "'");
                     sb.Append(" id='AccountCode" + id + "'");
@@ -475,32 +481,32 @@ namespace ERPSample.Controllers.Accounting.Transactions
                     sb.Append("</td>");
 
                     // Description — second widest
-                    sb.Append("<td class='p-1' id='TdAccountDescription" + id + "' style='min-width:180px;'>");
-                    sb.Append("<input type='text' style='width:100%; border-radius:6px;' class='form-control form-control-sm excelCells AccountDescription' placeholder='Description'");
+                    sb.Append("<td class='p-1' id='TdAccountDescription" + id + "' style='width:20cm; min-width:20cm;'>");
+                    sb.Append("<input type='text' style='width:100%; border-radius:6px;' class='form-control form-control-sm excelCells AccountDescription' ");
                     sb.Append(" value='" + dr["Description"] + "'");
                     sb.Append(" id='AccountDescription" + id + "' element-id='" + id + "'>");
                     sb.Append("</td>");
 
                     // Due Date — narrow
-                    sb.Append("<td class='p-1' id='TdDueDate" + id + "' style='min-width:140px;'>");
-                    sb.Append("<input type='date' style='width:100%; border-radius:6px;' class='form-control form-control-sm excelCells DueDate'");
+                    sb.Append("<td class='p-1' id='TdDueDate" + id + "' style='width:3cm; min-width:3cm;'>");
+                    sb.Append("<input type='text' style='width:100%; border-radius:6px;' oninput='formatDateInput(this)' class='form-control form-control-sm excelCells DueDate'");
                     sb.Append(" value='");
                     if (dr["DueDate"] != DBNull.Value && dr["DueDate"] != null)
-                        sb.Append(String.Format("{0:yyyy-MM-dd}", dr["DueDate"]));
+                        sb.Append(String.Format("{0:dd-MM-yyyy}", dr["DueDate"]));
                     sb.Append("'");
                     sb.Append(" id='DueDate" + id + "' element-id='" + id + "'>");
                     sb.Append("</td>");
 
                     // Debit
-                    sb.Append("<td class='p-1' id='TdDebit" + id + "' style='min-width:120px;'>");
-                    sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='form-control form-control-sm excelCells Debit numbersOnly' placeholder='0.00'");
+                    sb.Append("<td class='p-1' id='TdDebit" + id + "' style='width:3cm; min-width:3cm;'>");
+                    sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='form-control form-control-sm excelCells Debit numbersOnly' ");
                     sb.Append(" value='" + dr["Debit"] + "'");
                     sb.Append(" id='Debit" + id + "' element-id='" + id + "'>");
                     sb.Append("</td>");
 
                     // Credit
-                    sb.Append("<td class='p-1' id='TdCredit" + id + "' style='min-width:120px;'>");
-                    sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='form-control form-control-sm excelCells Credit numbersOnly' placeholder='0.00'");
+                    sb.Append("<td class='p-1' id='TdCredit" + id + "' style='width:3cm; min-width:3cm;'>");
+                    sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='form-control form-control-sm excelCells Credit numbersOnly' ");
                     sb.Append(" value='" + dr["Credit"] + "'");
                     sb.Append(" id='Credit" + id + "' element-id='" + id + "'>");
                     sb.Append("</td>");
@@ -525,7 +531,6 @@ namespace ERPSample.Controllers.Accounting.Transactions
                     sb.Append("</tr>");
                     No++;
                 }
-
                 return Json(new { success = true, innerHTML = sb.ToString(), header = JsonConvert.SerializeObject(rows), message = "Success" });
             }
             catch (Exception Ex)
@@ -566,7 +571,7 @@ namespace ERPSample.Controllers.Accounting.Transactions
         {
             try
             {
-                string Result = JournalEntries.DeleteTransactions(ID);
+                string Result = DALVouchers.DeleteFillTransactions(ID);
                 if (Result != "NULL")
                 {
                     return Json(new { success = true, transactionNo = Result, message = "Transaction deleted successfully" });

@@ -109,12 +109,18 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 List<Models.FiTransactionEntries> FiTransactionEntries = request.FiTransactionEntries;
                 Models.FiTransactions FiTransactions = request.FiTransactions;
                 Models.FiTransactionAdditionals FiTransactionAdditionals = request.FiTransactionAdditionals;
-                DALVouchers.InsertTransaction(request);
-                //additional 
-                return Json(new { success = true });
+                string result = DALVouchers.InsertTransaction(request);
+                int transactionId;
+                if (int.TryParse(result, out transactionId))
+                {
+                    return Json(new { success = true, transactionNo = transactionId });
+                }
+
+                return Json(new { success = false, message = result });
             }
             catch (Exception ex) { throw; }
 
         }
+
     }
 }

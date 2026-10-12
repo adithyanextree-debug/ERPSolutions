@@ -31,10 +31,48 @@
         <div class="col-12">
             <div class="card mb-3">
                 <div class="card-body">
+                    <div class="list-product-header">
+                        <div>
+                            <ul class="quick-file d-flex flex-row">
+                                <li onclick="printOnlyTable()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-print text-warning">
+                                        </i>
+                                    </div>
+                                    <h6 class="mb-2">Print</h6>
+                                </li>
+                                <li onclick="exportToPDF()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-file text-info"></i>
+                                    </div>
+                                    <h6 class="mb-2">PDF</h6>
+                                </li>
+                                <li onclick="exportToExcel()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-book text-primary"></i>
+                                    </div>
+                                    <h6 class="mb-2">Excel</h6>
+                                </li>
+                                <li onclick="emailTableData()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-envelope text-title-gray"></i>
+                                    </div>
+                                    <h6 class="mb-2">Email</h6>
+                                </li>
+                                <li onclick="CloseEntry()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-close text-danger"></i>
+                                    </div>
+                                    <h6 class="mb-2">Close</h6>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
                     <div class="row g-2 align-items-center">
 
                         <!-- View By — label left, radios right -->
-                        <div class="col-md-3">
+                       @*  <div class="col-md-3">
                             <div class="row">
                                 <div class="col-md-4 d-flex align-items-center">
                                     <span class="grpspn">View by</span>
@@ -52,7 +90,7 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </div> *@
 
                         <!-- From Date -->
                         <div class="col-md-3">
@@ -135,10 +173,11 @@
                                                             ID = "Salesman",
                                                             DisplayText = "Salesman",
                                                             IDColumn = "ID",
-                                                            LookupCriteria = "SalesPerson",
+                                                            LookupCriteria = "Staff",
                                                             IDValue = 0,
                                                             AssignColumn = "AccountName",
-                                                        }))
+                                                        })
+                                                        )
                         </div>
 
                         <!-- Area (Component) -->
@@ -226,197 +265,3 @@
 </div>
 
 <script src="~/assets/custom/Inventory/Reports/Purchase/PurchaseRegister.js"></script>
-
-
-@* @using System.Data
-<style>
-    #Itemtable input.form-control {
-        border: 0.5px solid #ccc;
-        padding: 6px !important;
-        box-shadow: none !important;
-        background-color: #fff !important; /* Optional: make background transparent */
-    }
-
-    .col-form-label {
-        font-size: 13px;
-        padding-top: 6px;
-        font-weight: 500;
-    }
-</style>
-
-<div class="container-fluid">
-    <div class="page-title">
-        <div class="row">
-            <div class="col-sm-6 col-12">
-                <h2>Purchase Register</h2>
-            </div>
-            <div class="col-sm-6 col-12">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a asp-action="Index" asp-controller="Home">
-                            <i class="iconly-Home icli svg-color"></i>
-                        </a>
-                    </li>
-                    <li class="breadcrumb-item">Inventory</li>
-                    <li class="breadcrumb-item ">Reports</li>
-                    <li class="breadcrumb-item ">Purchase</li>
-                    <li class="breadcrumb-item active">Purchase Register</li>
-                </ol>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="container-fluid">
-    <div class="row">
-        <!-- Zero Configuration  Starts-->
-        <div class="col-sm-12">
-            <div class="card">
-                <div class="list-product-header mt-4">
-                    <div>
-                       @(await Component.InvokeAsync("ReportToolBar", new
-                        {
-                            PageName = "Purchase Register",
-                            AllowPrint = ViewBag.UserPermissions.IsPrint,
-                            AllowEmail = true,
-                            AllowPDF = true,
-                            AllowExcel = true
-                        }))
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div id="PurchaseRegisterForm">
-                        <!--Add Details -->
-                        <div class="col-md-12">
-                            <div class="card">
-                                <div class="card-body basic-form">
-                                    <form class="theme-form row g-3">
-                                        <input type="text" class="text-center transparent_text" id="ID" style="display:none" />
-
-                                        <div class="col-md-4" id="vouchernodiv" style="display:none">
-                                            <div class="row">
-                                                <div class="row">
-                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
-                                                        <span class="grpspn">Voucher No.<span class="text-danger">*</span></span>
-                                                    </div>
-                                                    <div class="col-md-2">
-                                                        <input type="text" id="VoucherCode" class="form-control" name="VoucherCode" disabled value="@ViewBag.VoucherCode">
-                                                    </div>
-                                                    <div class="col-md-6 pl-0">
-                                                        <input type="text" id="VoucherNo" class="form-control " name="VoucherNo" data-ismandatory="true" disabled>
-                                                    </div>
-                                                </div>
-                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="row">
-                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "VoucherDate", DisplayText = "Voucher Date", IsMandatory = true }))
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="row">
-                                                @(await Component.InvokeAsync("TextBox",
-                                                    new
-                                                    {
-                                                        Type = "Lookup",
-                                                        ID = "Party",
-                                                        DisplayText = "Party",
-                                                        IDColumn = "AccountID",
-                                                        LookupCriteria = "Suppliers",
-                                                        IDValue = 0,
-                                                        AssignColumn = "Name",IsMandatory = true
-                                                    }))
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="row">
-                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Reference", DisplayText = "Reference" }))
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="row">
-                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Account", DisplayText = "Account" }))
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="row">
-                                                @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "Warehouse", DisplayText = "Warehouse" }))
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="row">
-                                                @(await Component.InvokeAsync("TextBox",
-                                                    new
-                                                    {
-                                                        Type = "Lookup",
-                                                        ID = "Project",
-                                                        DisplayText = "Project",
-                                                        IDColumn = "ID",
-                                                        LookupCriteria = "Project",
-                                                        IDValue = 0,
-                                                        AssignColumn = "Value",
-                                                        IsMandatory = false
-                                                    }))
-                                            </div>
-                                        </div>
-                                        <div class="col-md-8">
-                                            <div class="row">
-                                                <div class="row">
-                                                    <div class="col-md-2 pr-0 d-flex align-items-center">
-                                                        <span class="grpspn">Description</span>
-                                                    </div>
-                                                    <div class="col-md-10 pl-0">
-                                                        <input type="text" id="Description" class="form-control PurchaseRegisterDescription" data-ismandatory="false">
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- DEtails Ends  -->
-                      
-                        <!--Report Table Starts  -->
-                        <div class="col-sm-12" id="ReportSection" style="display:none;">
-                            <div class="card rounded-custom overflow-hidden">
-                                <div class="table-responsive">
-                                    <table class="table table-light" id="ReportTable">
-                                        <thead>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>VType</th>
-                                                <th>VNo</th>
-                                                <th>VDate</th>
-                                                <th>Particulars</th>
-                                                <th>Debit</th>
-                                                <th>Credit</th>
-                                                <th>ReferenceNo</th>
-                                                <th>TaxFormID</th>
-                                                <th>ModeID</th>
-                                                <th>CounterName</th>
-                                                <th>Staff</th>
-                                                <th>Area</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        <!--Report table End-->
-                       
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Container-fluid Ends -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-
-<script src="~/assets/custom/Inventory/Reports/Purchase/PurchaseRegister.js"></script>
- *@

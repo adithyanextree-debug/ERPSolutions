@@ -67,7 +67,7 @@ namespace ERPSample.Controllers.Inventory.Reports.Stock
         public IActionResult GetData([FromForm] StockItemRegisterModel filter,
                               [FromForm] int draw = 1,
                               [FromForm] int start = 0,
-                              [FromForm] int length = 50)
+                              [FromForm] int length = 25)
         {
             filter.BranchID = BranchID;
 

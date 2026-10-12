@@ -92,6 +92,30 @@
         padding-top: 6px;
         font-weight: 500;
     }
+    /* ─── Input + "..." button stay on the SAME row, same col ───────────── */
+    .input-with-btn {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch;
+        width: 100%;
+    }
+
+        .input-with-btn input.form-control {
+            flex: 1 1 auto;
+            min-width: 0; /* prevents input from forcing button to wrap */
+            border-radius: 4px 0 0 4px;
+        }
+
+        .input-with-btn button {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            border-radius: 0 4px 4px 0;
+            margin-left: -1px; /* avoids double border gap between input and button */
+        }
+
+    #reportContainer {
+        visibility: hidden;
+    }
 </style>
 
 
@@ -424,16 +448,6 @@
                                         <div class="col-md-4">
                                         </div>
                                         <div class="col-md-4">
-                                            <div class="row">
-                                                <div class="row">
-                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
-                                                        <span class="grpspn">Tax </span>
-                                                    </div>
-                                                    <div class="col-md-8 pl-0">
-                                                        <input class="form-control " id="Tax" type="text" name="Tax" data-ismandatory="true" disabled>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                         <div class="col-md-4">
                                             <div class="row">
@@ -460,7 +474,18 @@
                                             </div>
                                         </div>
                                         <div class="col-md-4">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Tax </span>
+                                                    </div>
+                                                    <div class="col-md-8 pl-0">
+                                                        <input class="form-control " id="Tax" type="text" name="Tax" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
+
                                         <div class="col-md-4">
                                             <div class="row">
                                                 <div class="row">
@@ -489,7 +514,7 @@
                                             <div class="row">
                                                 <div class="row">
                                                     <div class="col-md-4 pr-0 d-flex align-items-center">
-                                                        <span class="grpspn">Payment Type</span>
+                                                        <span class="grpspn">Payment</span>
                                                     </div>
                                                     <div class="col-md-8 pl-0">
                                                         <select id="Mode" class="form-select " name="Payment"></select>
@@ -497,7 +522,10 @@
                                                 </div>
                                             </div>
                                         </div>
+
                                         <div class="col-md-4">
+                                        </div>
+                                        @* <div class="col-md-4" style="display:none">
                                             <div class="row">
                                                 <div class="row">
                                                     <div class="col-md-4 pr-0 d-flex align-items-center">
@@ -509,7 +537,7 @@
                                                 </div>
 
                                             </div>
-                                        </div>
+                                        </div> *@
 
                                         <div class="col-md-4">
                                             <div class="row">
@@ -530,11 +558,15 @@
                                                         <span class="grpspn">Cash</span>
                                                     </div>
                                                     <div class="col-md-8 pl-0">
-                                                        <input type="text" id="Cash" class="form-control " name="Cash" data-ismandatory="false">
+                                                        <div class="input-with-btn">
+                                                            <input type="text" id="Cash" class="form-control" name="Cash" data-ismandatory="false">
+                                                            <button type="button" class="btn btn-outline-secondary" id="btnCash" data-bs-toggle="modal" data-bs-target="#paymentModeCashModal" disabled>...</button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+
                                         <div class="col-md-4">
                                             <div class="row">
                                                 <div class="row">
@@ -542,7 +574,10 @@
                                                         <span class="grpspn">Cheque</span>
                                                     </div>
                                                     <div class="col-md-8 pl-0">
-                                                        <input type="text" id="Cheque" class="form-control " name="Cheque" data-ismandatory="false" disabled>
+                                                        <div class="input-with-btn">
+                                                            <input type="text" id="Cheque" class="form-control" name="Cheque" data-ismandatory="false">
+                                                            <button type="button" class="btn btn-outline-secondary" id="btnCheque" data-bs-toggle="modal" data-bs-target="#paymentModeChequeModal" disabled>...</button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -566,7 +601,10 @@
                                                         <span class="grpspn">Card</span>
                                                     </div>
                                                     <div class="col-md-8 pl-0">
-                                                        <input type="text" id="Card" class="form-control " name="Card" data-ismandatory="false">
+                                                        <div class="input-with-btn">
+                                                            <input type="text" id="Card" class="form-control" name="Card" data-ismandatory="false">
+                                                            <button type="button" class="btn btn-outline-secondary" id="btnCard" data-bs-toggle="modal" data-bs-target="#paymentModeCardModal" disabled>...</button>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -589,6 +627,106 @@
                             </div>
                         </div>
                         <!--Entries form end-->
+
+                        <!-- Cash Modal -->
+                        <div class="modal fade" id="paymentModeCashModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-xl">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Cash Details</h5>
+                                        <button type="button" class="btn-close" id="btnCloseCash"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-light Itemtable" id="CashTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Account</th>
+                                                        <th>Description</th>
+                                                        <th>Amount</th>
+                                                        <th>Add</th>
+                                                        <th>Delete</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" id="btnCloseCash2">Close</button>
+                                        <button type="button" class="btn btn-primary" id="btnSaveCash">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Modal -->
+                        <div class="modal fade" id="paymentModeCardModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-xl">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Card Details</h5>
+                                        <button type="button" class="btn-close" id="btnCloseCard"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-light Itemtable" id="CardTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Account</th>
+                                                        <th>Description</th>
+                                                        <th>Amount</th>
+                                                        <th>Add</th>
+                                                        <th>Delete</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" id="btnCloseCard2">Close</button>
+                                        <button type="button" class="btn btn-primary" id="btnSaveCard">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cheque Modal -->
+                        <div class="modal fade" id="paymentModeChequeModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered modal-xl">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Cheque Details</h5>
+                                        <button type="button" class="btn-close" id="btnCloseCheque"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-light Itemtable" id="ChequeTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>PDC Payable</th>
+                                                        <th>Cheque No.</th>
+                                                        <th>Cheque Date</th>
+                                                        <th>Bank Name</th>
+                                                        <th>Clearing Days</th>
+                                                        <th>Description</th>
+                                                        <th>Amount</th>
+                                                        <th>Add</th>
+                                                        <th>Delete</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" id="btnCloseCheque2">Close</button>
+                                        <button type="button" class="btn btn-primary" id="btnSaveCheque">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-sm-12">
                         <div id="reportContainer">
@@ -598,9 +736,7 @@
             </div>
         </div>
     </div>
-
 </div>
-
 
 <!-- Container-fluid Ends -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>

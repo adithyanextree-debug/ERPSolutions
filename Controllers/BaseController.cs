@@ -738,7 +738,7 @@ namespace ERPSample.Controllers
         public enum PageIDs
         {
             Purchase = 15,
-            SalesInvoice = 149,
+            SalesInvoice = 149,//303
             DeliveryIn = 234,
             DeliveryOut = 235,
             PurchaseEnquiry = 268,
@@ -761,6 +761,8 @@ namespace ERPSample.Controllers
             OpeningStock = 135,
             StockAdjustment = 24,
             JournalVoucher = 68,
+            ReceiptVoucher = 70,
+            PaymentVoucher=69
         }
 
         //ImagePath for  Company header and footer on 27-09-2023

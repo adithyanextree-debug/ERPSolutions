@@ -222,6 +222,7 @@ namespace ERPSample.Models
         public FiTransactions FiTransactions { get; set; }
         public FiTransactionAdditionals FiTransactionAdditionals { get; set; }
         public List<FiTransactionEntries> FiTransactionEntries { get; set; }
+        public List<FiChequeEntry> FiChequeEntry { get; set; }
        // public FiTransactionEntries FiTransactionEntries { get; set; }
     }
 }

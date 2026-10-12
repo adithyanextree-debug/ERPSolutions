@@ -451,13 +451,11 @@ function SaveEntry() {
         return false;
     }
     var idValue = $("#ID").val() ? parseInt($("#ID").val()) : null;
-
     var flag1 = true;
     var flag2 = true;
     var flag3 = true;
     var flag4 = true;
     var items = [];
-    var entries = [];
 
     $('.productCode').each(function () {
         if ($(this).val() != null && $(this).val() != '') {
@@ -542,7 +540,9 @@ function SaveEntry() {
         CostCentreID: (rawProject !== undefined && rawProject !== null && rawProject.trim() !== "" && !isNaN(rawProject) && parseInt(rawProject) > 0)
             ? parseInt(rawProject)
             : null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
+        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2,
+        TaxAmount: $("#Tax").val(),
+
     };
 
     var rawSalesman = $("#Salesman").attr('data-idvalue');
@@ -579,17 +579,13 @@ function SaveEntry() {
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
 
     };
-    var entriesarray = {
-        DueDate: null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
-    }
-    entries.push(entriesarray)
+   
     if (flag4 && flag1 && flag2 && flag3) {
         var model = {
             'InvTransItems': items,
             'FiTransactions': transaction,
             'FiTransactionAdditionals': additionals,
-            'FiTransactionEntries': entries
+            'FiTransactionEntries': null
         }
     }
     else {
@@ -826,16 +822,6 @@ function RowClick(RowID) {
     });
 }
 
-function toFixedNoRound(num, decimals) {
-    num = Number(num);
-    console.log(num + " num")
-    console.log(decimals + " decimals")
-    if (isNaN(num)) return "0.00";
-    const factor = Math.pow(10, decimals);
-    console.log(factor + " factor")
-    console.log((Math.trunc(num * factor) / factor).toFixed(decimals) + "RETURN RESULT")
-    return (Math.trunc(num * factor) / factor).toFixed(decimals);
-}
 function DeleteEntry() {
     if ($("#ID").val() == null) {
         return false
@@ -881,6 +867,17 @@ function DeleteEntry() {
 
 }
 
+function toFixedNoRound(num, decimals) {
+    num = Number(num);
+    console.log(num + " num")
+    console.log(decimals + " decimals")
+    if (isNaN(num)) return "0.00";
+    const factor = Math.pow(10, decimals);
+    console.log(factor + " factor")
+    console.log((Math.trunc(num * factor) / factor).toFixed(decimals) + "RETURN RESULT")
+    return (Math.trunc(num * factor) / factor).toFixed(decimals);
+}
+
 function toTwoDecimal(val) {
     return parseFloat(val || 0).toFixed(2);
 }
@@ -896,53 +893,59 @@ function updateSum(selector, targetSelector, align = 'right') {
 
 function calculateRow(id, changedField = '') {
 
-    let rawQty = $("#ItemQty" + id).val();
-
-    // USER IS CLEARING → DON’T INTERFERE
-    if (rawQty === "") return;
-
-    const qty = parseFloat(rawQty);
-    if (isNaN(qty)) return;
-
+    const qty = parseFloat($("#ItemQty" + id).val()) || 0;
     const rate = parseFloat($("#ItemRate" + id).val()) || 0;
-
     const grossAmt = qty * rate;
 
+    // --- Discount ---
     let discAmt = parseFloat($("#ItemDiscAmt" + id).val()) || 0;
     let discPer = parseFloat($("#ItemDiscPer" + id).val()) || 0;
 
-    // Only sync opposite field
     if (changedField === 'ItemDiscAmt') {
         discPer = grossAmt ? (discAmt / grossAmt) * 100 : 0;
         $("#ItemDiscPer" + id).val(toTwoDecimal(discPer));
-    }
-    else if (changedField === 'ItemDiscPer') {
+    } else if (changedField === 'ItemDiscPer') {
         discAmt = (grossAmt * discPer) / 100;
         $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
+    } else {
+        if (discPer > 0) {
+            discAmt = (grossAmt * discPer) / 100;
+            $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
+        } else if (discAmt > 0) {
+            discPer = grossAmt ? (discAmt / grossAmt) * 100 : 0;
+            $("#ItemDiscPer" + id).val(toTwoDecimal(discPer));
+        }
     }
 
     const amt = grossAmt - discAmt;
 
+    // --- Tax ---
     let taxAmt = parseFloat($("#ItemTaxAmt" + id).val()) || 0;
     let taxPer = parseFloat($("#ItemTaxPer" + id).val()) || 0;
 
     if (changedField === 'ItemTaxAmt') {
         taxPer = amt ? (taxAmt / amt) * 100 : 0;
         $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
-    }
-    else if (changedField === 'ItemTaxPer') {
+    } else if (changedField === 'ItemTaxPer') {
         taxAmt = (amt * taxPer) / 100;
         $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+    } else {
+        if (taxPer > 0) {
+            taxAmt = (amt * taxPer) / 100;
+            $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+        } else if (taxAmt > 0) {
+            taxPer = amt ? (taxAmt / amt) * 100 : 0;
+            $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
+        }
     }
 
     const total = amt + taxAmt;
 
-    // ONLY SYSTEM FIELDS ARE FORMATTED
-    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt));
-    $("#ItemAmt" + id).val(toTwoDecimal(amt));
-    $("#ItemTotal" + id).val(toTwoDecimal(total));
+    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt)).css('text-align', 'right');
+    $("#ItemAmt" + id).val(toTwoDecimal(amt)).css('text-align', 'right');
+    $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt)).css('text-align', 'right');
+    $("#ItemTotal" + id).val(toTwoDecimal(total)).css('text-align', 'right');
 }
-
 function updateAllSums() {
     updateSum('.ItemQty', '#qtySum', 'center');
     updateSum('.ItemGrossAmt', '#ItemGrossAmtSum');
@@ -965,48 +968,54 @@ function updateAllSums() {
     calculateGrandTotal();
 }
 
-// *** FIX: Removed val === "" from early return so clearing a field triggers recalculation ***
-$(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("input", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
 
     const id = $(this).attr('element-id');
-    const changedField = $(this).attr("id").replace(id, '');
+    const changedField = $(this).attr("id").replace(/\d+$/, '');
 
     let val = $(this).val();
 
-    // Allow natural typing of decimals
     if (val === "." || val.endsWith(".")) {
         return;
     }
 
-    // Reject only truly bad values (but allow empty string to fall through)
     if (val !== "" && (val.includes('-') || isNaN(val) || Number(val) < 0)) {
         return;
-    }
-
-    // Treat empty as 0 for calculation purposes
-    if (val === "") {
-        $(this).val(""); // keep it visually empty
     }
 
     calculateRow(id, changedField);
     updateAllSums();
 });
 
-
-$(document).on("blur", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("blur", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
     const val = parseFloat($(this).val());
     if (!isNaN(val)) {
         $(this).val(toTwoDecimal(val));
+    }
+    const id = $(this).attr('element-id');
+    if (id) {
+        calculateRow(id);
+        updateAllSums();
     }
 });
 
 //03-03-2026
 function getColumnSum(selector) {
     let sum = 0;
+
     $(selector).each(function () {
-        const val = parseFloat($(this).val());
-        if (!isNaN(val)) sum += val;
+        const value =
+            $(this).val() ||
+            $(this).text() ||
+            $(this).html();
+
+        const num = parseFloat(value);
+
+        if (!isNaN(num)) {
+            sum += num;
+        }
     });
+
     return sum;
 }
 
@@ -1031,20 +1040,4 @@ function calculateBalance() {
 
 $(document).on("input", "#AdditionalCharges", function () {
     calculateGrandTotal();
-});
-
-$(document).on("input", "#Advance, #TotalPaid", function () {
-    calculateBalance();
-});
-
-$(document).on("input", "#Cash, #Card, #Cheque", function () {
-
-    const cash = parseFloat($('#Cash').val()) || 0;
-    const card = parseFloat($('#Card').val()) || 0;
-    const cheque = parseFloat($('#Cheque').val()) || 0;
-
-    const totalPaid = cash + card + cheque;
-    $('#TotalPaid').val(toTwoDecimal(totalPaid));
-
-    calculateBalance();
 });

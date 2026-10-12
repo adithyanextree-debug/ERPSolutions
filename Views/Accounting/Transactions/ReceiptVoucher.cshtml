@@ -1,0 +1,473 @@
+﻿@using System.Data
+@{
+    ViewData["Title"] = "Receipt Voucher";
+
+}
+
+<style>
+    /* ─── Table Style ─────────────────────────────────────────── */
+    .Itemtable {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .Itemtable thead tr {
+            background-color: #f0f4ff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .Itemtable thead th {
+            padding: 8px 6px;
+            white-space: nowrap;
+            border: 1px solid #c8d0e7;
+            text-align: center;
+        }
+
+        /* ─── Striped tbody rows ──────────────────────────────────── */
+        .Itemtable tbody tr:nth-child(odd) {
+            background-color: #ffffff !important;
+        }
+
+        .Itemtable tbody tr:nth-child(even) {
+            background-color: #f7f9ff !important;
+        }
+
+        .Itemtable tbody tr:hover {
+            background-color: #eef2ff !important;
+        }
+
+        /* ─── TD borders ──────────────────────────────────────────── */
+        .Itemtable tbody td {
+            padding: 3px 4px !important;
+            vertical-align: middle !important;
+            border: 1px solid #c8d0e7 !important;
+        }
+
+        /* ─── NO border for inputs/selects inside td ─────────────── */
+        .Itemtable input.form-control,
+        .Itemtable select.form-select {
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+            padding: 4px 6px !important;
+            font-size: 13px !important;
+            outline: none !important;
+        }
+
+            /* ─── Focus highlight on input/select ────────────────────── */
+            .Itemtable input.form-control:focus,
+            .Itemtable select.form-select:focus {
+                background-color: #dde8ff !important;
+                outline: none !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            /* ─── Disabled inputs ─────────────────────────────────────── */
+            .Itemtable input.form-control:disabled,
+            .Itemtable select.form-select:disabled {
+                background-color: transparent !important;
+                color: #444 !important;
+                cursor: default !important;
+            }
+
+        /* ─── Serial number ───────────────────────────────────────── */
+        .Itemtable td.serial-no {
+            text-align: center !important;
+            font-weight: 600;
+            color: #555;
+            font-size: 12px;
+        }
+        /* ─── Image align to center ───────────────────────────────────────── */
+
+        .Itemtable tbody td:nth-child(2) {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+    .col-form-label {
+        font-size: 13px;
+        padding-top: 6px;
+        font-weight: 500;
+    }
+
+    .payment-mode-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .payment-mode-btn {
+        min-width: 82px;
+        height: 31px;
+        border: 1px solid #9aa9bd;
+        background: linear-gradient(#7b9ac9, #eef4ff);
+        color: #000;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 2px;
+        box-shadow: inset 0 1px 0 #fff;
+    }
+
+        .payment-mode-btn i {
+            margin-left: 6px;
+            font-size: 14px;
+        }
+
+        .payment-mode-btn:hover {
+            background: linear-gradient(#eef5ff, #cfdced);
+        }
+</style>
+
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Receipt Voucher</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="index.html">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">Accounting</li>
+                    <li class="breadcrumb-item">Vouchers</li>
+                    <li class="breadcrumb-item active">Receipt Voucher</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Zero Configuration  Starts-->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="list-product-header mt-4">
+                    <div>
+                        @(await Component.InvokeAsync("ToolBar", new
+                        {
+                            PageName = "Receipt Voucher",
+                            AllowNew = ViewBag.UserPermissions.IsCreate,
+                            AllowDelete = ViewBag.UserPermissions.IsDelete,
+                            AllowPDF = true,
+                            AllowPrint = ViewBag.UserPermissions.IsPrint,
+                        }))
+
+                    </div>
+
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" id="ReceiptVoucherList">
+                        @*  @(await Component.InvokeAsync("GridView", new
+                        {
+                            Heading = "ReceiptVoucher",
+                            IDColumnName = "ID",
+                            DatasTable = ViewBag.DataTable,
+                            TableID = "ReceiptVoucher",
+                            Searching = true,
+                            PageLength = 5,
+                            HideColumns = "ID,Amount,EntryNo,EntryDate,Phone,SerialNo,Status,AccountName"
+                        })) *@
+                        <table class="display table" id="project-status">
+                            <thead>
+                                <tr>
+                                    <th class="col">SNo.</th>
+                                    <th>TRANSACTION NO.</th>
+                                    <th>DATE</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ReceiptVoucherTbody">
+                                @Html.Raw(ViewBag.DataTable)
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="ReceiptVoucherForm" style="display:none;">
+
+                        <!--Add Details -->
+                        <div class="col-md-12">
+                            <div class="card">
+
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <input type="text" class="text-center transparent_text" id="ReceiptTransactionID" style="display:none" />
+                                        <input type="text" class="text-center transparent_text" id="MenuID" style="display:none" value="@ViewBag.MenuID" />
+                                        <input type="text" class="text-center transparent_text" id="RowType" style="display:none" value="@ViewBag.RowType" />
+                                        <input type="text" class="text-center transparent_text" id="VoucherID" style="display:none" value="@ViewBag.VoucherID" />
+                                        <input type="text" class="text-center transparent_text" id="AccountID" style="display:none" />
+
+                                        @*<div class="col-md-4" id="vouchernodiv" style="display:none">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "VoucherNo", DisplayText = "Voucher No.", IsMandatory = true }))
+                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
+                                            </div>
+                                        </div>
+ *@                                     
+                                         <div class="col-md-4" id="vouchernodiv" style="display:none">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-4 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Voucher No.<span class="text-danger">*</span></span>
+                                                    </div>
+                                                    <div class="col-md-2">
+                                                        <input type="text" id="VoucherCode" class="form-control" name="VoucherCode" disabled value="@ViewBag.VoucherCode">
+                                                    </div>
+                                                    <div class="col-md-6 pl-0">
+                                                        <input type="text" id="VoucherNo" class="form-control " name="VoucherNo" data-ismandatory="true" disabled>
+                                                    </div>
+                                                </div>
+                                                <span id="VoucherType" data-value="@ViewBag.voucher["ID"]"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Date", ID = "VoucherDate", DisplayText = "Voucher Date", IsMandatory = true }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox",
+                                                    new
+                                                    {
+                                                        Type = "Lookup",
+                                                        ID = "Department",
+                                                        DisplayText = "Department",
+                                                        IDColumn = "ID",
+                                                        LookupCriteria = "Department",
+                                                        IDValue = 0,
+                                                        AssignColumn = "Department",
+                                                        IsMandatory = false
+                                                    }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-2 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Narration</span>
+                                                    </div>
+                                                    <div class="col-md-10 pl-0">
+                                                        <input type="text" id="Description" class="form-control ReceiptVoucherDescription" data-ismandatory="false">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Reference", DisplayText = "Reference No" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12 payment-mode-actions">
+                                            <button type="button" class="payment-mode-btn" id="btnCash" data-paymenttype="Cash">
+                                                Cash <span class="fas fa-money-bill text-success"></span>
+                                            </button>
+
+                                            <button type="button" class="payment-mode-btn" id="btnCheque" data-paymenttype="Cheque">
+                                                Cheque <span class="fas fa-money-check text-warning"></span>
+                                            </button>
+
+                                            <button type="button" class="payment-mode-btn" id="btnCard" data-paymenttype="Card">
+                                                Card <span class="fas fa-credit-card text-primary"></span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- DEtails Ends  -->
+                        <!--Table Starts  -->
+                        <div class="col-sm-12">
+                            <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5 text-customtitle-primary" style="font-weight: 600;">
+                                Account Details
+                            </h6>
+                            <div class="card rounded-custom overflow-hidden">
+                                <div class="table-responsive">
+                                    <table class="table  table-light Itemtable" id="AccountDetails">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                 <th>Account</th>
+                                                <th>Description</th>
+                                                <th>Due Date</th>
+                                                <th>Credit</th>
+                                                <th>Add</th>
+                                                <th>Delete</th>
+                                                <th style="display:none"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                       
+                                    </table>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="col-sm-12">
+                             <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5 text-customtitle-primary" style="font-weight: 600;">
+                                Payment Details
+                            </h6>
+                            <div class="card rounded-custom overflow-hidden">
+                                <div class="table-responsive">
+                                    <table class="table  table-light Itemtable" id="PaymentDetails">
+                                        <thead>
+                                            <tr>
+                                                <th>Account</th>
+                                                <th>Description</th>
+                                                <th>Amount</th>
+                                                <th>TranType</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                        </tbody>
+                                       
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Cash Modal -->
+                    <div class="modal fade" id="paymentModeCashModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Cash Details</h5>
+                                    <button type="button" class="btn-close" id="btnCloseCash"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-light Itemtable" id="CashTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Account</th>
+                                                    <th>Description</th>
+                                                    <th>Amount</th>
+                                                    <th>Add</th>
+                                                    <th>Delete</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+
+                                    <div class="ms-auto d-flex align-items-center">
+                                        <small class="me-3 fw-semibold">
+                                            Balance :
+                                            <span id="lblCashBalance" class="text-danger"></span>
+                                        </small>
+
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseCash2">Close</button>
+                                        <button type="button" class="btn btn-primary btn-sm ms-2" id="btnSaveCash">Save</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Modal -->
+                    <div class="modal fade" id="paymentModeCardModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Card Details</h5>
+                                    <button type="button" class="btn-close" id="btnCloseCard"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-light Itemtable" id="CardTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Account</th>
+                                                    <th>Description</th>
+                                                    <th>Amount</th>
+                                                    <th>Add</th>
+                                                    <th>Delete</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="ms-auto d-flex align-items-center">
+                                        <small class="me-3 fw-semibold">
+                                            Balance :
+                                            <span id="lblCardBalance" class="text-danger"></span>
+                                        </small>
+
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseCard2">Close</button>
+                                        <button type="button" class="btn btn-primary btn-sm ms-2" id="btnSaveCard">Save</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cheque Modal -->
+                    <div class="modal fade" id="paymentModeChequeModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-xl">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Cheque Details</h5>
+                                    <button type="button" class="btn-close" id="btnCloseCheque"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-light Itemtable" id="ChequeTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>PDC Payable</th>
+                                                    <th>Cheque No.</th>
+                                                    <th>Cheque Date</th>
+                                                    <th>Bank Name</th>
+                                                    <th>Clearing Days</th>
+                                                    <th>Description</th>
+                                                    <th>Amount</th>
+                                                    <th>Add</th>
+                                                    <th>Delete</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="ms-auto d-flex align-items-center">
+                                        <small class="me-3 fw-semibold">
+                                            Balance :
+                                            <span id="lblChequeBalance" class="text-danger"></span>
+                                        </small>
+
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btnCloseCheque2">Close</button>
+                                        <button type="button" class="btn btn-primary btn-sm ms-2" id="btnSaveCheque">Save</button>
+                                    </div>
+
+                                </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Container-fluid Ends -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<script src="~/assets/custom/Accounting/Transactions/ReceiptVoucher.js"></script>

@@ -22,7 +22,6 @@ namespace ERPSample.Controllers.Inventory.Transactions
         private readonly IWebHostEnvironment _webHostEnvironment;
         private readonly string baseUrl;
         private readonly IHubContext<ProgressHub> _hub;
-
         public SalesInvoiceController(IConfiguration configuration, IWebHostEnvironment webHostEnvironment, IHubContext<ProgressHub> hub)
         {
             //_logger = logger;
@@ -80,7 +79,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
             {
                 if (_VoucherTypeRow == null)
                 {
-                    _VoucherTypeRow = DALVouchers.FillVoucherRow(303, MenuRow["ID"]);
+                    _VoucherTypeRow = DALVouchers.FillVoucherRow(149, MenuRow["ID"]);
                     //_VoucherTypeRow = DALVouchers.FillVoucherRow(149, MenuRow["ID"]);
 
                 }
@@ -91,7 +90,7 @@ namespace ERPSample.Controllers.Inventory.Transactions
         public async Task<IActionResult> Index(long MenuID)
         {
             SetUserPermissions(MenuID);
-            DataSet dataSet = DALVouchers.FillVoucher(BranchID, MenuRow["ID"]);
+            DataSet dataSet = DALVouchers.FillVoucher(BranchID, MenuID);
             DataTable vouchersTable = dataSet.Tables[0];
             DataRow voucherMeta = dataSet.Tables[1].Rows[0];
 
@@ -122,6 +121,351 @@ namespace ERPSample.Controllers.Inventory.Transactions
 
             return View("~/Views/Invertory/Transactions/SalesInvoice.cshtml");// Json(new { itemmaster = itemmaster, success = true});
         }
+
+        public async Task<IActionResult> GetCashDetails()
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = 1;
+            sb.Append("<tr id='CashRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm CashAccountCode excelCells' id='CashAccountCode" + Sn + "' name='CashAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'CashAccountCode" + Sn + "','lookupDIVCashAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('CashAccountCode" + Sn + "','lookupDIVCashAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='CashAccount' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVCashAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdCashAccountDescription" + Sn + "' style='width:10cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='CashAccountDescription excelCells form-control form-control-sm' type='text' id='CashAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdCashAmount" + Sn + "' style='width:3cm; '>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells CashAmount form-control form-control-sm' id='CashAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCash' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Cashdeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCash' id='Cashdeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='cashitemid excelCells form-control' id='cashitemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            string htmlString = sb.ToString();
+            return Json(new { cashTable = htmlString });
+        }
+
+        public async Task<IActionResult> GetCardDetails()
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = 1;
+            sb.Append("<tr id='CardRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm CardAccountCode excelCells' id='CardAccountCode" + Sn + "' name='CardAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'CardAccountCode" + Sn + "','lookupDIVCardAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('CardAccountCode" + Sn + "','lookupDIVCardAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='CardAccount' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVCardAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdCardAccountDescription" + Sn + "' style='width:10cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='CardAccountDescription excelCells form-control form-control-sm' type='text' id='CardAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdCardAmount" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells CardAmount form-control form-control-sm' id='CardAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCard' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Carddeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCard' id='Carddeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='carditemid excelCells form-control' id='carditemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            string htmlString = sb.ToString();
+            return Json(new { cardTable = htmlString });
+        }
+
+        public async Task<IActionResult> GetChequeDetails()
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = 1;
+            sb.Append("<tr id='ChequeRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm ChequeAccountCode excelCells' id='ChequeAccountCode" + Sn + "' name='ChequeAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'ChequeAccountCode" + Sn + "','lookupDIVChequeAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('ChequeAccountCode" + Sn + "','lookupDIVChequeAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='BankorCheque' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVChequeAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // ChequeNo
+            sb.Append("<td class='p-1' id='TdChequeNo" + Sn + "' style='width:3cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='ChequeNo excelCells form-control form-control-sm' type='text' id='ChequeNo" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Cheque Date
+            sb.Append("<td class='p-1' id='TdChequeDate" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' oninput='formatDateInput(this)' class='ChequeDate form-control form-control-sm excelCells' type='text' id='ChequeDate" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Bank Name
+            sb.Append("<td class='p-1' style='width:5cm; '>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm BankAccountCode excelCells' id='BankAccountCode" + Sn + "' name='BankAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'BankAccountCode" + Sn + "','lookupDIVBankAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('BankAccountCode" + Sn + "','lookupDIVBankAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='BankName' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVBankAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Clearing Days
+            sb.Append("<td class='p-1' id='TdChequeClearingDays" + Sn + "' style='width:3cm; '>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells ChequeClearingDays form-control form-control-sm' id='ChequeClearingDays" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdChequeAccountDescription" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='ChequeAccountDescription excelCells form-control form-control-sm' type='text' id='ChequeAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdChequeAmount" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells ChequeAmount form-control form-control-sm' id='ChequeAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCheque' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Chequedeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCheque' id='Chequedeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            sb.Append("<td style='display:none;' chequeitemid=''>");
+            sb.Append("</td>");
+
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='chequeitemid excelCells form-control' id='chequeitemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            string htmlString = sb.ToString();
+            return Json(new { chequeTable = htmlString });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> NewRowCash(int? no)
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = (no ?? 0) + 1;
+
+            sb.Append("<tr id='CashRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm CashAccountCode excelCells' id='CashAccountCode" + Sn + "' name='CashAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'CashAccountCode" + Sn + "','lookupDIVCashAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('CashAccountCode" + Sn + "','lookupDIVCashAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='CashAccount' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVCashAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdCashAccountDescription" + Sn + "' style='width:10cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='CashAccountDescription excelCells form-control form-control-sm' type='text' id='CashAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdCashAmount" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells CashAmount form-control form-control-sm' id='CashAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCash' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Cashdeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCash' id='Cashdeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='cashitemid excelCells form-control' id='cashitemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            return Json(new { success = true, newrow = sb.ToString() });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> NewRowCard(int? no)
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = (no ?? 0) + 1;
+
+            sb.Append("<tr id='CardRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm CardAccountCode excelCells' id='CardAccountCode" + Sn + "' name='CardAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'CardAccountCode" + Sn + "','lookupDIVCardAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('CardAccountCode" + Sn + "','lookupDIVCardAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='CardAccount' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVCardAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdCardAccountDescription" + Sn + "' style='width:10cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='CardAccountDescription excelCells form-control form-control-sm' type='text' id='CardAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdCardAmount" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells CardAmount form-control form-control-sm' id='CardAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCard' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Carddeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCard' id='Carddeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='carditemid excelCells form-control' id='carditemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            return Json(new { success = true, newrow = sb.ToString() });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> NewRowCheque(int? no)
+        {
+            StringBuilder sb = new StringBuilder();
+            int Sn = (no ?? 0) + 1;
+
+            sb.Append("<tr id='ChequeRow" + Sn + "' dataentry-id=''>");
+
+            // Account Name
+            sb.Append("<td class='p-1' style='width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm ChequeAccountCode excelCells' id='ChequeAccountCode" + Sn + "' name='ChequeAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'ChequeAccountCode" + Sn + "','lookupDIVChequeAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('ChequeAccountCode" + Sn + "','lookupDIVChequeAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='BankorCheque' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVChequeAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // ChequeNo
+            sb.Append("<td class='p-1' id='TdChequeNo" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='ChequeNo excelCells form-control form-control-sm' type='text' id='ChequeNo" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Cheque Date
+            sb.Append("<td class='p-1' id='TdChequeDate" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' oninput='formatDateInput(this)' class='ChequeDate form-control form-control-sm excelCells' type='text' id='ChequeDate" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Bank Name
+            sb.Append("<td class='p-1' style='width:5cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' autocomplete='off' class='form-control form-control-sm BankAccountCode excelCells' id='BankAccountCode" + Sn + "' name='BankAccountCode" + Sn + "' ");
+            sb.Append(" onkeydown=\"ShowLookup(event,'BankAccountCode" + Sn + "','lookupDIVBankAccountCode" + Sn + "')\"");
+            sb.Append(" oninput=\"LookupTextChanged('BankAccountCode" + Sn + "','lookupDIVBankAccountCode" + Sn + "')\"");
+            sb.Append(" data-lookupcriteria='BankName' data-idcolumn='ID' data-idvalue='' element-id='" + Sn + "' data-assigncolumnname='AccountName' data-ismandatory='false'");
+            sb.Append(" data-intparam1='" + Sn + "' data-intparam2='' data-intparam3=''>");
+            sb.Append("<div id='lookupDIVBankAccountCode" + Sn + "'></div>");
+            sb.Append("</td>");
+
+            // Clearing Days
+            sb.Append("<td class='p-1' id='TdChequeClearingDays" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells ChequeClearingDays form-control form-control-sm' id='ChequeClearingDays" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Description
+            sb.Append("<td class='p-1' id='TdChequeAccountDescription" + Sn + "' style='width:3cm;'>");
+            sb.Append("<input style='width:100%; border-radius:6px;' class='ChequeAccountDescription excelCells form-control form-control-sm' type='text' id='ChequeAccountDescription" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Amount
+            sb.Append("<td class='p-1' id='TdChequeAmount" + Sn + "' style='width:3cm; min-width:3cm;'>");
+            sb.Append("<input type='text' style='width:100%; text-align:right; border-radius:6px;' class='numbersOnly excelCells ChequeAmount form-control form-control-sm' id='ChequeAmount" + Sn + "' value='' element-id='" + Sn + "'>");
+            sb.Append("</td>");
+
+            // Add button
+            sb.Append("<td class='p-1 text-center align-middle' style='width:50px;'>");
+            sb.Append("<button type='button' class='btn btn-outline-primary btn-sm rounded-2 addrowCheque' serialno='" + Sn + "' title='Add Row'><i class='fa-solid fa-plus'></i></button>");
+            sb.Append("</td>");
+
+            // Delete button
+            sb.Append("<td class='p-1 text-center align-middle' id='Chequedeleteaction" + Sn + "' style='width:50px;'>");
+            sb.Append("<ul class='action mb-0 ps-0 list-unstyled'><li class='delete deleterowCheque' id='Chequedeleteunit" + Sn + "' element-id='" + Sn + "'>");
+            sb.Append("<a href='#' class='text-danger' title='Delete Row'><i class='icon-trash'></i></a>");
+            sb.Append("</li></ul>");
+            sb.Append("</td>");
+
+            sb.Append("<td style='display:none;' chequeitemid=''>");
+            sb.Append("</td>");
+
+
+
+            //sb.Append("<td style='display:none;'>");
+            //sb.Append("<input type='hidden' class='chequeitemid excelCells form-control' id='chequeitemid" + Sn + "' value='' element-id='" + Sn + "'>");
+            //sb.Append("</td>");
+
+            sb.Append("</tr>");
+            return Json(new { success = true, newrow = sb.ToString() });
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> InsertTransaction([FromBody] SaveTransactionEntryRequest request)
@@ -157,13 +501,18 @@ namespace ERPSample.Controllers.Inventory.Transactions
                 List<Models.FiTransactionEntries> FiTransactionEntries = request.FiTransactionEntries;
                 Models.FiTransactions FiTransactions = request.FiTransactions;
                 Models.FiTransactionAdditionals FiTransactionAdditionals = request.FiTransactionAdditionals;
-                DALVouchers.InsertTransaction(request);
-                //additional 
-                return Json(new { success = true });
+                string result = DALVouchers.InsertTransaction(request);
+                int transactionId;
+                if (int.TryParse(result, out transactionId))
+                {
+                    return Json(new { success = true, transactionNo = transactionId });
+                }
+
+                return Json(new { success = false, message = result });
             }
             catch (Exception ex) { throw; }
-
         }
+
         [HttpPost]
         public async Task<IActionResult> ImportFromExcel(IFormFile excelFile, int AccountID, [FromForm] Models.FiTransactions transaction, [FromForm] Models.FiTransactionAdditionals additionals)
         {
@@ -330,22 +679,32 @@ namespace ERPSample.Controllers.Inventory.Transactions
                     invTransItem.TaxTypeID = row["TaxTypeID"] != DBNull.Value ? Convert.ToInt32(row["TaxTypeID"]) : 0;
                    // invTransItem.TaxTypeID = Convert.ToInt32(row["TaxTypeID"]);
                     invTransItem.TaxPerc = row["SalesPerc"] != DBNull.Value ? Convert.ToDecimal(row["SalesPerc"]) : 0;
-
+                    invTransItem.RowState = 1; // Assuming 1 means "new" or "added"
                     InvTransItems.Add(invTransItem);
 
                     int percent = 45 + (int)((counter / (double)total) * 40);
                     await _hub.Clients.All.SendAsync("progress", progressKey, percent, "Processing items...");
                 }
-
+                transaction.CashAmount = InvTransItems.Sum(i => (i.Rate * i.Qty) + i.TaxValue);
+                transaction.TaxAmount = InvTransItems.Sum(i => i.TaxValue);
+                FiTransactionEntries entries = new FiTransactionEntries();
+                entries.AccountID = AccountID;
+                entries.Amount = InvTransItems.Sum(i => (i.Rate * i.Qty) + i.TaxValue);
+                entries.FCAmount = InvTransItems.Sum(i => (i.Rate * i.Qty) + i.TaxValue);
+                entries.RowState = 1;
+                entries.DrCr = "D";
+                entries.Nature = "M";
+                entries.TranType = "Party";
                 SaveTransactionEntryRequest request = new()
                 {
                     InvTransItems = InvTransItems,
                     FiTransactions = transaction,
-                    FiTransactionAdditionals = additionals
+                    FiTransactionAdditionals = additionals,
+                    FiTransactionEntries = new List<FiTransactionEntries> { entries }
                 };
 
                 await _hub.Clients.All.SendAsync("progress", progressKey, 90, "Saving transaction...");
-                var result = SaveTransactionEntry(request);
+                var result = InsertTransaction(request);
 
                 await _hub.Clients.All.SendAsync("progress", progressKey, 100, "Completed");
 
@@ -379,8 +738,380 @@ namespace ERPSample.Controllers.Inventory.Transactions
             var match = Regex.Match(input, @"[\d,]*\.?\d+");
             return match.Success ? match.Value.Replace(",", "") : "0";
         }
-
         public async Task<IActionResult> PrintInvoice(int ID)
+        {
+            // 1. Header details
+            var invoiceNo = DALVouchers.GetTransactionNo(VoucherTypeRow["ID"], BranchID);
+            DataTable dt1 = DALVouchers.DataTableFillTransactions(ID);
+            DataRow dr1 = dt1.Rows[0];
+            string invoiceDate = Convert.ToDateTime(dr1["Date"]).ToString("dd/MM/yyyy");
+            string partyName = dr1["AccountName"].ToString();
+
+            // 2. Party details
+            DataSet ds = DALVouchers.PartyForPrintInTransaction(ID);
+            DataTable dt2 = ds.Tables[0];
+            DataRow dr2 = dt2.Rows[0];
+            
+            string partyAddress = dr2["AddressLineOne"].ToString();
+            string partyEmail = dr2["EmailAddress"].ToString();
+            string telNo = dr2["TelephoneNo"].ToString();
+            DataTable dt3 = ds.Tables[1];
+            DataRow dr3 = dt3.Rows[0];
+            string PaymentMode = dr3["Value"].ToString();
+
+            // 3. Line items
+            DataTable dt4 = DALVouchers.DataTableFillTransactionEntries(ID);
+            var imgpath = Url.Content("~/CompanyLogo/SalesInvoice.png");
+
+            // Helper: safely read a column that may or may not exist in dt4
+            string GetSafe(DataRow row, string col)
+            {
+                return row.Table.Columns.Contains(col) ? (row[col]?.ToString() ?? "") : "";
+            }
+
+            // TODO: Replace these with your actual company info (from config/session/DB)
+            string companyName = "AL SAQER GENERAL TRADING (S.P.S-L.L.C)";
+            string companyPOBox = "P.O.Box : 13293 , AJMAN- U.A.E";
+            string companyTel = "Tel : 00971-067454069";
+            string companyMob = "Mob : 00971-507044566";
+            string companyEmail = "Email : alsaqersales@gmail.com";
+            string companyWeb = "Web Store : www.go2camps.com";
+            string companyTRN = "104428539100003"; // TODO: pull from config
+
+            // TODO: these fields don't currently exist in your data layer — wire them up if needed
+            string poNo = "";
+            string poDate = "";
+            string customerSCode = "";
+            string customerTRN = "";
+
+            StringBuilder sb = new StringBuilder();
+            sb.Append(@"
+        <style type='text/css' media='print'>
+            @@page {
+                size: A4 portrait;
+                margin: 12mm 12mm 22mm 12mm; /* extra bottom margin to leave room for fixed footer */
+            }
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color:#000; margin:0; }
+            .invoice-wrapper { width:100%; }
+
+            .top-header { width:100%; border-collapse:collapse; margin-bottom:8px; }
+            .top-header td { vertical-align: top; padding:0; }
+            .company-block { font-size:11px; line-height:1.5; }
+            .company-name { font-weight:bold; font-size:13px; margin-bottom:2px; }
+            .logo-cell { text-align:left; vertical-align:middle; }
+            .logo-cell img { max-height:75px; }
+            .tax-invoice-title { text-align:right; font-weight:bold; font-size:16px; letter-spacing:1px; vertical-align:top; }
+
+            /* Meta info section - field tables for proper wrap alignment */
+            .meta-table { width:100%; border-collapse:collapse; margin:10px 0 6px 0; }
+            .meta-table > tbody > tr > td { vertical-align:top; padding:0 10px 0 0; }
+            .field-table { width:100%; border-collapse:collapse; }
+            .field-table td { padding:1px 0; font-size:11.5px; vertical-align:top; }
+            .field-table td.f-label { font-weight:bold; width:85px; white-space:nowrap; }
+            .field-table td.f-colon { width:12px; }
+            .field-table td.f-value { width:auto; word-wrap:break-word; }
+
+            .items-table { width:100%; border-collapse:collapse; margin-top:8px; table-layout:fixed; }
+            .items-table th, .items-table td {
+                border: none;
+                padding: 4px 5px;
+                font-size: 10.5px;
+                word-wrap: break-word;
+            }
+            .items-table thead th {
+                border-top: 1px dotted #000;
+                border-bottom: 1px dotted #000;
+            }
+            .items-table tbody tr:last-child td {
+                border-bottom: 1px dotted #000;
+            }
+            .items-table th { background-color:#fff; font-weight:bold; text-align:center; }
+            .items-table td.num { text-align:right; }
+            .items-table td.center { text-align:center; }
+           .items-table td.nowrap {
+                white-space: nowrap;
+            }
+            .totals-table { width:100%; margin-top:0; border-collapse:collapse; }
+            .totals-table td { padding:2px 6px; font-size:11.5px; }
+            .totals-table .label { text-align:right; font-weight:bold; width:85%; }
+            .totals-table .value { text-align:right; font-weight:bold; border-top:1px solid #000; width:110px; }
+
+            .amount-words { margin-top:8px; font-weight:bold; font-size:11.5px; }
+            .pay-note { margin-top:8px; font-size:11.5px; }
+
+            .sign-row { width:100%; margin-top:45px; border-collapse:collapse; }
+            .sign-row td { font-size:11.5px; width:50%; color:#000; }
+
+            .computer-note { text-align:center; font-style:italic; font-size:10.5px; margin-top:12px; color:#000; }
+
+            /* Spacer so content never collides with the fixed black footer */
+            .bottom-spacer { height:40px; }
+
+            /* Footer pinned to bottom of EVERY printed page - ONLY the category bar */
+            .footer-banner {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background-color:#000;
+                color:#fff;
+                text-align:center;
+                font-weight:bold;
+                font-size:11px;
+                padding:6px 0;
+                letter-spacing:0.5px;
+            }
+            .dotted-line {
+                border: none;
+                border-top: 1px dotted #000;
+                margin: 6px 0;
+                height: 0;
+            }
+        </style>
+        <style type='text/css' media='screen'>
+            /* On-screen preview (before print) gets the same basic look */
+            body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color:#000; }
+            .top-header { width:100%; border-collapse:collapse; margin-bottom:8px; }
+            .top-header td { vertical-align: top; padding:0; }
+            .company-name { font-weight:bold; font-size:13px; }
+            .logo-cell { text-align:left; }
+            .logo-cell img { max-height:75px; }
+            .tax-invoice-title { text-align:right; font-weight:bold; font-size:16px; }
+            .field-table { width:100%; border-collapse:collapse; }
+            .field-table td.f-label { font-weight:bold; width:85px; white-space:nowrap; }
+            .items-table { width:100%; border-collapse:collapse; margin-top:8px; }
+            .items-table th, .items-table td { border:1px solid #000; padding:4px 5px; font-size:11px; }
+            .items-table td.num { text-align:right; }
+            .items-table td.nowrap {
+                white-space: nowrap;
+            }
+            .totals-table .label { text-align:right; font-weight:bold; }
+            .totals-table .value { text-align:right; font-weight:bold; border-top:1px solid #000; }
+            .sign-row { width:100%; margin-top:45px; }
+            .sign-row td { width:50%; }
+            .computer-note { text-align:center; font-style:italic; margin-top:12px; }
+            .dotted-line {border: none;border-top: 1px dotted #000;margin: 6px 0;height: 0;}
+            .footer-banner { background-color:#000; color:#fff; text-align:center; font-weight:bold; padding:6px 0; margin-top:15px; }
+        </style>
+
+        <div class='invoice-wrapper' id='invoicetable'>
+
+            <table class='top-header'>
+                <tr>
+                    <td style='width:40%;'>
+                        <div class='company-block'>
+                            <div class='company-name'>" + companyName + @"</div>
+                            " + companyPOBox + @"<br/>
+                            " + companyTel + @"<br/>
+                            " + companyMob + @"<br/>
+                            " + companyEmail + @"<br/>
+                            " + companyWeb + @"
+                        </div>
+                    </td>
+                    <td style='width:40%;' class='logo-cell'>
+                        <img src='" + imgpath + @"' />
+                    </td>
+                    <td style='width:40%;' class='tax-invoice-title'>
+                        TAX INVOICE
+                    </td>
+                </tr>
+            </table>
+
+            <table class='meta-table'>
+                <tr>
+                    <td style='width:50%;'>
+                        <table class='field-table'>
+                            <tr><td class='f-label'>TRN No.</td><td class='f-colon'>:</td><td class='f-value'>" + companyTRN + @"</td></tr>
+                            <tr><td class='f-label'>Invoice No.</td><td class='f-colon'>:</td><td class='f-value'>" + invoiceNo + @"</td></tr>
+                            <tr><td class='f-label'>Invoice Date</td><td class='f-colon'>:</td><td class='f-value'>" + invoiceDate + @"</td></tr>
+                            <tr><td class='f-label'>P.O No.</td><td class='f-colon'>:</td><td class='f-value'>" + poNo + @"</td></tr>
+                            <tr><td class='f-label'>P.O Date</td><td class='f-colon'>:</td><td class='f-value'>" + poDate + @"</td></tr>
+                        </table>
+                    </td>
+                    <td style='width:50%;'>
+                        <table class='field-table'>
+                            <tr><td class='f-label'>Customer</td><td class='f-colon'>:</td><td class='f-value'>" + partyName + @"</td></tr>
+                            <tr><td class='f-label'>Address</td><td class='f-colon'>:</td><td class='f-value'>" + partyAddress + @"</td></tr>
+                            <tr><td class='f-label'>Tel.</td><td class='f-colon'>:</td><td class='f-value'>" + telNo + @"</td></tr>
+                            <tr><td class='f-label'>S.Code</td><td class='f-colon'>:</td><td class='f-value'>" + customerSCode + @"</td></tr>
+                            <tr><td class='f-label'>TRN No.</td><td class='f-colon'>:</td><td class='f-value'>" + customerTRN + @"</td></tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+
+            <table class='items-table'>
+                <colgroup>
+                    <col style='width:5%;'>
+                    <col style='width:10%;'>
+                    <col style='width:12%;'>
+                    <col style='width:28%;'>
+                    <col style='width:6%;'>
+                    <col style='width:9%;'>
+                    <col style='width:9%;'>
+                    <col style='width:7%;'>
+                    <col style='width:7%;'>
+                    <col style='width:9%;'>
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th>SN</th>
+                        <th>ITEM CODE</th>
+                        <th>BARCODE</th>
+                        <th>DESCRIPTION</th>
+                        <th>QTY</th>
+                        <th>RATE</th>
+                        <th>TOTAL</th>
+                        <th>VAT %</th>
+                        <th>VAT</th>
+                        <th>AMOUNT</th>
+                    </tr>
+                </thead>
+                <tbody>");
+
+                    decimal grandGross = 0;
+                    decimal grandVat = 0;
+                    decimal grandTotal = 0;
+                    int Sn = 1;
+
+                    foreach (DataRow dr4 in dt4.Rows)
+                    {
+                        string itemCode = GetSafe(dr4, "ItemCode");
+                        string barcode = GetSafe(dr4, "Barcode");
+                        string itemName = dr4["ItemName"].ToString();
+                        int qty = Convert.ToInt32(dr4["Qty"]);
+                        decimal price = Convert.ToDecimal(dr4["Rate"]);
+                        decimal discount = Convert.ToDecimal(dr4["Discount"]);
+                        decimal tax = Convert.ToDecimal(dr4["TaxValue"]);
+
+                        decimal lineTotal = qty * price;
+                        decimal vatPercent = lineTotal > 0 ? Math.Round((tax / lineTotal) * 100, 2) : 0;
+                        decimal amount = lineTotal - discount + tax;
+
+                        grandGross += lineTotal;
+                        grandVat += tax;
+                        grandTotal += amount;
+
+                        sb.Append(@"
+                    <tr>
+                        <td class='center'>" + Sn + @"</td>
+                        <td class='center'>" + itemCode + @"</td>
+                        <td class='center nowrap'>" + barcode + @"</td>
+                        <td>" + itemName + @"</td>
+                        <td class='num'>" + qty + @"</td>
+                        <td class='num'>" + price.ToString("0.00") + @"</td>
+                        <td class='num'>" + lineTotal.ToString("0.00") + @"</td>
+                        <td class='num'>" + vatPercent.ToString("0.00") + @"</td>
+                        <td class='num'>" + tax.ToString("0.00") + @"</td>
+                        <td class='num'>" + amount.ToString("0.00") + @"</td>
+                    </tr>");
+                        Sn++;
+                    }
+
+                    sb.Append(@"
+                </tbody>
+            </table>
+
+            <table class='totals-table'>
+                <tr>
+                    <td class='label'>GROSS AMOUNT :</td>
+                    <td class='value'>" + grandGross.ToString("0.00") + @"</td>
+                </tr>
+                <tr>
+                    <td class='label'>TOTAL VAT :</td>
+                    <td class='value'>" + grandVat.ToString("0.00") + @"</td>
+                </tr>
+                <tr>
+                    <td class='label'>TOTAL AMOUNT :</td>
+                    <td class='value'>" + grandTotal.ToString("0.00") + @"</td>
+                </tr>
+            </table>
+
+            <div class='amount-words'>" + NumberToWords(grandTotal) + @"</div>
+
+                <hr class='dotted-line' />
+                <table class='sign-row'>
+                    <tr>
+                        <td style='text-align:left;'>Approved By..............................</td>
+                        <td style='text-align:right;'>Recieved By..............................</td>
+                    </tr>
+                </table>
+
+                <div class='computer-note'>
+                    *** This is a Computer generated document and does not required stamp ***
+                </div>
+
+                <div class='bottom-spacer'></div>
+
+            </div>
+
+            <div class='footer-banner'>
+                HOUSEHOLD - CAMPING &amp; BBQ GRIL - KITCHEN ACCESSORIES - PICNIC ITEMS -SPORTS ITEMS
+        </div>");
+
+            return Json(new { table = sb.ToString(), success = true });
+        }
+        private string NumberToWords(decimal amount)
+        {
+            int rupees = (int)Math.Floor(amount);
+            int fils = (int)Math.Round((amount - rupees) * 100);
+
+            string rupeeWords = ConvertWholeNumberToWords(rupees).ToUpper();
+            string filsWords = fils > 0 ? ConvertWholeNumberToWords(fils).ToUpper() + " FILS" : "";
+
+            string result = rupeeWords + " DIRHAMS";
+            if (fils > 0) result += " AND " + filsWords;
+            return result;
+        }
+
+        private string ConvertWholeNumberToWords(int number)
+        {
+            if (number == 0) return "ZERO";
+
+            string[] ones = { "", "ONE", "TWO", "THREE", "FOUR", "FIVE", "SIX", "SEVEN", "EIGHT", "NINE",
+        "TEN", "ELEVEN", "TWELVE", "THIRTEEN", "FOURTEEN", "FIFTEEN", "SIXTEEN",
+        "SEVENTEEN", "EIGHTEEN", "NINETEEN" };
+            string[] tens = { "", "", "TWENTY", "THIRTY", "FORTY", "FIFTY", "SIXTY", "SEVENTY", "EIGHTY", "NINETY" };
+
+            string ConvertGroup(int n)
+            {
+                string s = "";
+                if (n >= 100)
+                {
+                    s += ones[n / 100] + " HUNDRED ";
+                    n %= 100;
+                }
+                if (n >= 20)
+                {
+                    s += tens[n / 10] + " ";
+                    n %= 10;
+                    if (n > 0) s += ones[n] + " ";
+                }
+                else if (n > 0)
+                {
+                    s += ones[n] + " ";
+                }
+                return s.Trim();
+            }
+
+            string result = "";
+            int crore = number / 10000000;
+            number %= 10000000;
+            int lakh = number / 100000;
+            number %= 100000;
+            int thousand = number / 1000;
+            number %= 1000;
+            int rest = number;
+
+            if (crore > 0) result += ConvertGroup(crore) + " CRORE ";
+            if (lakh > 0) result += ConvertGroup(lakh) + " LAKH ";
+            if (thousand > 0) result += ConvertGroup(thousand) + " THOUSAND ";
+            if (rest > 0) result += ConvertGroup(rest);
+
+            return result.Trim();
+        }
+
+        public async Task<IActionResult> PrintInvoice1(int ID)
         {
             // 1. Header details
             var invoiceNo = DALVouchers.GetTransactionNo(VoucherTypeRow["ID"], BranchID);

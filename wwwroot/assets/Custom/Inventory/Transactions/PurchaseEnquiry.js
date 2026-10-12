@@ -453,9 +453,6 @@ function SaveEntry() {
     var flag3 = true;
     var flag4 = true;
     var items = [];
-    var entries = [];
-
-    var items = [];
     $('.productCode').each(function () {
         if ($(this).val() != '') {
             var i = $(this).attr('element-id');
@@ -520,9 +517,9 @@ function SaveEntry() {
         }
     });
 
-
     var rawProject = $("#Project").attr('data-idvalue');
     var rawParty = $("#Party").attr('data-idvalue');
+
     // Build transaction object
     var transaction = {
         ID: idValue, // Nullable int
@@ -541,10 +538,13 @@ function SaveEntry() {
         CostCentreID: (rawProject !== undefined && rawProject !== null && rawProject.trim() !== "" && !isNaN(rawProject) && parseInt(rawProject) > 0)
             ? parseInt(rawProject)
             : null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
+        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2,
+        TaxAmount: $("#Tax").val(),
+
     };
 
     var rawWarehouse = $("#Warehouse").val();
+
     var additionals = {
         TransactionID: idValue, // Nullable int
         TypeID: null, // Explicitly set as null
@@ -566,23 +566,17 @@ function SaveEntry() {
         SubmitDate: null, // Nullable DateTime
         Address: null, // Nullable string
         Terms: $("#Terms").val() || '', // Nullable string
-        InLocID: (rawWarehouse && !isNaN(rawWarehouse) && parseInt(rawWarehouse) > 0)
-            ? parseInt(rawWarehouse)
-            : null,
+        InLocID: null,
         AccountID: null,
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
     };
-    var entriesarray = {
-        DueDate: null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
-    }
-    entries.push(entriesarray)
+    
     if (flag4 && flag1 && flag2 && flag3) {
         var model = {
             'InvTransItems': items,
             'FiTransactions': transaction,
             'FiTransactionAdditionals': additionals,
-            'FiTransactionEntries': entries
+            'FiTransactionEntries': null
         }
     }
     else {
@@ -744,7 +738,7 @@ function RowClick(RowID) {
                 $("#ExpiryDate").val(formatDate(additionals.ExpiryDate));
                 $("#Attention").val(additionals.BankAddress);
                 $("#Terms").val(additionals.Terms);
-
+               
                 // -------- SUM CALCULATIONS WITH NO ROUNDING --------
                 var qtysum = 0;
                 $('.ItemQty').each(function () {
@@ -788,7 +782,13 @@ function RowClick(RowID) {
                 $(".ItemDiscPer").css('text-align', 'center');
                 updateAllSums();        //  Replaces all repeated sum blocks
                 calculateGrandTotal();  //  Recalculate grand total
-                $("#Party").focus();
+
+                // Disable payment fields while editing
+                $("#Tax").prop("disabled", true);
+                $("#TotalDiscount").prop("disabled", true);
+                $("#NetAmount").prop("disabled", true);
+                $("#GrandTotal").prop("disabled", true);
+               
             }
             else {
                 Swal.fire({
@@ -871,51 +871,58 @@ function updateSum(selector, targetSelector, align = 'right') {
 
 function calculateRow(id, changedField = '') {
 
-    let rawQty = $("#ItemQty" + id).val();
-
-    // USER IS CLEARING → DON’T INTERFERE
-    if (rawQty === "") return;
-
-    const qty = parseFloat(rawQty);
-    if (isNaN(qty)) return;
-
+    const qty = parseFloat($("#ItemQty" + id).val()) || 0;
     const rate = parseFloat($("#ItemRate" + id).val()) || 0;
-
     const grossAmt = qty * rate;
 
+    // --- Discount ---
     let discAmt = parseFloat($("#ItemDiscAmt" + id).val()) || 0;
     let discPer = parseFloat($("#ItemDiscPer" + id).val()) || 0;
 
-    // Only sync opposite field
     if (changedField === 'ItemDiscAmt') {
         discPer = grossAmt ? (discAmt / grossAmt) * 100 : 0;
         $("#ItemDiscPer" + id).val(toTwoDecimal(discPer));
-    }
-    else if (changedField === 'ItemDiscPer') {
+    } else if (changedField === 'ItemDiscPer') {
         discAmt = (grossAmt * discPer) / 100;
         $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
+    } else {
+        if (discPer > 0) {
+            discAmt = (grossAmt * discPer) / 100;
+            $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
+        } else if (discAmt > 0) {
+            discPer = grossAmt ? (discAmt / grossAmt) * 100 : 0;
+            $("#ItemDiscPer" + id).val(toTwoDecimal(discPer));
+        }
     }
 
     const amt = grossAmt - discAmt;
 
+    // --- Tax ---
     let taxAmt = parseFloat($("#ItemTaxAmt" + id).val()) || 0;
     let taxPer = parseFloat($("#ItemTaxPer" + id).val()) || 0;
 
     if (changedField === 'ItemTaxAmt') {
         taxPer = amt ? (taxAmt / amt) * 100 : 0;
         $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
-    }
-    else if (changedField === 'ItemTaxPer') {
+    } else if (changedField === 'ItemTaxPer') {
         taxAmt = (amt * taxPer) / 100;
         $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+    } else {
+        if (taxPer > 0) {
+            taxAmt = (amt * taxPer) / 100;
+            $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+        } else if (taxAmt > 0) {
+            taxPer = amt ? (taxAmt / amt) * 100 : 0;
+            $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
+        }
     }
 
     const total = amt + taxAmt;
 
-    // ONLY SYSTEM FIELDS ARE FORMATTED
-    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt));
-    $("#ItemAmt" + id).val(toTwoDecimal(amt));
-    $("#ItemTotal" + id).val(toTwoDecimal(total));
+    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt)).css('text-align', 'right');
+    $("#ItemAmt" + id).val(toTwoDecimal(amt)).css('text-align', 'right');
+    $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt)).css('text-align', 'right');
+    $("#ItemTotal" + id).val(toTwoDecimal(total)).css('text-align', 'right');
 }
 
 function updateAllSums() {
@@ -940,27 +947,19 @@ function updateAllSums() {
     calculateGrandTotal();
 }
 
-// *** FIX: Removed val === "" from early return so clearing a field triggers recalculation ***
-$(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("input", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
 
     const id = $(this).attr('element-id');
-    const changedField = $(this).attr("id").replace(id, '');
+    const changedField = $(this).attr("id").replace(/\d+$/, '');
 
     let val = $(this).val();
 
-    // Allow natural typing of decimals
     if (val === "." || val.endsWith(".")) {
         return;
     }
 
-    // Reject only truly bad values (but allow empty string to fall through)
     if (val !== "" && (val.includes('-') || isNaN(val) || Number(val) < 0)) {
         return;
-    }
-
-    // Treat empty as 0 for calculation purposes
-    if (val === "") {
-        $(this).val(""); // keep it visually empty
     }
 
     calculateRow(id, changedField);
@@ -968,20 +967,35 @@ $(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .Ite
 });
 
 
-$(document).on("blur", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("blur", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
     const val = parseFloat($(this).val());
     if (!isNaN(val)) {
         $(this).val(toTwoDecimal(val));
+    }
+    const id = $(this).attr('element-id');
+    if (id) {
+        calculateRow(id);
+        updateAllSums();
     }
 });
 
 //03-03-2026
 function getColumnSum(selector) {
     let sum = 0;
+
     $(selector).each(function () {
-        const val = parseFloat($(this).val());
-        if (!isNaN(val)) sum += val;
+        const value =
+            $(this).val() ||
+            $(this).text() ||
+            $(this).html();
+
+        const num = parseFloat(value);
+
+        if (!isNaN(num)) {
+            sum += num;
+        }
     });
+
     return sum;
 }
 

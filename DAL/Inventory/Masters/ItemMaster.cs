@@ -47,11 +47,11 @@ namespace ERPSample.DAL.Inventory.Masters
             {
                 cmd.CommandType = CommandType.StoredProcedure;
 
-                cmd.Parameters.AddWithValue("@Item", item ?? null);
-                cmd.Parameters.AddWithValue("@Category", category ?? null);
-                cmd.Parameters.AddWithValue("@Brand", brand ?? null);
-                cmd.Parameters.AddWithValue("@ModelNo", ModelNo ?? null);
-                cmd.Parameters.AddWithValue("@Barcode", Barcode ?? null);
+                cmd.Parameters.AddWithValue("@Item", (object?)item ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Category", (object?)category ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Brand", (object?)brand ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@ModelNo", (object?)ModelNo ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Barcode", (object?)Barcode ?? DBNull.Value);
                 cmd.Parameters.AddWithValue("@Mode", 5);
 
                 con.Open();

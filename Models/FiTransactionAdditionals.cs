@@ -81,7 +81,7 @@ namespace ERPSample.Models
         public int? RecommendByID { get; set; }
         public DateTime? RecommendDate { get; set; }
         public string? RecommendNote { get; set; }
-        public char? RecommendStatus { get; set; }
+        public string? RecommendStatus { get; set; }
         public bool? IsHigherApproval { get; set; }
         public int? LCApplnTransID { get; set; }
         public int? InLocID { get; set; }
@@ -192,7 +192,7 @@ namespace ERPSample.Models
             Columns.Add("RecommendByID", typeof(int));
             Columns.Add("RecommendDate", typeof(DateTime));
             Columns.Add("RecommendNote", typeof(string));
-            Columns.Add("RecommendStatus", typeof(char));
+            Columns.Add("RecommendStatus", typeof(string));
             Columns.Add("IsHigherApproval", typeof(bool));
 
             Columns.Add("LCApplnTransID", typeof(int));

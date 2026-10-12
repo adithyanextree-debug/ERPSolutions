@@ -10,71 +10,88 @@
     return;
 }
 @{
-    // Helper to safely get string value from DataRow
     string Val(DataRow r, string col)
-        => r[col] == DBNull.Value ? "" : r[col].ToString();
-
+        => r.Table.Columns.Contains(col) && r[col] != DBNull.Value ? r[col].ToString() : "";
     string Num(DataRow r, string col)
-        => r[col] == DBNull.Value ? "" : string.Format("{0:N3}", r[col]);
-
+        => r.Table.Columns.Contains(col) && r[col] != DBNull.Value ? string.Format("{0:N3}", r[col]) : "";
     string Dt(DataRow r, string col)
-        => r[col] == DBNull.Value ? "" : Convert.ToDateTime(r[col]).ToString("dd-MM-yyyy");
+        => r.Table.Columns.Contains(col) && r[col] != DBNull.Value ? Convert.ToDateTime(r[col]).ToString("dd-MM-yyyy") : "";
+
+    // Only show inventory/columnar sections if the flag is on AND the columns actually exist
+    bool showInventory = Model.IsInventory == true && dt.Columns.Contains("Qty");
+    bool showColumnar = Model.IsColumnar == true && dt.Columns.Contains("DiscountReceived");
+    var ignoreColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    {
+        "SlNo",
+        "Type",
+        "VID",
+        "AccountID"
+    };
 }
 <div class="table-responsive" style="overflow-x: auto;">
     <table id="purchaseTable" class="table table-bordered table-sm table-hover">
-        <thead class="">
+        <thead>
             <tr>
-                <th>#</th>
-                <th>VType</th>
-                <th>VNo</th>
-                <th>VDate</th>
-                <th>Particulars</th>
-                <th class="text-end">Debit</th>
-                <th class="text-end">Credit</th>
-                <th>Reference No</th>
-                <th>TaxFormID</th>
-                <th>ModeID</th>
-                <th>CounterName</th>
-                <th>Staff</th>
-                <th>Area</th>
-                <th>Qty</th>
-                <th>Unit</th>
-                @if(Model.IsColumnar == true){
-                    <th>Purchase A/C</th>
-                    <th>VAT5%</th>
+                @foreach (DataColumn col in dt.Columns)
+                {
+                    if (ignoreColumns.Contains(col.ColumnName))
+                    {
+                        continue;
+                    }
+                    <th>@col.ColumnName</th>
                 }
-               
             </tr>
         </thead>
         <tbody>
-            @{
-                int sNo = 1;
-            }
             @foreach (DataRow row in dt.Rows)
             {
-                <tr>
-                    <td class="text-center">@(sNo++)</td>    @*  Serial No - auto increments *@
-                    <td>@Val(row, "VType")</td>
-                    <td>@Val(row, "VNo")</td>
-                    <td>@Dt(row, "VDate")</td>
-                    <td>@Val(row, "Particulars")</td>
-                    <td class="text-end">@Num(row, "Debit")</td>
-                    <td class="text-end">@Num(row, "Credit")</td>
-                    <td>@Val(row, "RefrenceNo")</td>
-                    <td>@Val(row, "TaxFormID")</td>
-                    <td>@Val(row, "ModeID")</td>
-                    <td>@Val(row, "CounterName")</td>
-                    <td>@Val(row, "Staff")</td>
-                    <td>@Val(row, "Area")</td>
-                    @if (Model.IsColumnar == true)
+                var isMain = row.Table.Columns.Contains("Type")
+                && row["Type"] != DBNull.Value
+                && row["Type"].ToString() == "Main";
+                string rowStyle = "";
+                if (Model.IsInventory == true)
+                {
+                    rowStyle = "font-style:italic;";
+                }
+                else if (Model.IsDetailed == true && isMain)
+                {
+                    rowStyle = "font-weight:bold;color:#000;";
+                }
+
+                <tr style="@rowStyle">
+
+
+                    @foreach (DataColumn col in dt.Columns)
                     {
-                        <td>@Val(row, "ModeID")</td>
-                        <td>@Val(row, "ModeID")</td>
+                        if (ignoreColumns.Contains(col.ColumnName))
+                        {
+                            continue;
+                        }
+
+                        if (col.DataType == typeof(DateTime))
+                        {
+                            <td>@Dt(row, col.ColumnName)</td>
+                        }
+                        else if (col.DataType == typeof(decimal)
+                        || col.DataType == typeof(double)
+                        || col.DataType == typeof(float)
+                        || col.DataType == typeof(int)
+                        || col.DataType == typeof(long)
+                        || col.DataType == typeof(short))
+                        {
+                            <td class="text-end">@Num(row, col.ColumnName)</td>
+                        }
+                        else
+                        {
+                            <td>@Val(row, col.ColumnName)</td>
+                        }
                     }
+
                 </tr>
             }
         </tbody>
-       @*  <tfoot class="table-secondary fw-bold">
+           
+            @*  <tfoot class="table-secondary fw-bold">
             <tr>
                 <td colspan="4" class="text-end">Grand Total</td>
                 <td class="text-end">@string.Format("{0:N3}", Model.TotalDebit)</td>
@@ -82,7 +99,7 @@
                 <td colspan="6"></td>
             </tr>
         </tfoot> *@
-    </table>
+        </table>
 </div>
 
 <!-- Summary footer (matches your Windows app bottom panel) -->

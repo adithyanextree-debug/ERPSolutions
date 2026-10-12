@@ -9,21 +9,33 @@
     <div class="alert alert-warning">No records found for the selected filters.</div>
     return;
 }
+
 @{
     string Val(DataRow r, string col)
         => r[col] == DBNull.Value ? "" : r[col].ToString();
+
     string Num(DataRow r, string col)
         => r[col] == DBNull.Value ? "" : string.Format("{0:N3}", r[col]);
+
+    // First column -> X Axis
+    string labelColumn = dt.Columns[0].ColumnName;
+
+    // Second column -> Y Axis
+    string valueColumn = dt.Columns[1].ColumnName;
+
     // Chart Data
     var labels = new List<string>();
     var amounts = new List<decimal>();
+
     foreach (DataRow row in dt.Rows)
     {
-        labels.Add(Val(row, "Month & Year"));
+        labels.Add(Val(row, labelColumn));
+
         decimal amt = 0;
-        decimal.TryParse(Val(row, "Amount"), out amt);
+        decimal.TryParse(Val(row, valueColumn), out amt);
         amounts.Add(amt);
     }
+
     var chartLabels = JsonSerializer.Serialize(labels);
     var chartAmounts = JsonSerializer.Serialize(amounts);
 }
@@ -33,35 +45,43 @@
          style="overflow-y:auto; max-height:820px;">
         <table id="monthlysalessummaryTable"
                class="table table-bordered table-sm table-hover mb-0">
-            <thead style="
-                    position:sticky;
-                    top:0;
-                    z-index:10;
-                    background:#3d4656;
-                    color:white;
-                ">
+            <thead style="position:sticky;top:0;z-index:10;background:#3d4656;color:white;">
                 <tr>
-                    <th style="width:50px;">#</th>
-                    <th>Month & Year</th>
-                    <th class="text-end">Amount</th>
+                    <th>#</th>
+                    @foreach (DataColumn col in dt.Columns)
+                    {
+                        <th class="@(col.DataType != typeof(string) ? "text-end" : "")">
+                            @col.ColumnName
+                        </th>
+                    }
                 </tr>
             </thead>
             <tbody>
                 @{
-                    int sNo = 1;
+                    int Sn = 0;
                 }
                 @foreach (DataRow row in dt.Rows)
                 {
+                    Sn++;
                     <tr>
-                        <td class="text-center">
-                            @(sNo++)
-                        </td>
-                        <td>
-                            @Val(row, "Month & Year")
-                        </td>
-                        <td class="text-end">
-                            @Num(row, "Amount")
-                        </td>
+                        <td>@Sn</td>
+                        @foreach (DataColumn col in dt.Columns)
+                        {
+                            if (col.DataType == typeof(decimal)
+                            || col.DataType == typeof(double)
+                            || col.DataType == typeof(float)
+                            || col.DataType == typeof(int)
+                            || col.DataType == typeof(long)
+                            || col.DataType == typeof(short))
+                            {
+                                <td class="text-end">@Num(row, col.ColumnName)</td>
+                            }
+                            else
+                            {
+                                <td>@Val(row, col.ColumnName)</td>
+                            }
+                        }
+
                     </tr>
                 }
             </tbody>
@@ -80,8 +100,8 @@
     <script>
         var options = {
             series: [{
-                name: 'Sales Amount',
-                data: @Html.Raw(chartAmounts)
+            name: '@valueColumn',
+            data: @Html.Raw(chartAmounts)
             }],
             chart: {
                 type: 'bar',

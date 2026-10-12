@@ -30,6 +30,44 @@
         <div class="col-12">
             <div class="card mb-3">
                 <div class="card-body">
+                    <div class="list-product-header">
+                        <div>
+                            <ul class="quick-file d-flex flex-row">
+                                <li onclick="printOnlyTable()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-print text-warning">
+                                        </i>
+                                    </div>
+                                    <h6 class="mb-2">Print</h6>
+                                </li>
+                                <li onclick="exportToPDF()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-file text-info"></i>
+                                    </div>
+                                    <h6 class="mb-2">PDF</h6>
+                                </li>
+                                <li onclick="exportToExcel()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-book text-primary"></i>
+                                    </div>
+                                    <h6 class="mb-2">Excel</h6>
+                                </li>
+                                <li onclick="emailTableData()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-envelope text-title-gray"></i>
+                                    </div>
+                                    <h6 class="mb-2">Email</h6>
+                                </li>
+                                <li onclick="CloseEntry()">
+                                    <div class="quick-box">
+                                        <i class="fa-solid fa-close text-danger"></i>
+                                    </div>
+                                    <h6 class="mb-2">Close</h6>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
                     <div class="row g-2 align-items-center">
 
                         <!-- View By — label left, radios right -->

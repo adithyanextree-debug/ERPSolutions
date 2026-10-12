@@ -25,6 +25,306 @@ function NewEntry() {
     });
 }
 
+// Card button
+$(document).on('click', '#btnCard', function () {
+    if ($('#CardTable tbody tr').length > 0) {
+        captureModalSnapshot('CardTable');
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCardModal')).show();
+        return;
+    }
+    $.ajax({
+        url: '/SalesReturn/GetCardDetails',
+        type: 'GET',
+        data: {},
+        success: function (data) {
+            $('#CardTable tbody').html(data.cardTable);
+            captureModalSnapshot('CardTable');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCardModal')).show();
+        },
+        error: function () {
+            Swal.fire('Error', 'Failed to load Card details.', 'error');
+        }
+    });
+});
+
+// Cheque button
+//$(document).on('click', '#btnCheque', function () {
+//    if ($('#ChequeTable tbody tr').length > 0) {
+//        captureModalSnapshot('ChequeTable');
+//        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeChequeModal')).show();
+//        return;
+//    }
+//    $.ajax({
+//        url: '/SalesReturn/GetChequeDetails',
+//        type: 'GET',
+//        data: {},
+//        success: function (data) {
+//            $('#ChequeTable tbody').html(data.chequeTable);
+//            captureModalSnapshot('ChequeTable');
+//            bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeChequeModal')).show();
+//        },
+//        error: function () {
+//            Swal.fire('Error', 'Failed to load Cheque details.', 'error');
+//        }
+//    });
+//});
+
+// Cash button
+
+$(document).on('click', '#btnCash', function () {
+    if ($('#CashTable tbody tr').length > 0) {
+        captureModalSnapshot('CashTable');
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCashModal')).show();
+        return;
+    }
+    $.ajax({
+        url: '/SalesReturn/GetCashDetails',
+        type: 'GET',
+        data: {},
+        success: function (data) {
+            $('#CashTable tbody').html(data.cashTable);
+            captureModalSnapshot('CashTable');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCashModal')).show();
+        },
+        error: function () {
+            Swal.fire('Error', 'Failed to load Cash details.', 'error');
+        }
+    });
+});
+
+// ── Snapshot helpers for dirty-check ──────────────────────────────────────
+var modalSnapshots = {};
+var modalHtmlSnapshots = {}; // { 'CashTable': 'serialized string', ... }
+
+function getModalDataString(tableId) {
+    var parts = [];
+    $('#' + tableId + ' tbody tr').each(function () {
+        $(this).find('input').each(function () {
+            parts.push($(this).val());
+        });
+    });
+    return parts.join('||');
+}
+
+function captureModalSnapshot(tableId) {
+    modalSnapshots[tableId] = getModalDataString(tableId);
+    modalHtmlSnapshots[tableId] = $('#' + tableId + ' tbody').html();
+
+    // sync each input's value ATTRIBUTE to its current value so the
+    // stored HTML snapshot actually reflects what's on screen
+    $('#' + tableId + ' tbody tr').each(function () {
+        $(this).find('input').each(function () {
+            $(this).attr('value', $(this).val());
+        });
+    });
+    modalHtmlSnapshots[tableId] = $('#' + tableId + ' tbody').html();
+}
+
+function isModalDirty(tableId) {
+    var current = getModalDataString(tableId);
+    var original = modalSnapshots[tableId] || '';
+    return current !== original;
+}
+
+// ── Sum the Amount column of a modal table and push the total into the
+//    corresponding disabled Payment Details input (Cash / Card / Cheque) ──
+function updatePaymentField(sourceTableId, amountClass, fieldId) {
+    var total = 0;
+
+    $('#' + sourceTableId + ' tbody tr').each(function () {
+        var amt = parseFloat($(this).find('.' + amountClass).val()) || 0;
+        total += amt;
+    });
+
+    $('#' + fieldId).val(total.toFixed(2));
+    $('#' + fieldId).trigger('change'); // kept, harmless if it fires
+
+    // Guaranteed recalculation — doesn't depend on the disabled field's
+    // change event actually reaching the delegated handler
+    recalcTotalPaidAndBalance();
+}
+// Shared recalculation used both by the #Cash/#Card/#Cheque change handler
+// AND called directly by updatePaymentField() as a guaranteed path —
+// since #Cash/#Card/#Cheque are disabled, relying only on .trigger('change')
+// to reach the delegated handler is unreliable across browsers/jQuery versions.
+function recalcTotalPaidAndBalance() {
+    const cash = parseFloat($('#Cash').val()) || 0;
+    const card = parseFloat($('#Card').val()) || 0;
+    const cheque = parseFloat($('#Cheque').val()) || 0;
+
+    const totalPaid = cash + card + cheque;
+    $('#TotalPaid').val(toTwoDecimal(totalPaid));
+
+    calculateBalance();
+}
+
+// Save button — Cash modal
+$(document).on('click', '#btnSaveCash', function () {
+    updatePaymentField('CashTable', 'CashAmount', 'Cash');
+    captureModalSnapshot('CashTable');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCashModal')).hide();
+});
+
+// Save button — Card modal
+$(document).on('click', '#btnSaveCard', function () {
+    updatePaymentField('CardTable', 'CardAmount', 'Card');
+    captureModalSnapshot('CardTable');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCardModal')).hide();
+});
+
+// Save button — Cheque modal
+$(document).on('click', '#btnSaveCheque', function () {
+    updatePaymentField('ChequeTable', 'ChequeAmount', 'Cheque');
+    captureModalSnapshot('ChequeTable');
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeChequeModal')).hide();
+});
+
+// Close button — Cash modal
+$(document).on('click', '#btnCloseCash, #btnCloseCash2', function () {
+    if (!isModalDirty('CashTable')) {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCashModal')).hide();
+        return;
+    }
+    Swal.fire({
+        title: 'Save Changes?',
+        text: 'Do you want to save the data entered?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Save',
+        cancelButtonText: 'No, Close',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            updatePaymentField('CashTable', 'CashAmount', 'Cash');
+            captureModalSnapshot('CashTable');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCashModal')).hide();
+        }
+        else {
+            $('#CashTable tbody').html(modalHtmlSnapshots['CashTable']);
+            captureModalSnapshot('CashTable');
+            updatePaymentField('CashTable', 'CashAmount', 'Cash');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCashModal')).hide();
+        }
+    });
+});
+
+// Close button — Card modal
+$(document).on('click', '#btnCloseCard, #btnCloseCard2', function () {
+    if (!isModalDirty('CardTable')) {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCardModal')).hide();
+        return;
+    }
+    Swal.fire({
+        title: 'Save Changes?',
+        text: 'Do you want to save the data entered?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Save',
+        cancelButtonText: 'No, Close',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            updatePaymentField('CardTable', 'CardAmount', 'Card');
+            captureModalSnapshot('CardTable');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCardModal')).hide();
+        }
+        else {
+            $('#CardTable tbody').html(modalHtmlSnapshots['CardTable']);
+            captureModalSnapshot('CardTable');
+            updatePaymentField('CardTable', 'CardAmount', 'Card');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeCardModal')).hide();
+        }
+    });
+});
+
+// Close button — Cheque modal
+$(document).on('click', '#btnCloseCheque, #btnCloseCheque2', function () {
+    if (!isModalDirty('ChequeTable')) {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeChequeModal')).hide();
+        return;
+    }
+    Swal.fire({
+        title: 'Save Changes?',
+        text: 'Do you want to save the data entered?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, Save',
+        cancelButtonText: 'No, Close',
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            updatePaymentField('ChequeTable', 'ChequeAmount', 'Cheque');
+            captureModalSnapshot('ChequeTable');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeChequeModal')).hide();
+        }
+        else {
+            $('#ChequeTable tbody').html(modalHtmlSnapshots['ChequeTable']);
+            captureModalSnapshot('ChequeTable');
+            updatePaymentField('ChequeTable', 'ChequeAmount', 'Cheque');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('paymentModeChequeModal')).hide();
+        }
+    });
+});
+
+
+$(document).on("click", ".addrowCash", function (event) {
+    event.preventDefault();
+    var serialno = $(this).attr('serialno');
+    $.ajax({
+        url: "/SalesReturn/NewRowCash?no=" + serialno,
+        method: "GET",
+        dataType: "JSON",
+        success: function (data) {
+            if (data.success === true) {
+                $("#CashTable tbody").append(data.newrow);
+            }
+        },
+        error: function () {
+            Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to add row.', confirmButtonText: 'Okay', confirmButtonColor: '#d33' });
+        }
+    });
+});
+
+$(document).on("click", ".addrowCard", function (event) {
+    event.preventDefault();
+    var serialno = $(this).attr('serialno');
+    $.ajax({
+        url: "/SalesReturn/NewRowCard?no=" + serialno,
+        method: "GET",
+        dataType: "JSON",
+        success: function (data) {
+            if (data.success === true) {
+                $("#CardTable tbody").append(data.newrow);
+            }
+        },
+        error: function () {
+            Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to add row.', confirmButtonText: 'Okay', confirmButtonColor: '#d33' });
+        }
+    });
+});
+
+$(document).on("click", ".addrowCheque", function (event) {
+    event.preventDefault();
+    var serialno = $(this).attr('serialno');
+    $.ajax({
+        url: "/SalesReturn/NewRowCheque?no=" + serialno,
+        method: "GET",
+        dataType: "JSON",
+        success: function (data) {
+            if (data.success === true) {
+                $("#ChequeTable tbody").append(data.newrow);
+            }
+        },
+        error: function () {
+            Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to add row.', confirmButtonText: 'Okay', confirmButtonColor: '#d33' });
+        }
+    });
+});
+
+
 //Changed and optimized code on 25-04-2026 START
 $(document).on("keyup", ".productCode", function (event) {
     const id = $(this).attr("element-id");
@@ -414,6 +714,20 @@ function ReindexRows() {
 function CloseEntry() {
     location.reload()
 }
+$('#Mode').on('change', function () {
+    var selectedText = $(this).find('option:selected').text().trim();
+
+    if (selectedText === 'Credit') {
+        $('#Card').prop('disabled', true).val('');
+        $('#Cheque').prop('disabled', false);
+    } else if (selectedText === 'Cash') {
+        $('#Cheque').prop('disabled', true).val('');
+        $('#Card').prop('disabled', false);
+    } else {
+        $('#Card').prop('disabled', false);
+        $('#Cheque').prop('disabled', false);
+    }
+});
 
 function SaveEntry() {
     if ($("#ID").val() != null && $("#ID").val() != "") {
@@ -526,7 +840,8 @@ function SaveEntry() {
     });
     var rawProject = $("#Project").attr('data-idvalue');
     var rawParty = $("#Party").attr('data-idvalue');
-
+    var modeId = parseInt($("#Mode").val()) || 0;
+    var modeName = $("#Mode option:selected").text();
     // Build transaction object
     var transaction = {
         ID: idValue, // Nullable int
@@ -545,11 +860,20 @@ function SaveEntry() {
         CostCentreID: (rawProject !== undefined && rawProject !== null && rawProject.trim() !== "" && !isNaN(rawProject) && parseInt(rawProject) > 0)
             ? parseInt(rawProject)
             : null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
+        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2,
+        // Payment details
+        CashAmount: $("#Cash").val(),
+        CardAmount: $("#Card").val(),
+        CreditAmount: null,
+        Discount: null,
+        IsCredit: 0,
+        TaxAmount: $("#Tax").val(),
+        PaymentTypeID: modeId,
     };
 
     var rawSalesman = $("#Salesman").attr('data-idvalue');
     var rawWarehouse = $("#Warehouse").val();
+    var Paid = $("#TotalPaid").val();
 
     // Build additionals object
     var additionals = {
@@ -585,8 +909,30 @@ function SaveEntry() {
 
     };
     var entriesarray = {
-        DueDate: $("#DueDate").val() ? new Date($("#DueDate").val()) : null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
+        'RowState': (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2,
+        'DueDate': $("#DueDate").val() ? new Date($("#DueDate").val()) : null,
+        'TransactionID': idValue,
+        'DrCr': 'C',
+        'Nature': 'M',
+        'Amount': Paid,
+        'AccountID': (rawParty !== undefined && rawParty !== null && rawParty.trim() !== "" && !isNaN(rawParty) && parseInt(rawParty) > 0)
+            ? parseInt(rawParty)
+            : null,
+        'FCAmount': Paid,
+        'BankDate': null,
+        'RefPageTypeID': null,
+        'RefPageTableID': null,
+        'ReferenceNo': null,
+        'Description': null,
+        'CommonNarration': null,
+        'TranType': 'Party',
+        'RefTransID': null,
+        'CurrencyID': null,
+        'ExchangeRate': null,
+        'RefTransactionID': null,
+        'ExchRate': null,
+        'TaxPerc': null,
+        //'ID': $("#EntryID").val() ? parseInt($("#EntryID").val()) : null,
     }
     entries.push(entriesarray)
     if (flag4 && flag1 && flag2 && flag3) {
@@ -639,6 +985,20 @@ function SaveEntry() {
             return false;
         }
 
+    }
+    if (modeName == "Cash") { // assuming 1 = Cash
+        var balance = parseFloat($("#Balance").val()) || 0;
+
+        if (Math.abs(balance) > 0.01) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops!',
+                text: 'For Cash payment, Balance must be 0.',
+                confirmButtonText: 'Okay',
+                confirmButtonColor: '#d33'
+            });
+            return false;
+        }
     }
     console.log(JSON.stringify(model))
     $.ajax({
@@ -767,6 +1127,14 @@ function RowClick(RowID) {
                 $("#Salesman").val(additionals.AccountName);
                 $("#Salesman").attr('data-idvalue', additionals.AccountID);
 
+                //Entries
+                $("#DueDate").val(formatDate(data.duedate));
+                $("#Cash").val(data.cash);
+                $("#Card").val(data.card);
+                $("#Cheque").val(data.cheque);
+                $("#TotalPaid").val(data.totalpaid);
+                $("#EntryID").val(data.entryid);
+
                 // -------- SUM CALCULATIONS WITH NO ROUNDING --------
 
                 var qtysum = 0;
@@ -812,6 +1180,15 @@ function RowClick(RowID) {
                 $(".ItemTaxPer").css('text-align', 'center');
                 updateAllSums();        //  Replaces all repeated sum blocks
                 calculateGrandTotal();  //  Recalculate grand total
+
+                // Disable payment fields while editing
+                $("#Tax").prop("disabled", true);
+                $("#TotalDiscount").prop("disabled", true);
+                $("#NetAmount").prop("disabled", true);
+                $("#GrandTotal").prop("disabled", true);
+                $("#Advance").prop("readonly", true);
+                $("#Balance").prop("readonly", true);
+
                 $("#Party").focus();
             }
             else {
@@ -897,53 +1274,59 @@ function updateSum(selector, targetSelector, align = 'right') {
 
 function calculateRow(id, changedField = '') {
 
-    let rawQty = $("#ItemQty" + id).val();
-
-    // USER IS CLEARING → DON’T INTERFERE
-    if (rawQty === "") return;
-
-    const qty = parseFloat(rawQty);
-    if (isNaN(qty)) return;
-
+    const qty = parseFloat($("#ItemQty" + id).val()) || 0;
     const rate = parseFloat($("#ItemRate" + id).val()) || 0;
-
     const grossAmt = qty * rate;
 
+    // --- Discount ---
     let discAmt = parseFloat($("#ItemDiscAmt" + id).val()) || 0;
     let discPer = parseFloat($("#ItemDiscPer" + id).val()) || 0;
 
-    // Only sync opposite field
     if (changedField === 'ItemDiscAmt') {
         discPer = grossAmt ? (discAmt / grossAmt) * 100 : 0;
         $("#ItemDiscPer" + id).val(toTwoDecimal(discPer));
-    }
-    else if (changedField === 'ItemDiscPer') {
+    } else if (changedField === 'ItemDiscPer') {
         discAmt = (grossAmt * discPer) / 100;
         $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
+    } else {
+        if (discPer > 0) {
+            discAmt = (grossAmt * discPer) / 100;
+            $("#ItemDiscAmt" + id).val(toTwoDecimal(discAmt));
+        } else if (discAmt > 0) {
+            discPer = grossAmt ? (discAmt / grossAmt) * 100 : 0;
+            $("#ItemDiscPer" + id).val(toTwoDecimal(discPer));
+        }
     }
 
     const amt = grossAmt - discAmt;
 
+    // --- Tax ---
     let taxAmt = parseFloat($("#ItemTaxAmt" + id).val()) || 0;
     let taxPer = parseFloat($("#ItemTaxPer" + id).val()) || 0;
 
     if (changedField === 'ItemTaxAmt') {
         taxPer = amt ? (taxAmt / amt) * 100 : 0;
         $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
-    }
-    else if (changedField === 'ItemTaxPer') {
+    } else if (changedField === 'ItemTaxPer') {
         taxAmt = (amt * taxPer) / 100;
         $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+    } else {
+        if (taxPer > 0) {
+            taxAmt = (amt * taxPer) / 100;
+            $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+        } else if (taxAmt > 0) {
+            taxPer = amt ? (taxAmt / amt) * 100 : 0;
+            $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
+        }
     }
 
     const total = amt + taxAmt;
 
-    // ONLY SYSTEM FIELDS ARE FORMATTED
-    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt));
-    $("#ItemAmt" + id).val(toTwoDecimal(amt));
-    $("#ItemTotal" + id).val(toTwoDecimal(total));
+    $("#ItemGrossAmt" + id).val(toTwoDecimal(grossAmt)).css('text-align', 'right');
+    $("#ItemAmt" + id).val(toTwoDecimal(amt)).css('text-align', 'right');
+    $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt)).css('text-align', 'right');
+    $("#ItemTotal" + id).val(toTwoDecimal(total)).css('text-align', 'right');
 }
-
 function updateAllSums() {
     updateSum('.ItemQty', '#qtySum', 'center');
     updateSum('.ItemGrossAmt', '#ItemGrossAmtSum');
@@ -966,48 +1349,54 @@ function updateAllSums() {
     calculateGrandTotal();
 }
 
-// *** FIX: Removed val === "" from early return so clearing a field triggers recalculation ***
-$(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("input", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
 
     const id = $(this).attr('element-id');
-    const changedField = $(this).attr("id").replace(id, '');
+    const changedField = $(this).attr("id").replace(/\d+$/, '');
 
     let val = $(this).val();
 
-    // Allow natural typing of decimals
     if (val === "." || val.endsWith(".")) {
         return;
     }
 
-    // Reject only truly bad values (but allow empty string to fall through)
     if (val !== "" && (val.includes('-') || isNaN(val) || Number(val) < 0)) {
         return;
-    }
-
-    // Treat empty as 0 for calculation purposes
-    if (val === "") {
-        $(this).val(""); // keep it visually empty
     }
 
     calculateRow(id, changedField);
     updateAllSums();
 });
 
-
-$(document).on("blur", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("blur", ".ItemQty, .ItemRate, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
     const val = parseFloat($(this).val());
     if (!isNaN(val)) {
         $(this).val(toTwoDecimal(val));
+    }
+    const id = $(this).attr('element-id');
+    if (id) {
+        calculateRow(id);
+        updateAllSums();
     }
 });
 
 //03-03-2026
 function getColumnSum(selector) {
     let sum = 0;
+
     $(selector).each(function () {
-        const val = parseFloat($(this).val());
-        if (!isNaN(val)) sum += val;
+        const value =
+            $(this).val() ||
+            $(this).text() ||
+            $(this).html();
+
+        const num = parseFloat(value);
+
+        if (!isNaN(num)) {
+            sum += num;
+        }
     });
+
     return sum;
 }
 
@@ -1037,15 +1426,18 @@ $(document).on("input", "#AdditionalCharges", function () {
 $(document).on("input", "#Advance, #TotalPaid", function () {
     calculateBalance();
 });
-
-$(document).on("input", "#Cash, #Card, #Cheque", function () {
-
-    const cash = parseFloat($('#Cash').val()) || 0;
-    const card = parseFloat($('#Card').val()) || 0;
-    const cheque = parseFloat($('#Cheque').val()) || 0;
-
-    const totalPaid = cash + card + cheque;
-    $('#TotalPaid').val(toTwoDecimal(totalPaid));
-
-    calculateBalance();
+$(document).on("input change", "#Cash, #Card, #Cheque", function () {
+    recalcTotalPaidAndBalance();
 });
+
+//$(document).on("input", "#Cash, #Card, #Cheque", function () {
+
+//    const cash = parseFloat($('#Cash').val()) || 0;
+//    const card = parseFloat($('#Card').val()) || 0;
+//    const cheque = parseFloat($('#Cheque').val()) || 0;
+
+//    const totalPaid = cash + card + cheque;
+//    $('#TotalPaid').val(toTwoDecimal(totalPaid));
+
+//    calculateBalance();
+//});

@@ -408,7 +408,6 @@ function SaveEntry() {
     var flag3 = true;
     var flag4 = true;
     var items = [];
-    var entries = [];
 
     $('.productCode').each(function () {
         if ($(this).val() != null && $(this).val() != '') {
@@ -506,17 +505,14 @@ function SaveEntry() {
         RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
 
     };
-    var entriesarray = {
-        DueDate: null,
-        RowState: (idValue === null || idValue === 0 || idValue === undefined) ? 1 : 2
-    }
-    entries.push(entriesarray)
+   
+
     if (flag4 && flag1 && flag2 && flag3) {
         var model = {
             'InvTransItems': items,
             'FiTransactions': transaction,
             'FiTransactionAdditionals': additionals,
-            'FiTransactionEntries': entries
+            'FiTransactionEntries': null
         }
     }
     else {
@@ -712,16 +708,6 @@ function RowClick(RowID) {
     });
 }
 
-function toFixedNoRound(num, decimals) {
-    num = Number(num);
-    console.log(num + " num")
-    console.log(decimals + " decimals")
-    if (isNaN(num)) return "0.00";
-    const factor = Math.pow(10, decimals);
-    console.log(factor + " factor")
-    console.log((Math.trunc(num * factor) / factor).toFixed(decimals) + "RETURN RESULT")
-    return (Math.trunc(num * factor) / factor).toFixed(decimals);
-}
 function DeleteEntry() {
     if ($("#ID").val() == null) {
         return false
@@ -767,6 +753,17 @@ function DeleteEntry() {
 
 }
 
+function toFixedNoRound(num, decimals) {
+    num = Number(num);
+    console.log(num + " num")
+    console.log(decimals + " decimals")
+    if (isNaN(num)) return "0.00";
+    const factor = Math.pow(10, decimals);
+    console.log(factor + " factor")
+    console.log((Math.trunc(num * factor) / factor).toFixed(decimals) + "RETURN RESULT")
+    return (Math.trunc(num * factor) / factor).toFixed(decimals);
+}
+
 function toTwoDecimal(val) {
     return parseFloat(val || 0).toFixed(2);
 }
@@ -782,19 +779,9 @@ function updateSum(selector, targetSelector, align = 'right') {
 
 function calculateRow(id, changedField = '') {
 
-    let rawQty = $("#ItemQty" + id).val();
-
-    // USER IS CLEARING → DON’T INTERFERE
-    if (rawQty === "") return;
-
-    const qty = parseFloat(rawQty);
-    if (isNaN(qty)) return;
-
+    const qty = parseFloat($("#ItemQty" + id).val()) || 0;
     const rate = parseFloat($("#ItemRate" + id).val()) || 0;
-
-    const grossAmt = qty * rate;
-
-    const amt = grossAmt;
+    const amt = qty * rate;
 
     let taxAmt = parseFloat($("#ItemTaxAmt" + id).val()) || 0;
     let taxPer = parseFloat($("#ItemTaxPer" + id).val()) || 0;
@@ -802,15 +789,22 @@ function calculateRow(id, changedField = '') {
     if (changedField === 'ItemTaxAmt') {
         taxPer = amt ? (taxAmt / amt) * 100 : 0;
         $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
-    }
-    else if (changedField === 'ItemTaxPer') {
+    } else if (changedField === 'ItemTaxPer') {
         taxAmt = (amt * taxPer) / 100;
         $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+    } else {
+        // Qty/Rate change or fresh load: recalc TaxAmt from existing %
+        if (taxPer > 0) {
+            taxAmt = (amt * taxPer) / 100;
+            $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt));
+        } else if (taxAmt > 0) {
+            taxPer = amt ? (taxAmt / amt) * 100 : 0;
+            $("#ItemTaxPer" + id).val(toTwoDecimal(taxPer));
+        }
     }
 
-
-    // ONLY SYSTEM FIELDS ARE FORMATTED
-    $("#ItemAmt" + id).val(toTwoDecimal(amt));
+    $("#ItemAmt" + id).val(toTwoDecimal(amt)).css('text-align', 'right');
+    $("#ItemTaxAmt" + id).val(toTwoDecimal(taxAmt)).css('text-align', 'right');
 }
 
 function updateAllSums() {
@@ -819,48 +813,52 @@ function updateAllSums() {
     updateSum('.ItemTaxAmt', '#taxAmtSum');
 }
 
-// *** FIX: Removed val === "" from early return so clearing a field triggers recalculation ***
-$(document).on("input", ".ItemQty, .ItemDiscPer, .ItemDiscAmt, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("input", ".ItemQty, .ItemRate, .ItemTaxPer, .ItemTaxAmt", function () {
 
     const id = $(this).attr('element-id');
-    const changedField = $(this).attr("id").replace(id, '');
+    const changedField = $(this).attr("id").replace(/\d+$/, '');
 
     let val = $(this).val();
 
-    // Allow natural typing of decimals
     if (val === "." || val.endsWith(".")) {
         return;
     }
 
-    // Reject only truly bad values (but allow empty string to fall through)
     if (val !== "" && (val.includes('-') || isNaN(val) || Number(val) < 0)) {
         return;
-    }
-
-    // Treat empty as 0 for calculation purposes
-    if (val === "") {
-        $(this).val(""); // keep it visually empty
     }
 
     calculateRow(id, changedField);
     updateAllSums();
 });
 
-
-$(document).on("blur", ".ItemQty, .ItemTaxPer, .ItemTaxAmt", function () {
+$(document).on("blur", ".ItemQty, .ItemRate, .ItemTaxPer, .ItemTaxAmt", function () {
     const val = parseFloat($(this).val());
     if (!isNaN(val)) {
         $(this).val(toTwoDecimal(val));
     }
+    const id = $(this).attr('element-id');
+    if (id) {
+        calculateRow(id);
+        updateAllSums();
+    }
 });
-
 //03-03-2026
 function getColumnSum(selector) {
     let sum = 0;
+
     $(selector).each(function () {
-        const val = parseFloat($(this).val());
-        if (!isNaN(val)) sum += val;
+        const value =
+            $(this).val() ||
+            $(this).text() ||
+            $(this).html();
+
+        const num = parseFloat(value);
+
+        if (!isNaN(num)) {
+            sum += num;
+        }
     });
+
     return sum;
 }
-

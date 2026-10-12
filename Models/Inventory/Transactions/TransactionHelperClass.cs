@@ -87,11 +87,11 @@
                         t.FinanceUpdate ?? (object)DBNull.Value,             // 55
                         t.CostUpdate ?? (object)DBNull.Value,             // 56
 
-                        t.Cash ?? (object)DBNull.Value,                // 50
-                        t.Card ?? (object)DBNull.Value,             // 51
-                        t.Tax ?? (object)DBNull.Value,            // 52
+                        t.CashAmount ?? (object)DBNull.Value,                // 50
+                        t.CardAmount ?? (object)DBNull.Value,             // 51
+                        t.TaxAmount ?? (object)DBNull.Value,            // 52
                         t.IsCredit ?? (object)DBNull.Value,             // 54
-                        t.Credit ?? (object)DBNull.Value,              // 53
+                        t.CreditAmount ?? (object)DBNull.Value,              // 53
                        
                         t.RowState ?? (object)DBNull.Value        // 49
 
@@ -372,6 +372,35 @@
             }
         }
 
+        public static class FiChequeEntryHelper
+        {
+            public static FiChequeEntryDataTable ToDataTable(
+                IEnumerable<ERPSample.Models.FiChequeEntry> cheque)
+            {
+                var dt = new FiChequeEntryDataTable();
 
+                foreach (var e in cheque)
+                {
+                    dt.Rows.Add(
+                        // New FiChequeEntry fields
+                        e.ID ?? (object)DBNull.Value,
+                        e.CardType ?? (object)DBNull.Value,
+                        e.Commission ?? (object)DBNull.Value,
+                        e.ChequeNo ?? (object)DBNull.Value,
+                        e.ChequeDate ?? (object)DBNull.Value,
+                        e.ClrDays ?? (object)DBNull.Value,
+                        e.BankID ?? (object)DBNull.Value,
+                        e.BankName ?? (object)DBNull.Value,
+                        e.Status ?? (object)DBNull.Value,
+                        e.PartyID ?? (object)DBNull.Value,
+
+                        e.RowState ?? (object)DBNull.Value
+
+                    );
+                }
+
+                return dt;
+            }
+        }
     }
 }

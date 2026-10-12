@@ -13,7 +13,7 @@ namespace ERPSample.Models
         public int? ID { get; set; }
         public int? TransactionID { get; set; }
         public string? DrCr { get; set; }
-        public char? Nature { get; set; }
+        public string? Nature { get; set; }
         public int? AccountID { get; set; }
         public decimal? Amount { get; set; }
         public decimal? FCAmount { get; set; }
@@ -44,7 +44,7 @@ namespace ERPSample.Models
             Columns.Add("ID", typeof(int));
             Columns.Add("TransactionID", typeof(int));
             Columns.Add("DrCr", typeof(string));
-            Columns.Add("Nature", typeof(char));
+            Columns.Add("Nature", typeof(string));
             Columns.Add("AccountID", typeof(int));
             Columns.Add("Amount", typeof(decimal));
             Columns.Add("FCAmount", typeof(decimal));
