@@ -1,4 +1,6 @@
-﻿namespace ERPSample.Models.Inventory.Transactions
+﻿using ERPSample.Models.General.Users;
+
+namespace ERPSample.Models.Inventory.Transactions
 {
     public class TransactionHelperClass
     {
@@ -402,5 +404,110 @@
                 return dt;
             }
         }
+
+        public static class MaEmployeesHelper
+        {
+            public static MaEmployeesDatatable ToDataTable(
+            IEnumerable<MaEmployees> employees)
+            {
+                var dt = new MaEmployeesDatatable();
+
+                foreach (var t in employees)
+                {
+                    dt.Rows.Add(
+
+                        // ---- EXACT ORDER FROM SQL ----
+
+                        t.ID ?? (object)DBNull.Value,                       // 1
+                        t.FirstName ?? (object)DBNull.Value,                 // 2
+                        t.MiddleName ?? (object)DBNull.Value,                // 3
+                        t.LastName ?? (object)DBNull.Value,                  // 4
+                        t.Address ?? (object)DBNull.Value,                   // 5
+                        t.EmailID ?? (object)DBNull.Value,                   // 6
+                        t.ResidenceNumber ?? (object)DBNull.Value,           // 7
+                        t.OfficeNumber ?? (object)DBNull.Value,              // 8
+                        t.MobileNumber ?? (object)DBNull.Value,              // 9
+                        t.DesignationID ?? (object)DBNull.Value,             // 10
+                        t.Active ?? (object)DBNull.Value,                    // 11
+                        t.EmployeeType ?? (object)DBNull.Value,              // 12
+                        t.UserName ?? (object)DBNull.Value,                  // 13
+                        t.Password ?? (object)DBNull.Value,                  // 14
+                        t.GmailID ?? (object)DBNull.Value,                   // 15
+                        t.IsLocationRestrictedUser ?? (object)DBNull.Value,  // 16
+                        t.PhotoID ?? (object)DBNull.Value,                   // 17
+                        t.CreatedBranchID ?? (object)DBNull.Value,           // 18
+                        t.CreatedBy ?? (object)DBNull.Value,                 // 19
+                        t.CreatedOn ?? (object)DBNull.Value,                 // 20
+                        t.AccountID ?? (object)DBNull.Value,                 // 21
+                        t.ImagePath ?? (object)DBNull.Value                  // 22
+
+                    );
+                }
+
+                return dt;
+            }
+
+        }
+
+        public static class MaEmployeeDetailsHelper
+        {
+            public static MaEmployeeDetailsDataTable ToDataTable(
+                IEnumerable<MaEmployeeDetails> details)
+            {
+                var dt = new MaEmployeeDetailsDataTable();
+
+                foreach (var d in details)
+                {
+                    dt.Rows.Add(
+                        d.ID ?? (object)DBNull.Value,
+                        d.EmployeeID ?? (object)DBNull.Value,
+                        d.DetailRowKey,
+                        d.BranchID ?? (object)DBNull.Value,
+                        d.DepartmentID ?? (object)DBNull.Value,
+                        d.CreatedBy ?? (object)DBNull.Value,
+                        d.CreatedOn ?? (object)DBNull.Value,
+                        d.ActiveFlag ?? (object)DBNull.Value,
+                        d.IsMainBranch ?? (object)DBNull.Value,
+                        d.SuperVisorID ?? (object)DBNull.Value,
+                        d.MaRoleID ?? (object)DBNull.Value
+                    );
+                }
+
+                return dt;
+            }
+        }
+
+        public static class MaUserRightsHelper
+        {
+            public static MaUserRightsDataTable ToDataTable(
+                IEnumerable<MaUserRights> rights)
+            {
+                var dt = new MaUserRightsDataTable();
+
+                foreach (var r in rights)
+                {
+                    dt.Rows.Add(
+                        r.ID ?? (object)DBNull.Value,
+                        r.UserDetailsID ?? (object)DBNull.Value,
+                        r.DetailRowKey,
+                        r.PageMenuID ?? (object)DBNull.Value,
+                        r.IsView ?? (object)DBNull.Value,
+                        r.IsCreate ?? (object)DBNull.Value,
+                        r.IsEdit ?? (object)DBNull.Value,
+                        r.IsCancel ?? (object)DBNull.Value,
+                        r.IsDelete ?? (object)DBNull.Value,
+                        r.IsApprove ?? (object)DBNull.Value,
+                        r.IsEditApproved ?? (object)DBNull.Value,
+                        r.IsHigherApprove ?? (object)DBNull.Value,
+                        r.IsPrint ?? (object)DBNull.Value,
+                        r.IsEmail ?? (object)DBNull.Value,
+                        r.IsExcelUpload ?? (object)DBNull.Value
+                    );
+                }
+
+                return dt;
+            }
+        }
+
     }
 }

@@ -1,0 +1,392 @@
+﻿@using System.Data
+@{
+    ViewData["Title"] = "Users";
+}
+
+<style>
+    /* ─── Table Style ─────────────────────────────────────────── */
+    #Itemtable {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        #Itemtable thead tr {
+            background-color: #f0f4ff;
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        #Itemtable thead th {
+            padding: 8px 6px;
+            white-space: nowrap;
+            border: 1px solid #c8d0e7;
+            text-align: center;
+        }
+
+        /* ─── Striped tbody rows ──────────────────────────────────── */
+        #Itemtable tbody tr:nth-child(odd) {
+            background-color: #ffffff !important;
+        }
+
+        #Itemtable tbody tr:nth-child(even) {
+            background-color: #f7f9ff !important;
+        }
+
+        #Itemtable tbody tr:hover {
+            background-color: #eef2ff !important;
+        }
+
+        /* ─── TD borders ──────────────────────────────────────────── */
+        #Itemtable tbody td {
+            padding: 3px 4px !important;
+            vertical-align: middle !important;
+            border: 1px solid #c8d0e7 !important;
+        }
+
+        /* ─── NO border for inputs/selects inside td ─────────────── */
+        #Itemtable input.form-control,
+        #Itemtable select.form-select {
+            border: none !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            background-color: transparent !important;
+            padding: 4px 6px !important;
+            font-size: 13px !important;
+            outline: none !important;
+        }
+
+            /* ─── Focus highlight on input/select ────────────────────── */
+            #Itemtable input.form-control:focus,
+            #Itemtable select.form-select:focus {
+                background-color: #dde8ff !important;
+                outline: none !important;
+                box-shadow: none !important;
+                border: none !important;
+            }
+
+            /* ─── Disabled inputs ─────────────────────────────────────── */
+            #Itemtable input.form-control:disabled,
+            #Itemtable select.form-select:disabled {
+                background-color: transparent !important;
+                color: #444 !important;
+                cursor: default !important;
+            }
+
+        /* ─── Serial number ───────────────────────────────────────── */
+        #Itemtable td.serial-no {
+            text-align: center !important;
+            font-weight: 600;
+            color: #555;
+            font-size: 12px;
+        }
+        /* ─── Image align to center ───────────────────────────────────────── */
+
+        #Itemtable tbody td:nth-child(2) {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+    .col-form-label {
+        font-size: 13px;
+        padding-top: 6px;
+        font-weight: 500;
+    }
+
+    /* ─── Input + "..." button stay on the SAME row, same col ───────────── */
+    .input-with-btn {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch;
+        width: 100%;
+    }
+
+        .input-with-btn input.form-control {
+            flex: 1 1 auto;
+            min-width: 0; /* prevents input from forcing button to wrap */
+            border-radius: 4px 0 0 4px;
+        }
+
+        .input-with-btn button {
+            flex: 0 0 auto;
+            white-space: nowrap;
+            border-radius: 0 4px 4px 0;
+            margin-left: -1px; /* avoids double border gap between input and button */
+        }
+
+    .roles-table-scroll {
+        max-height: 450px;
+        overflow: auto !important;
+    }
+
+    .role-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+        .role-table th,
+        .role-table td {
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            text-align: center;
+        }
+
+        .role-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+    .rights-row td {
+        padding: 10px;
+        background-color: #fafafa;
+    }
+   
+</style>
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Sales Invoice</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="Home">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">General</li>
+                    <li class="breadcrumb-item">Users</li>
+                    <li class="breadcrumb-item active">Users</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Zero Configuration  Starts-->
+        <div class="col-sm-12">
+            <div class="card">
+                <div class="list-product-header mt-4">
+                    <div>
+                        @(await Component.InvokeAsync("ToolBar", new
+                        {
+                            PageName = "Users",
+                            AllowNew = ViewBag.UserPermissions.IsCreate,
+                            AllowDelete = ViewBag.UserPermissions.IsDelete,
+                            AllowPDF = true,
+                            AllowPrint = ViewBag.UserPermissions.IsPrint,
+                        }))
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="dt-ext table-responsive" id="UsersList">
+                    <p id="errormessage">@ViewBag.ErrorMessage</p>
+                        <table class="display dataTable" id="keytable" role="grid" aria-describedby="keytable_info" style="position: relative;">
+                            <thead>
+                                <tr>
+                                    <th class="col">SNo.</th>
+                                    <th>USERNAME</th>
+                                    <th>FULLNAME</th>
+                                    <th>ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="UsersTableTbody">
+                                @Html.Raw(ViewBag.Users)
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="UsersForm" style="display:none;">
+                        <!--Add Details -->
+                        <div class="col-md-12">
+                            <div class="card rounded-custom">
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <input type="text" class="text-center transparent_text" id="ID" style="display:none" />
+                                        <input type="text" class="text-center transparent_text" id="MenuID" style="display:none" value="@ViewBag.MenuID" />
+                                        <input type="text" class="text-center transparent_text" id="VoucherID" style="display:none" value="@ViewBag.VoucherID" />
+                                        <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5 text-customtitle-primary" style="font-weight: 600;">
+                                            Employee Details
+                                        </h6>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "FirstName", DisplayText = "First Name",IsMandatory = true }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "MiddleName", DisplayText = "Middle Name" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "LastName", DisplayText = "Last Name" ,IsMandatory = true}))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "MobileNo", DisplayText = "Mobile No." ,IsMandatory = true}))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Email", DisplayText = "Email" }))
+                                            </div>
+                                        </div>
+                                         <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "ResidenceNo", DisplayText = "Residence No." }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="row">
+                                                    <div class="col-md-2 pr-0 d-flex align-items-center">
+                                                        <span class="grpspn">Address</span>
+                                                    </div>
+                                                    <div class="col-md-10 pl-0">
+                                                        <input type="text" id="Address" class="form-control Address" data-ismandatory="false">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- DEtails Ends  -->
+                        <!--Add Additional details-->
+                        <div class="col-md-12 mb-4">
+                            <div class="card rounded-custom">
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5 text-customtitle-primary" style="font-weight: 600;">
+                                            Office Details
+                                        </h6>
+                                      @*   <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "EmployeeType", DisplayText = "Employee Type" }))
+                                            </div>
+                                        </div> *@
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "DropDown", ID = "Designation", DisplayText = "Designation" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "ToggleButton", ID = "IsLocationRestrictedUser", DisplayText = "IsLocationRestrictedUser" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "OfficeNo", DisplayText = "Office No." }))
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                        </div>
+                        <!-- Additiona details End-->
+                        <!--Add Login details-->
+                        <div class="col-md-12 mb-4">
+                            <div class="card rounded-custom">
+                                <div class="card-body basic-form">
+                                    <form class="theme-form row g-3">
+                                        <h6 class="py-2 px-3 rounded-top mb-0 border-bottom mb-5 text-customtitle-primary" style="font-weight: 600;">
+                                            Login Details
+                                        </h6>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                    @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "Username", DisplayText = "Username" ,IsMandatory = true}))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                    @(await Component.InvokeAsync("TextBox", new { Type = "Password", ID = "Password", DisplayText = "Password" }))
+                                            </div>
+                                        </div>
+                                         <div class="col-md-4">
+                                            <div class="row">
+                                                    @(await Component.InvokeAsync("TextBox", new { Type = "Normal", ID = "GmailID", DisplayText = "Gmail ID" }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                    @(await Component.InvokeAsync("TextBox",
+                                                        new
+                                                        {
+                                                            Type = "Lookup",
+                                                            ID = "Party",
+                                                            DisplayText = "Account",
+                                                            IDColumn = "AccountID",
+                                                            LookupCriteria = "Suppliers",
+                                                            IDValue = 0,
+                                                            AssignColumn = "Name",
+                                                            IsMandatory = true
+                                                        }))
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="row">
+                                                @(await Component.InvokeAsync("TextBox", new { Type = "ToggleButton", ID = "Active", DisplayText = "Active" }))
+                                            </div>
+                                        </div>
+                                       
+                                    </form>
+                                </div>
+                            </div>
+                                <!-- Login details End-->
+                        <!--Table Starts  -->
+                        <div class="col-sm-12">
+                            <div class="d-flex align-items-center justify-content-between mb-4">
+                                <h6 class="py-2 px-3 rounded-top mb-0 border-bottom text-customtitle-primary"
+                                    style="font-weight: 600;">
+                                    Branch Details
+                                </h6>
+                              <!--<button type="button" id="ClickRoles" onclick="ClickRoles()" style="display:none;" class="btn btn-primary"> Roles </button>-->
+                            </div>
+
+                            <div class="card rounded-custom overflow-hidden">
+                                <div class="table-responsive">
+                                    <table class="table table-light" id="BranchTable">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Active</th>
+                                                <th>Is Main Branch</th>
+                                                <th>Department Name</th>
+                                                <th>Branch Name</th>
+                                                <th>Supervisor</th>
+                                                <th>Set Roles</th>
+                                                <th>Add</th>
+                                                <th>Delete</th>
+                                                <th style="display:none"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="BranchTableTbody">
+                                        </tbody>
+                                       
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!--Item table End-->
+                      
+                    </div>
+                </div>
+               
+            </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+
+<script src="~/assets/custom/General/Users/Users.js"></script>
