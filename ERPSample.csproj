@@ -19,7 +19,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DAL\General\Masters\" />
     <Folder Include="DAL\General\Transactions\" />
     <Folder Include="DAL\Inventory\Transactions\" />
     <!--<Folder Include="wwwroot\Resources\46\Ecommerce\BrandImage\" />-->

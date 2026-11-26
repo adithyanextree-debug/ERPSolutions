@@ -1,5 +1,260 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
+    ViewData["Title"] = "Company Module Mapping";
 }
+
+<div class="container-fluid">
+    <div class="page-title">
+        <div class="row">
+            <div class="col-sm-6 col-12">
+                <h2>Company Module Mapping</h2>
+            </div>
+            <div class="col-sm-6 col-12">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a asp-action="Index" asp-controller="Home">
+                            <i class="iconly-Home icli svg-color"></i>
+                        </a>
+                    </li>
+                    <li class="breadcrumb-item">General</li>
+                    <li class="breadcrumb-item active">Users</li>
+                    <li class="breadcrumb-item active">Company Modules</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="card">
+
+                <div class="list-product-header mt-4">
+                    <div>
+                        @(await Component.InvokeAsync("ToolBar", new
+                        {
+                            PageName = "Company Module Mapping",
+                            AllowNew = ViewBag.UserPermissions.IsCreate,
+                            AllowEdit = ViewBag.UserPermissions.IsEdit,
+                            AllowDelete = ViewBag.UserPermissions.IsDelete,
+                            AllowCopy = false
+                        }))
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- LISTING SECTION -->
+                    <div id="CompanyModulesList">
+                        <div class="table-responsive">
+                            <table class="display table" id="project-status">
+                                <thead>
+                                    <tr>
+                                        <th>SNo.</th>
+                                        <th>Company</th>
+                                        <th>No. of Modules</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="CompanyModulesTable">
+                                    @Html.Raw(ViewBag.CM)
+                                   @*  <tr>
+                                        <td>1</td>
+                                        <td>Company A</td>
+                                        <td>25</td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn btn-primary btn-sm"
+                                                    onclick="EditCompanyModules(1)">
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>Company B</td>
+                                        <td>12</td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn btn-primary btn-sm"
+                                                    onclick="EditCompanyModules(2)">
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>Company C</td>
+                                        <td>0</td>
+                                        <td>
+                                            <button type="button"
+                                                    class="btn btn-primary btn-sm"
+                                                    onclick="EditCompanyModules(3)">
+                                                Edit
+                                            </button>
+                                        </td>
+                                    </tr> *@
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ADD / EDIT FORM -->
+                    <div id="CompanyModulesForm" style="display:none;">
+
+                        <div class="card">
+                            <div class="card-body basic-form">
+
+                                <input type="hidden" id="ID" />
+                                <input type="hidden" id="MenuID" value="@ViewBag.MenuID" />
+
+                                <div class="theme-form row g-3">
+
+                                    <!-- Company -->
+                                    <div class="col-md-6">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3">
+                                                <span class="grpspn">Company</span>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <select class="form-control" id="CompanyID">
+                                                    
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Module Search -->
+                                    <div class="col-md-6">
+                                        <div class="row align-items-center">
+                                            <div class="col-md-3">
+                                                <span class="grpspn">Search Module</span>
+                                            </div>
+                                            <div class="col-md-9">
+                                                <input type="text"
+                                                       class="form-control"
+                                                       id="ModuleSearch"
+                                                       placeholder="Search modules..."
+                                                       onkeyup="SearchModules()" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Module Selection -->
+                                    <div class="col-md-12 mt-4">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <h5>Available Modules</h5>
+                                            <span class="text-muted" id="SelectedModuleCount">
+                                                0 modules selected
+                                            </span>
+                                        </div>
+
+                                        <div class="card border">
+                                            <div class="card-body">
+                                                <div class="row g-3" id="ModuleList">
+
+                                                   @*  <div class="col-md-3 module-item">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input ModuleCheck"
+                                                                   type="checkbox" value="1"
+                                                                   id="Module1" onchange="UpdateModuleCount()">
+                                                            <label class="form-check-label" for="Module1">
+                                                                Accounts
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-3 module-item">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input ModuleCheck"
+                                                                   type="checkbox" value="2"
+                                                                   id="Module2" onchange="UpdateModuleCount()">
+                                                            <label class="form-check-label" for="Module2">
+                                                                Inventory
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-3 module-item">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input ModuleCheck"
+                                                                   type="checkbox" value="3"
+                                                                   id="Module3" onchange="UpdateModuleCount()">
+                                                            <label class="form-check-label" for="Module3">
+                                                                Sales
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-3 module-item">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input ModuleCheck"
+                                                                   type="checkbox" value="4"
+                                                                   id="Module4" onchange="UpdateModuleCount()">
+                                                            <label class="form-check-label" for="Module4">
+                                                                Purchase
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-3 module-item">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input ModuleCheck"
+                                                                   type="checkbox" value="5"
+                                                                   id="Module5" onchange="UpdateModuleCount()">
+                                                            <label class="form-check-label" for="Module5">
+                                                                Payroll
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-3 module-item">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input ModuleCheck"
+                                                                   type="checkbox" value="6"
+                                                                   id="Module6" onchange="UpdateModuleCount()">
+                                                            <label class="form-check-label" for="Module6">
+                                                                HR
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-3 module-item">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input ModuleCheck"
+                                                                   type="checkbox" value="7"
+                                                                   id="Module7" onchange="UpdateModuleCount()">
+                                                            <label class="form-check-label" for="Module7">
+                                                                Production
+                                                            </label>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-md-3 module-item">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input ModuleCheck"
+                                                                   type="checkbox" value="8"
+                                                                   id="Module8" onchange="UpdateModuleCount()">
+                                                            <label class="form-check-label" for="Module8">
+                                                                CRM
+                                                            </label>
+                                                        </div>
+                                                    </div> *@
+
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="~/assets/custom/General/CompanyModules.js"></script>
